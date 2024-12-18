@@ -88,7 +88,6 @@
     </div>
 
     <script>
-        // Load workflow data and state from localStorage
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
         const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {
             taskBubbles: workflowData.map(task => task.id),
