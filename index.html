@@ -9,19 +9,19 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Cityworks Workflow Configurator</h1>
-        <p class="text-center">Upload your Draw.io XML file to view and configure your workflow.</p>
+        <p class="text-center">Upload your Draw.io (.drawio) file to view and configure your workflow.</p>
 
         <!-- File Upload Section -->
         <div class="mb-4">
-            <label for="xmlUpload" class="form-label">Upload XML File:</label>
-            <input type="file" id="xmlUpload" class="form-control" accept=".xml">
+            <label for="drawioUpload" class="form-label">Upload Draw.io File:</label>
+            <input type="file" id="drawioUpload" class="form-control" accept=".drawio">
         </div>
 
         <div class="row">
-            <!-- Diagram Editor Section -->
+            <!-- Diagram Viewer Section -->
             <div class="col-md-6">
-                <h3 class="text-center">Workflow Diagram Editor</h3>
-                <iframe id="diagramEditor" class="w-100" style="height: 500px; border: 1px solid #ddd;"></iframe>
+                <h3 class="text-center">Workflow Diagram Viewer</h3>
+                <iframe id="diagramViewer" class="w-100" style="height: 500px; border: 1px solid #ddd;"></iframe>
             </div>
 
             <!-- Task and Results Section -->
@@ -42,37 +42,32 @@
     </div>
 
     <script>
-        document.getElementById('xmlUpload').addEventListener('change', handleFileUpload);
-        
+        document.getElementById('drawioUpload').addEventListener('change', handleFileUpload);
+
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = function (e) {
-                const xmlContent = e.target.result;
+                const fileContent = e.target.result;
 
-                // Check if the uploaded file contains valid Draw.io data
-                if (!xmlContent.includes('<mxGraphModel>') && !xmlContent.includes('<diagram>')) {
-                    alert("The uploaded file does not contain valid Draw.io data. Please upload a .drawio or valid XML file.");
-                    return;
-                }
+                // Load the Draw.io file into the viewer
+                const encodedDiagram = encodeURIComponent(fileContent);
+                const viewerURL = `https://app.diagrams.net/?embed=1&ui=atlas&target=blank&highlight=0000FF&title=Diagram#R${encodedDiagram}`;
+                document.getElementById('diagramViewer').src = viewerURL;
 
-                processXML(xmlContent);
-
-                // Display the diagram in the Draw.io editor
-                const encodedDiagram = encodeURIComponent(xmlContent);
-                const editorURL = `https://app.diagrams.net/?embed=1&ui=atlas&target=blank&highlight=0000FF&title=Diagram#R${encodedDiagram}`;
-                document.getElementById('diagramEditor').src = editorURL;
+                // Process the .drawio file content as XML to extract tasks
+                processDrawioFile(fileContent);
             };
             reader.readAsText(file);
         }
 
-        function processXML(xmlContent) {
+        function processDrawioFile(fileContent) {
             const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+            const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
 
-            // Extract tasks and results (simplified for frontend-only parsing)
+            // Extract tasks and results from the .drawio file
             const tasks = [];
             xmlDoc.querySelectorAll('mxCell[style*="rounded=1"]').forEach(cell => {
                 const taskName = cell.getAttribute('value') || 'Unnamed Task';
