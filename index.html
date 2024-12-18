@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLL Workflow Configurator</title>
+    <title>Cityworks Workflow Configurator</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
@@ -27,7 +27,7 @@
     <script>
         document.getElementById('drawioUpload').addEventListener('change', handleFileUpload);
 
-        function handleFileUpload(event) {
+        async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -39,12 +39,35 @@
             reader.readAsText(file);
         }
 
+        function extractStatuses(xmlDoc) {
+            const statuses = [];
+
+            xmlDoc.querySelectorAll('mxCell').forEach(cell => {
+                const value = cell.getAttribute('value') || '';
+                const style = cell.getAttribute('style') || '';
+
+                // Identify statuses dynamically based on common style attributes
+                if (style.includes('edgeLabel') && style.includes('align=left') && style.includes('verticalAlign=bottom')) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = value;
+                    const cleanValue = tempDiv.textContent.trim();
+
+                    if (cleanValue && !statuses.includes(cleanValue)) {
+                        statuses.push(cleanValue);
+                    }
+                }
+            });
+
+            return statuses;
+        }
+
         function processDrawioFile(fileContent) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
 
-            const tasks = []; // Store tasks with their connections
-            const connections = []; // Store all connections as { source, text }
+            const statuses = extractStatuses(xmlDoc);
+            const tasks = [];
+            const connections = [];
 
             // Extract connections (lines) from the diagram
             xmlDoc.querySelectorAll('mxCell[edge="1"]').forEach(cell => {
@@ -71,10 +94,10 @@
                 tasks.push({ id: taskId, name: taskName, connections: taskConnections });
             });
 
-            renderTasks(tasks);
+            renderTasks(tasks, statuses);
         }
 
-        function renderTasks(tasks) {
+        function renderTasks(tasks, statuses) {
             const taskContainer = document.getElementById('taskContainer');
             const tasksDiv = document.getElementById('tasks');
             tasksDiv.innerHTML = '';
@@ -95,12 +118,12 @@
                         if (connection !== 'No text associated with this line') {
                             const dropdown = document.createElement('select');
                             dropdown.className = 'form-select mt-1';
-                            dropdown.innerHTML = `
-                                <option value="">Select Status</option>
-                                <option value="Pending">Pending</option>
-                                <option value="In Review">In Review</option>
-                                <option value="Complete">Complete</option>
-                            `;
+
+                            // Populate dropdown with dynamic statuses
+                            dropdown.innerHTML = `<option value="">Select Status</option>`;
+                            statuses.forEach(status => {
+                                dropdown.innerHTML += `<option value="${status}">${status}</option>`;
+                            });
 
                             const connectionText = document.createElement('span');
                             connectionText.innerText = connection;
