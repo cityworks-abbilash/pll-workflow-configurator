@@ -36,6 +36,7 @@
             border-radius: 4px;
             display: none;
             font-size: 0.9em;
+            z-index: 1000;
         }
         .cancel-btn {
             color: red;
@@ -100,10 +101,13 @@
                 const taskResults = task.results
                     .map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`)
                     .join('<br>');
-                tooltip.innerHTML = `<strong>${task.name}</strong><br>${taskResults}`;
-                tooltip.style.display = 'block';
-                tooltip.style.left = `${event.pageX + 10}px`;
-                tooltip.style.top = `${event.pageY + 10}px`;
+
+                if (taskResults) {
+                    tooltip.innerHTML = `<strong>${task.name}</strong><br>${taskResults}`;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = `${event.clientX + 10}px`;
+                    tooltip.style.top = `${event.clientY + 10}px`;
+                }
             });
 
             bubble.addEventListener('mouseout', () => {
