@@ -122,9 +122,13 @@
         const addSubWorkflowBtn = document.getElementById('addSubWorkflow');
         const prevSubWorkflowBtn = document.getElementById('prevSubWorkflow');
         const nextSubWorkflowBtn = document.getElementById('nextSubWorkflow');
+        const infoPanel = document.getElementById('infoPanel');
+        const taskName = document.getElementById('taskName');
+        const taskResults = document.getElementById('taskResults');
 
         restoreState();
 
+        // Add Sub Workflow
         addSubWorkflowBtn.addEventListener('click', () => {
             const newId = workflowState.workflows.subWorkflows.length + 1;
             workflowState.workflows.subWorkflows.push({ id: newId, tasks: [] });
@@ -132,6 +136,7 @@
             updateSubWorkflowUI();
         });
 
+        // Navigate Sub Workflows
         prevSubWorkflowBtn.addEventListener('click', () => {
             if (workflowState.currentSubWorkflowIndex > 0) {
                 workflowState.currentSubWorkflowIndex--;
@@ -154,7 +159,7 @@
             prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
             nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
 
-            subWorkflow.innerHTML = current.tasks
+            subWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${current.id}</h5>` + current.tasks
                 .map(taskId => {
                     const task = workflowData.find(t => t.id === taskId);
                     return task
@@ -170,7 +175,7 @@
         function saveState() {
             workflowState.workflows.mainWorkflow = Array.from(mainWorkflow.children).map(child => child.dataset.id);
             workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex].tasks = Array.from(
-                subWorkflow.children
+                subWorkflow.querySelectorAll('[data-id]')
             ).map(child => child.dataset.id);
             workflowState.workflows.standaloneWorkflow = Array.from(standaloneWorkflow.children).map(
                 child => child.dataset.id
@@ -209,9 +214,29 @@
             bubble.textContent = task.name;
             bubble.dataset.id = task.id;
 
+            bubble.addEventListener('mouseover', () => displayTaskDetails(task));
             bubble.addEventListener('dragstart', event => event.dataTransfer.setData('text', task.id));
 
             taskBubbles.appendChild(bubble);
+        }
+
+        function displayTaskDetails(task) {
+            taskName.innerHTML = `<strong>Task:</strong> ${task.name}`;
+            taskResults.innerHTML = '';
+
+            if (task.results.length > 0) {
+                task.results.forEach(result => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
+                    taskResults.appendChild(listItem);
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = 'No results or statuses available.';
+                taskResults.appendChild(listItem);
+            }
+
+            infoPanel.classList.remove('d-none');
         }
 
         function allowDrop(event) {
