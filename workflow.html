@@ -28,15 +28,11 @@
         .task-bubble:hover {
             background-color: #0056b3;
         }
-        .tooltip {
-            position: absolute;
-            background-color: #333;
-            color: #fff;
-            padding: 5px;
-            border-radius: 4px;
-            display: none;
-            font-size: 0.9em;
-            z-index: 1000;
+        .info-panel {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
         }
         .cancel-btn {
             color: red;
@@ -75,13 +71,20 @@
             <h5>Tasks:</h5>
         </div>
 
-        <!-- Tooltip -->
-        <div id="tooltip" class="tooltip"></div>
+        <!-- Info Panel -->
+        <div id="infoPanel" class="info-panel d-none">
+            <h5>Task Details</h5>
+            <p id="taskName"><strong>Task:</strong> </p>
+            <ul id="taskResults"></ul>
+        </div>
     </div>
 
     <script>
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
         const taskBubbles = document.getElementById('taskBubbles');
+        const infoPanel = document.getElementById('infoPanel');
+        const taskName = document.getElementById('taskName');
+        const taskResults = document.getElementById('taskResults');
 
         // Create task bubbles dynamically
         workflowData.forEach(task => {
@@ -95,31 +98,36 @@
             bubble.textContent = task.name;
             bubble.dataset.id = task.id;
 
-            // Add tooltip for task results and statuses
-            bubble.addEventListener('mouseover', (event) => {
-                const tooltip = document.getElementById('tooltip');
-                const taskResults = task.results
-                    .map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`)
-                    .join('<br>');
-
-                if (taskResults) {
-                    tooltip.innerHTML = `<strong>${task.name}</strong><br>${taskResults}`;
-                    tooltip.style.display = 'block';
-                    tooltip.style.left = `${event.clientX + 10}px`;
-                    tooltip.style.top = `${event.clientY + 10}px`;
-                }
+            // Show task details on hover
+            bubble.addEventListener('mouseover', () => {
+                displayTaskDetails(task);
             });
 
-            bubble.addEventListener('mouseout', () => {
-                const tooltip = document.getElementById('tooltip');
-                tooltip.style.display = 'none';
-            });
-
+            // Allow dragging
             bubble.addEventListener('dragstart', (event) => {
                 event.dataTransfer.setData('text', task.id);
             });
 
             taskBubbles.appendChild(bubble);
+        }
+
+        function displayTaskDetails(task) {
+            taskName.innerHTML = `<strong>Task:</strong> ${task.name}`;
+            taskResults.innerHTML = '';
+
+            if (task.results.length > 0) {
+                task.results.forEach(result => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
+                    taskResults.appendChild(listItem);
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = 'No results or statuses available.';
+                taskResults.appendChild(listItem);
+            }
+
+            infoPanel.classList.remove('d-none');
         }
 
         // Allow dropping in workflow boxes
