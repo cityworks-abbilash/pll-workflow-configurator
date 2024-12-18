@@ -146,13 +146,15 @@
                         const task = workflowData.find(t => t.id === taskId);
                         if (task) addTaskToWorkflowBox(workflowBox, task);
                     });
+                } else if (workflowId.startsWith('subWorkflow')) {
+                    // Restore dynamically added sub workflows
+                    const workflowIndex = parseInt(workflowId.replace('subWorkflow', ''), 10);
+                    if (workflowIndex > subWorkflowCount) {
+                        subWorkflowCount = workflowIndex;
+                    }
+                    addSubWorkflow(false, workflowId);
                 }
             });
-
-            // Restore additional sub workflows
-            for (let i = 2; i <= workflowState.subWorkflowCount; i++) {
-                addSubWorkflow(false);
-            }
         }
 
         function createTaskBubble(task) {
@@ -230,14 +232,15 @@
             if (task) createTaskBubble(task);
         }
 
-        function addSubWorkflow(save = true) {
+        function addSubWorkflow(save = true, workflowId = null) {
             subWorkflowCount++;
             const newSubWorkflow = document.createElement('div');
-            newSubWorkflow.id = `subWorkflow${subWorkflowCount}`;
+            const id = workflowId || `subWorkflow${subWorkflowCount}`;
+            newSubWorkflow.id = id;
             newSubWorkflow.className = 'workflow-box';
             newSubWorkflow.ondragover = allowDrop;
             newSubWorkflow.ondrop = drop;
-            newSubWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${subWorkflowCount}</h5>`;
+            newSubWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${id.replace('subWorkflow', '')}</h5>`;
 
             const newCol = document.createElement('div');
             newCol.className = 'col-md-4';
