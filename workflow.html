@@ -157,7 +157,8 @@
             const current = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
         
             // Update the sub-workflow header
-            subWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${current.id}</h5>`;
+            const header = `<h5 class="text-center">Sub Workflow ${current.id}</h5>`;
+            subWorkflow.innerHTML = header;
         
             // Clear and repopulate tasks for the current sub-workflow
             current.tasks.forEach(taskId => {
