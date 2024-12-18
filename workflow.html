@@ -121,7 +121,9 @@
         function saveState() {
             const workflows = {};
             document.querySelectorAll('.workflow-box').forEach(box => {
-                workflows[box.id] = Array.from(box.children).map(child => child.dataset.id).filter(id => id);
+                workflows[box.id] = Array.from(box.children)
+                    .filter(child => child.dataset.id)
+                    .map(child => child.dataset.id);
             });
 
             const taskBubbleIds = Array.from(taskBubbles.children).map(child => child.dataset.id);
@@ -141,18 +143,15 @@
 
             Object.entries(workflowState.workflows).forEach(([workflowId, taskIds]) => {
                 const workflowBox = document.getElementById(workflowId);
-                if (workflowBox) {
+                if (!workflowBox && workflowId.startsWith('subWorkflow')) {
+                    addSubWorkflow(false, workflowId);
+                }
+                const targetBox = document.getElementById(workflowId);
+                if (targetBox) {
                     taskIds.forEach(taskId => {
                         const task = workflowData.find(t => t.id === taskId);
-                        if (task) addTaskToWorkflowBox(workflowBox, task);
+                        if (task) addTaskToWorkflowBox(targetBox, task);
                     });
-                } else if (workflowId.startsWith('subWorkflow')) {
-                    // Restore dynamically added sub workflows
-                    const workflowIndex = parseInt(workflowId.replace('subWorkflow', ''), 10);
-                    if (workflowIndex > subWorkflowCount) {
-                        subWorkflowCount = workflowIndex;
-                    }
-                    addSubWorkflow(false, workflowId);
                 }
             });
         }
@@ -233,9 +232,8 @@
         }
 
         function addSubWorkflow(save = true, workflowId = null) {
-            subWorkflowCount++;
+            const id = workflowId || `subWorkflow${++subWorkflowCount}`;
             const newSubWorkflow = document.createElement('div');
-            const id = workflowId || `subWorkflow${subWorkflowCount}`;
             newSubWorkflow.id = id;
             newSubWorkflow.className = 'workflow-box';
             newSubWorkflow.ondragover = allowDrop;
