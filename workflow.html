@@ -155,11 +155,12 @@
 
         function updateSubWorkflowUI() {
             const current = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
-            subWorkflow.querySelector('h5').innerText = `Sub Workflow ${current.id}`;
-            prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
-            nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
-
-            subWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${current.id}</h5>` + current.tasks
+        
+            // Update the sub-workflow header
+            subWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${current.id}</h5>`;
+        
+            // Clear and repopulate tasks for the current sub-workflow
+            const taskHtml = current.tasks
                 .map(taskId => {
                     const task = workflowData.find(t => t.id === taskId);
                     return task
@@ -170,41 +171,55 @@
                         : '';
                 })
                 .join('');
+            subWorkflow.innerHTML += taskHtml;
+        
+            // Update navigation button states
+            prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
+            nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
         }
 
+
         function saveState() {
-            workflowState.workflows.mainWorkflow = Array.from(mainWorkflow.children).map(child => child.dataset.id);
+            // Save tasks in each workflow
+            workflowState.workflows.mainWorkflow = Array.from(mainWorkflow.querySelectorAll('[data-id]')).map(child => child.dataset.id);
+        
+            // Save tasks for the active sub-workflow
             workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex].tasks = Array.from(
                 subWorkflow.querySelectorAll('[data-id]')
             ).map(child => child.dataset.id);
-            workflowState.workflows.standaloneWorkflow = Array.from(standaloneWorkflow.children).map(
+        
+            // Save tasks for Standalone Workflow
+            workflowState.workflows.standaloneWorkflow = Array.from(standaloneWorkflow.querySelectorAll('[data-id]')).map(
                 child => child.dataset.id
             );
-
-            const taskBubbleIds = Array.from(taskBubbles.children).map(child => child.dataset.id);
-
-            localStorage.setItem(
-                'workflowState',
-                JSON.stringify({
-                    taskBubbles: taskBubbleIds,
-                    workflows: workflowState.workflows,
-                    currentSubWorkflowIndex: workflowState.currentSubWorkflowIndex
-                })
-            );
+        
+            // Save task bubbles
+            workflowState.taskBubbles = Array.from(taskBubbles.querySelectorAll('[data-id]')).map(child => child.dataset.id);
+        
+            localStorage.setItem('workflowState', JSON.stringify(workflowState));
         }
 
         function restoreState() {
+            // Restore task bubbles
             workflowState.taskBubbles.forEach(taskId => {
                 const task = workflowData.find(t => t.id === taskId);
                 if (task) createTaskBubble(task);
             });
-
+        
+            // Restore Main Workflow tasks
             workflowState.workflows.mainWorkflow.forEach(taskId => {
                 const task = workflowData.find(t => t.id === taskId);
                 if (task) addTaskToWorkflowBox(mainWorkflow, task);
             });
-
+        
+            // Restore tasks for the active sub-workflow
             updateSubWorkflowUI();
+        
+            // Restore Standalone Workflow tasks
+            workflowState.workflows.standaloneWorkflow.forEach(taskId => {
+                const task = workflowData.find(t => t.id === taskId);
+                if (task) addTaskToWorkflowBox(standaloneWorkflow, task);
+            });
         }
 
         function createTaskBubble(task) {
@@ -247,11 +262,35 @@
             event.preventDefault();
             const taskId = event.dataTransfer.getData('text');
             const task = workflowData.find(t => t.id === taskId);
-
+        
             if (task) {
                 const workflowBox = event.target.closest('.workflow-box');
-                addTaskToWorkflowBox(workflowBox, task);
-
+        
+                if (workflowBox === subWorkflow) {
+                    // Add task to the current sub-workflow
+                    const currentSubWorkflow = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
+                    if (!currentSubWorkflow.tasks.includes(taskId)) {
+                        currentSubWorkflow.tasks.push(taskId);
+                        saveState();
+                        updateSubWorkflowUI();
+                    }
+                } else if (workflowBox === mainWorkflow) {
+                    // Add task to Main Workflow
+                    if (!workflowState.workflows.mainWorkflow.includes(taskId)) {
+                        workflowState.workflows.mainWorkflow.push(taskId);
+                        saveState();
+                        addTaskToWorkflowBox(mainWorkflow, task);
+                    }
+                } else if (workflowBox === standaloneWorkflow) {
+                    // Add task to Standalone Workflow
+                    if (!workflowState.workflows.standaloneWorkflow.includes(taskId)) {
+                        workflowState.workflows.standaloneWorkflow.push(taskId);
+                        saveState();
+                        addTaskToWorkflowBox(standaloneWorkflow, task);
+                    }
+                }
+        
+                // Remove the task bubble
                 const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
                 if (bubble) bubble.remove();
             }
