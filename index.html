@@ -62,19 +62,23 @@
         }
 
         function renderDiagramAsImage(fileContent) {
-            const encodedDiagram = encodeURIComponent(fileContent);
-
-            // Use Draw.io Viewer API to generate an image URL
-            const viewerURL = `https://app.diagrams.net/export/svg.xml?s=1&format=svg&base64=0&embed=1&data=${encodedDiagram}`;
-
-            // Create and display an image
-            const diagramViewer = document.getElementById('diagramViewer');
-            diagramViewer.innerHTML = ''; // Clear any previous content
-            const img = document.createElement('img');
-            img.src = viewerURL;
-            img.alt = 'Diagram Viewer';
-            img.style.width = '100%';
-            diagramViewer.appendChild(img);
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
+            const diagramElement = xmlDoc.querySelector('diagram');
+        
+            if (diagramElement) {
+                const decodedData = atob(diagramElement.textContent); // Decode base64 content
+                const svgDoc = new DOMParser().parseFromString(decodedData, 'image/svg+xml');
+                const svgElement = svgDoc.documentElement;
+        
+                // Display the SVG on the page
+                const diagramViewer = document.getElementById('diagramViewer');
+                diagramViewer.innerHTML = ''; // Clear previous content
+                diagramViewer.appendChild(svgElement);
+            } else {
+                const diagramViewer = document.getElementById('diagramViewer');
+                diagramViewer.innerHTML = '<p class="text-danger">Unable to render diagram. Invalid file format.</p>';
+            }
         }
 
         function processDrawioFile(fileContent) {
