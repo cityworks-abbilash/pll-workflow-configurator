@@ -43,6 +43,15 @@
         .back-btn {
             margin-bottom: 20px;
         }
+        .sub-workflow-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .sub-workflow-controls button {
+            margin: 0 5px;
+        }
     </style>
 </head>
 <body>
@@ -63,8 +72,15 @@
                 </div>
             </div>
             <div class="col-md-4">
+                <div>
+                    <button id="addSubWorkflow" class="btn btn-success btn-sm">Add Sub Workflow</button>
+                </div>
                 <div id="subWorkflow" class="workflow-box" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    <h5 class="text-center">Sub Workflow</h5>
+                    <h5 class="text-center">Sub Workflow 1</h5>
+                </div>
+                <div class="sub-workflow-controls">
+                    <button id="prevSubWorkflow" class="btn btn-secondary btn-sm" disabled>←</button>
+                    <button id="nextSubWorkflow" class="btn btn-secondary btn-sm" disabled>→</button>
                 </div>
             </div>
             <div class="col-md-4">
@@ -93,9 +109,10 @@
             taskBubbles: workflowData.map(task => task.id),
             workflows: {
                 mainWorkflow: [],
-                subWorkflow: [],
+                subWorkflows: [{ id: 1, tasks: [] }],
                 standaloneWorkflow: []
-            }
+            },
+            currentSubWorkflowIndex: 0
         };
 
         const taskBubbles = document.getElementById('taskBubbles');
@@ -105,11 +122,47 @@
         const infoPanel = document.getElementById('infoPanel');
         const taskName = document.getElementById('taskName');
         const taskResults = document.getElementById('taskResults');
+        const addSubWorkflowBtn = document.getElementById('addSubWorkflow');
+        const prevSubWorkflowBtn = document.getElementById('prevSubWorkflow');
+        const nextSubWorkflowBtn = document.getElementById('nextSubWorkflow');
 
         // Restore state
         restoreState();
 
-        // Add the Back button functionality
+        // Add Sub Workflow
+        addSubWorkflowBtn.addEventListener('click', () => {
+            const newSubWorkflowId = workflowState.workflows.subWorkflows.length + 1;
+            workflowState.workflows.subWorkflows.push({ id: newSubWorkflowId, tasks: [] });
+            saveState();
+            updateSubWorkflowUI();
+        });
+
+        // Navigate Sub Workflows
+        prevSubWorkflowBtn.addEventListener('click', () => {
+            if (workflowState.currentSubWorkflowIndex > 0) {
+                workflowState.currentSubWorkflowIndex--;
+                saveState();
+                updateSubWorkflowUI();
+            }
+        });
+
+        nextSubWorkflowBtn.addEventListener('click', () => {
+            if (workflowState.currentSubWorkflowIndex < workflowState.workflows.subWorkflows.length - 1) {
+                workflowState.currentSubWorkflowIndex++;
+                saveState();
+                updateSubWorkflowUI();
+            }
+        });
+
+        function updateSubWorkflowUI() {
+            const currentSubWorkflow = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
+            subWorkflow.querySelector('h5').innerText = `Sub Workflow ${currentSubWorkflow.id}`;
+
+            prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
+            nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
+        }
+
+        // Back Button Functionality
         function goBack() {
             saveState();
             window.location.href = 'index.html';
@@ -118,13 +171,22 @@
         function saveState() {
             const workflows = {
                 mainWorkflow: Array.from(mainWorkflow.children).map(child => child.dataset.id),
-                subWorkflow: Array.from(subWorkflow.children).map(child => child.dataset.id),
+                subWorkflows: workflowState.workflows.subWorkflows.map((subWorkflow, index) => {
+                    if (index === workflowState.currentSubWorkflowIndex) {
+                        subWorkflow.tasks = Array.from(subWorkflow.querySelectorAll('[data-id]')).map(child => child.dataset.id);
+                    }
+                    return subWorkflow;
+                }),
                 standaloneWorkflow: Array.from(standaloneWorkflow.children).map(child => child.dataset.id)
             };
 
             const taskBubbleIds = Array.from(taskBubbles.children).map(child => child.dataset.id);
 
-            localStorage.setItem('workflowState', JSON.stringify({ taskBubbles: taskBubbleIds, workflows }));
+            localStorage.setItem('workflowState', JSON.stringify({
+                taskBubbles: taskBubbleIds,
+                workflows,
+                currentSubWorkflowIndex: workflowState.currentSubWorkflowIndex
+            }));
         }
 
         function restoreState() {
@@ -133,13 +195,26 @@
                 if (task) createTaskBubble(task);
             });
 
-            Object.entries(workflowState.workflows).forEach(([workflowId, taskIds]) => {
-                const workflowBox = document.getElementById(workflowId);
-                taskIds.forEach(taskId => {
-                    const task = workflowData.find(t => t.id === taskId);
-                    if (task) addTaskToWorkflowBox(workflowBox, task);
-                });
+            Object.entries(workflowState.workflows).forEach(([workflowId, workflowData]) => {
+                if (workflowId === 'subWorkflows') {
+                    workflowData.forEach((subWorkflow, index) => {
+                        if (index === workflowState.currentSubWorkflowIndex) {
+                            subWorkflow.tasks.forEach(taskId => {
+                                const task = workflowData.find(t => t.id === taskId);
+                                if (task) addTaskToWorkflowBox(subWorkflow, task);
+                            });
+                        }
+                    });
+                } else {
+                    const workflowBox = document.getElementById(workflowId);
+                    workflowData.forEach(taskId => {
+                        const task = workflowData.find(t => t.id === taskId);
+                        if (task) addTaskToWorkflowBox(workflowBox, task);
+                    });
+                }
             });
+
+            updateSubWorkflowUI();
         }
 
         function createTaskBubble(task) {
