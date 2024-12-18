@@ -128,7 +128,6 @@
 
         restoreState();
 
-        // Add Sub Workflow
         addSubWorkflowBtn.addEventListener('click', () => {
             const newId = workflowState.workflows.subWorkflows.length + 1;
             workflowState.workflows.subWorkflows.push({ id: newId, tasks: [] });
@@ -136,11 +135,9 @@
             updateSubWorkflowUI();
         });
 
-        // Navigate Sub Workflows
         prevSubWorkflowBtn.addEventListener('click', () => {
             if (workflowState.currentSubWorkflowIndex > 0) {
                 workflowState.currentSubWorkflowIndex--;
-                saveState();
                 updateSubWorkflowUI();
             }
         });
@@ -148,79 +145,109 @@
         nextSubWorkflowBtn.addEventListener('click', () => {
             if (workflowState.currentSubWorkflowIndex < workflowState.workflows.subWorkflows.length - 1) {
                 workflowState.currentSubWorkflowIndex++;
-                saveState();
                 updateSubWorkflowUI();
             }
         });
 
         function updateSubWorkflowUI() {
             const current = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
-        
-            // Update the sub-workflow header
             subWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${current.id}</h5>`;
-        
-            // Clear existing tasks in the sub-workflow box
-            const taskEntries = Array.from(subWorkflow.querySelectorAll('.mb-2'));
-            taskEntries.forEach(entry => entry.remove());
-        
-            // Append tasks dynamically
+
             current.tasks.forEach(taskId => {
                 const task = workflowData.find(t => t.id === taskId);
                 if (task) addTaskToWorkflowBox(subWorkflow, task);
             });
-        
-            // Update navigation button states
+
             prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
             nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
         }
 
+        function drop(event) {
+            event.preventDefault();
+            const taskId = event.dataTransfer.getData('text');
+            const task = workflowData.find(t => t.id === taskId);
 
+            if (task) {
+                const workflowBox = event.target.closest('.workflow-box');
+                if (workflowBox === subWorkflow) {
+                    const current = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
+                    if (!current.tasks.includes(taskId)) {
+                        current.tasks.push(taskId);
+                        saveState();
+                        updateSubWorkflowUI();
+                    }
+                } else if (workflowBox === mainWorkflow) {
+                    if (!workflowState.workflows.mainWorkflow.includes(taskId)) {
+                        workflowState.workflows.mainWorkflow.push(taskId);
+                        saveState();
+                        addTaskToWorkflowBox(mainWorkflow, task);
+                    }
+                } else if (workflowBox === standaloneWorkflow) {
+                    if (!workflowState.workflows.standaloneWorkflow.includes(taskId)) {
+                        workflowState.workflows.standaloneWorkflow.push(taskId);
+                        saveState();
+                        addTaskToWorkflowBox(standaloneWorkflow, task);
+                    }
+                }
 
+                const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
+                if (bubble) bubble.remove();
+            }
+        }
+
+        function addTaskToWorkflowBox(workflowBox, task) {
+            const taskEntry = document.createElement('div');
+            taskEntry.className = 'mb-2';
+            taskEntry.dataset.id = task.id;
+            taskEntry.innerHTML = `
+                <span>${task.name}</span>
+                <span class="cancel-btn" onclick="returnTask('${task.id}', this)">Cancel</span>
+            `;
+            workflowBox.appendChild(taskEntry);
+        }
+
+        function returnTask(taskId, cancelBtn) {
+            const workflowBox = cancelBtn.closest('.workflow-box');
+            const taskEntry = cancelBtn.parentElement;
+            workflowBox.removeChild(taskEntry);
+
+            if (workflowBox === subWorkflow) {
+                const current = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
+                current.tasks = current.tasks.filter(id => id !== taskId);
+            } else if (workflowBox === mainWorkflow) {
+                workflowState.workflows.mainWorkflow = workflowState.workflows.mainWorkflow.filter(id => id !== taskId);
+            } else if (workflowBox === standaloneWorkflow) {
+                workflowState.workflows.standaloneWorkflow = workflowState.workflows.standaloneWorkflow.filter(id => id !== taskId);
+            }
+
+            saveState();
+            const task = workflowData.find(t => t.id === taskId);
+            if (task) createTaskBubble(task);
+        }
 
         function saveState() {
-            // Save tasks in each workflow
             workflowState.workflows.mainWorkflow = Array.from(mainWorkflow.querySelectorAll('[data-id]')).map(child => child.dataset.id);
-        
-            // Save tasks for the active sub-workflow
-            workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex].tasks = Array.from(
-                subWorkflow.querySelectorAll('[data-id]')
-            ).map(child => child.dataset.id);
-        
-            // Save tasks for Standalone Workflow
-            workflowState.workflows.standaloneWorkflow = Array.from(standaloneWorkflow.querySelectorAll('[data-id]')).map(
-                child => child.dataset.id
-            );
-        
-            // Save task bubbles
+            workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex].tasks = Array.from(subWorkflow.querySelectorAll('[data-id]')).map(child => child.dataset.id);
+            workflowState.workflows.standaloneWorkflow = Array.from(standaloneWorkflow.querySelectorAll('[data-id]')).map(child => child.dataset.id);
+
             workflowState.taskBubbles = Array.from(taskBubbles.querySelectorAll('[data-id]')).map(child => child.dataset.id);
-        
-            localStorage.setItem(
-                'workflowState',
-                JSON.stringify({
-                    taskBubbles: workflowState.taskBubbles,
-                    workflows: workflowState.workflows,
-                    currentSubWorkflowIndex: workflowState.currentSubWorkflowIndex
-                })
-            );
+
+            localStorage.setItem('workflowState', JSON.stringify(workflowState));
         }
 
         function restoreState() {
-            // Restore task bubbles
             workflowState.taskBubbles.forEach(taskId => {
                 const task = workflowData.find(t => t.id === taskId);
                 if (task) createTaskBubble(task);
             });
-        
-            // Restore Main Workflow tasks
+
             workflowState.workflows.mainWorkflow.forEach(taskId => {
                 const task = workflowData.find(t => t.id === taskId);
                 if (task) addTaskToWorkflowBox(mainWorkflow, task);
             });
-        
-            // Restore tasks for the active sub-workflow
+
             updateSubWorkflowUI();
-        
-            // Restore Standalone Workflow tasks
+
             workflowState.workflows.standaloneWorkflow.forEach(taskId => {
                 const task = workflowData.find(t => t.id === taskId);
                 if (task) addTaskToWorkflowBox(standaloneWorkflow, task);
@@ -234,116 +261,9 @@
             bubble.textContent = task.name;
             bubble.dataset.id = task.id;
 
-            bubble.addEventListener('mouseover', () => displayTaskDetails(task));
             bubble.addEventListener('dragstart', event => event.dataTransfer.setData('text', task.id));
 
             taskBubbles.appendChild(bubble);
-        }
-
-        function displayTaskDetails(task) {
-            taskName.innerHTML = `<strong>Task:</strong> ${task.name}`;
-            taskResults.innerHTML = '';
-
-            if (task.results.length > 0) {
-                task.results.forEach(result => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
-                    taskResults.appendChild(listItem);
-                });
-            } else {
-                const listItem = document.createElement('li');
-                listItem.textContent = 'No results or statuses available.';
-                taskResults.appendChild(listItem);
-            }
-
-            infoPanel.classList.remove('d-none');
-        }
-
-        function allowDrop(event) {
-            event.preventDefault();
-        }
-
-        function drop(event) {
-            event.preventDefault();
-            const taskId = event.dataTransfer.getData('text');
-            const task = workflowData.find(t => t.id === taskId);
-        
-            if (task) {
-                const workflowBox = event.target.closest('.workflow-box');
-        
-                if (workflowBox === subWorkflow) {
-                    // Add task to the current sub-workflow
-                    const currentSubWorkflow = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
-                    if (!currentSubWorkflow.tasks.includes(taskId)) {
-                        currentSubWorkflow.tasks.push(taskId);
-                        saveState();
-                        updateSubWorkflowUI(); // Update the UI for the active sub-workflow
-        
-                        // Remove the task bubble only if added to sub-workflow
-                        const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
-                        if (bubble) bubble.remove();
-                    }
-                } else if (workflowBox === mainWorkflow) {
-                    // Add task to Main Workflow
-                    if (!workflowState.workflows.mainWorkflow.includes(taskId)) {
-                        workflowState.workflows.mainWorkflow.push(taskId);
-                        saveState();
-                        addTaskToWorkflowBox(mainWorkflow, task);
-        
-                        // Remove the task bubble
-                        const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
-                        if (bubble) bubble.remove();
-                    }
-                } else if (workflowBox === standaloneWorkflow) {
-                    // Add task to Standalone Workflow
-                    if (!workflowState.workflows.standaloneWorkflow.includes(taskId)) {
-                        workflowState.workflows.standaloneWorkflow.push(taskId);
-                        saveState();
-                        addTaskToWorkflowBox(standaloneWorkflow, task);
-        
-                        // Remove the task bubble
-                        const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
-                        if (bubble) bubble.remove();
-                    }
-                }
-            }
-        }
-
-
-
-        function addTaskToWorkflowBox(workflowBox, task) {
-            const taskEntry = document.createElement('div');
-            taskEntry.className = 'mb-2';
-            taskEntry.dataset.id = task.id;
-            taskEntry.innerHTML = `
-                <span>${task.name}</span>
-                <span class="cancel-btn" onclick="returnTask('${task.id}', this)">Cancel</span>
-            `;
-            workflowBox.appendChild(taskEntry);
-        }
-
-
-        function returnTask(taskId, cancelBtn) {
-            const workflowBox = cancelBtn.closest('.workflow-box');
-            const taskEntry = cancelBtn.parentElement;
-        
-            workflowBox.removeChild(taskEntry);
-        
-            // Remove task from the associated workflow
-            if (workflowBox === subWorkflow) {
-                const currentSubWorkflow = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
-                currentSubWorkflow.tasks = currentSubWorkflow.tasks.filter(id => id !== taskId);
-            } else if (workflowBox === mainWorkflow) {
-                workflowState.workflows.mainWorkflow = workflowState.workflows.mainWorkflow.filter(id => id !== taskId);
-            } else if (workflowBox === standaloneWorkflow) {
-                workflowState.workflows.standaloneWorkflow = workflowState.workflows.standaloneWorkflow.filter(id => id !== taskId);
-            }
-        
-            saveState();
-        
-            // Recreate the task bubble
-            const task = workflowData.find(t => t.id === taskId);
-            if (task) createTaskBubble(task);
         }
 
         function goBack() {
