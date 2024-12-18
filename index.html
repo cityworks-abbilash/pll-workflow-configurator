@@ -54,7 +54,12 @@
             const tasks = [];
             xmlDoc.querySelectorAll('mxCell[style*="rounded=1"]').forEach(cell => {
                 const taskName = cell.getAttribute('value') || 'Unnamed Task';
-                tasks.push(taskName);
+                const style = cell.getAttribute('style') || '';
+            
+                // Exclude shapes with 'shape=startState' or specific text like 'Start'
+                if (!style.includes('shape=startState') && !taskName.toLowerCase().includes('start')) {
+                    tasks.push(taskName);
+                }
             });
 
             renderTasks(tasks);
