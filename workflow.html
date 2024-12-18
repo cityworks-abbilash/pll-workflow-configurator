@@ -157,8 +157,7 @@
             const current = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
         
             // Update the sub-workflow header
-            const header = `<h5 class="text-center">Sub Workflow ${current.id}</h5>`;
-            subWorkflow.innerHTML = header;
+            subWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${current.id}</h5>`;
         
             // Clear and repopulate tasks for the current sub-workflow
             current.tasks.forEach(taskId => {
@@ -170,6 +169,7 @@
             prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
             nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
         }
+
 
 
         function saveState() {
@@ -272,7 +272,7 @@
                     if (!currentSubWorkflow.tasks.includes(taskId)) {
                         currentSubWorkflow.tasks.push(taskId);
                         saveState();
-                        updateSubWorkflowUI();
+                        updateSubWorkflowUI(); // Update UI for sub-workflow
         
                         // Remove the task bubble only if added to sub-workflow
                         const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
@@ -304,6 +304,7 @@
             }
         }
 
+
         function addTaskToWorkflowBox(workflowBox, task) {
             const taskEntry = document.createElement('div');
             taskEntry.className = 'mb-2';
@@ -314,6 +315,7 @@
             `;
             workflowBox.appendChild(taskEntry);
         }
+
 
         function returnTask(taskId, cancelBtn) {
             const workflowBox = cancelBtn.closest('.workflow-box');
