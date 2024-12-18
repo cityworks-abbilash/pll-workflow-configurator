@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cityworks Workflow Configurator</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Cityworks Workflow Configurator</h1>
-        <p class="text-center">Upload your Draw.io (.drawio) file to extract tasks and results.</p>
+        <p class="text-center">Upload your Draw.io (.drawio) file to configure your workflow.</p>
 
         <!-- File Upload Section -->
         <div class="mb-4">
@@ -42,27 +41,9 @@
             const reader = new FileReader();
             reader.onload = function (e) {
                 const fileContent = e.target.result;
-
-                // Extract .drawio file content
-                JSZip.loadAsync(fileContent).then(zip => {
-                    // Locate the diagram.xml file in the ZIP
-                    const diagramFileName = Object.keys(zip.files).find(name => name.endsWith('.xml'));
-
-                    if (!diagramFileName) {
-                        alert('Invalid .drawio file: No XML content found.');
-                        return;
-                    }
-
-                    // Extract and parse the diagram.xml file
-                    zip.files[diagramFileName].async('string').then(xmlContent => {
-                        processDrawioFile(xmlContent); // Extract tasks
-                    });
-                }).catch(err => {
-                    console.error('Failed to parse .drawio file:', err);
-                    alert('Error reading the .drawio file. Please ensure it is valid.');
-                });
+                processDrawioFile(fileContent); // Extract tasks
             };
-            reader.readAsArrayBuffer(file); // Read the file as an ArrayBuffer for JSZip
+            reader.readAsText(file);
         }
 
         function processDrawioFile(fileContent) {
