@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Association</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .workflow-box {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 150px;
+            margin: 10px;
+        }
+        .workflow-box:hover {
+            background-color: #f8f9fa;
+        }
+        .task-bubble {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            margin: 5px;
+            cursor: grab;
+        }
+        .task-bubble:hover {
+            background-color: #0056b3;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            padding: 5px;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Workflow Association</h1>
+        <p class="text-center">Drag task bubbles into the workflow boxes below.</p>
+
+        <!-- Workflow Boxes -->
+        <div class="row">
+            <div class="col-md-4">
+                <div id="mainWorkflow" class="workflow-box" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    <h5 class="text-center">Main Workflow</h5>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div id="subWorkflow" class="workflow-box" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    <h5 class="text-center">Sub Workflow</h5>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div id="standaloneWorkflow" class="workflow-box" ondragover="allowDrop(event)" ondrop="drop(event)">
+                    <h5 class="text-center">Standalone Workflow</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Bubbles -->
+        <div id="taskBubbles" class="mt-5">
+            <h5>Tasks:</h5>
+        </div>
+
+        <!-- Tooltip -->
+        <div id="tooltip" class="tooltip"></div>
+    </div>
+
+    <script>
+        // Load data from localStorage
+        const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
+        const taskBubbles = document.getElementById('taskBubbles');
+
+        // Create task bubbles dynamically
+        workflowData.forEach(task => {
+            const bubble = document.createElement('div');
+            bubble.className = 'task-bubble';
+            bubble.draggable = true;
+            bubble.textContent = task.name;
+            bubble.dataset.id = task.id;
+
+            // Add tooltip for task results and statuses
+            bubble.addEventListener('mouseover', (event) => {
+                const tooltip = document.getElementById('tooltip');
+                const taskResults = task.results.map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`).join('<br>');
+                tooltip.innerHTML = `<strong>${task.name}</strong><br>${taskResults}`;
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${event.pageX + 10}px`;
+                tooltip.style.top = `${event.pageY + 10}px`;
+            });
+
+            bubble.addEventListener('mouseout', () => {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.style.display = 'none';
+            });
+
+            bubble.addEventListener('dragstart', (event) => {
+                event.dataTransfer.setData('text', task.id);
+            });
+
+            taskBubbles.appendChild(bubble);
+        });
+
+        // Allow dropping in workflow boxes
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        // Handle drop event
+        function drop(event) {
+            event.preventDefault();
+            const taskId = event.dataTransfer.getData('text');
+            const task = workflowData.find(t => t.id === taskId);
+
+            if (task) {
+                const workflowBox = event.target.closest('.workflow-box');
+                const taskElement = document.createElement('p');
+                taskElement.textContent = `${task.name}`;
+                workflowBox.appendChild(taskElement);
+            }
+        }
+    </script>
+</body>
+</html>
