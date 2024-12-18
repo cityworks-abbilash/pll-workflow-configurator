@@ -42,38 +42,37 @@
         function processDrawioFile(fileContent) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
-        
+
             const tasks = []; // Store tasks with their connections
-        
+            const connections = []; // Store all connections as { source, text }
+
             // Extract connections (lines) from the diagram
-            const connections = [];
             xmlDoc.querySelectorAll('mxCell[edge="1"]').forEach(cell => {
                 const source = cell.getAttribute('source');
-                const lineText = cell.getAttribute('value') || '';
-        
+                const lineText = cell.getAttribute('value') || 'No text associated with this line';
+
                 if (source) {
                     connections.push({ source, text: lineText.trim() });
                 }
             });
-        
+
             // Extract tasks and associate their connections
             xmlDoc.querySelectorAll('mxCell[style*="rounded=1"]').forEach(cell => {
                 const rawValue = cell.getAttribute('value') || 'Unnamed Task';
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = rawValue;
                 const taskName = tempDiv.textContent.trim(); // Extract plain text
-        
+
                 const taskId = cell.getAttribute('id');
                 const taskConnections = connections
                     .filter(connection => connection.source === taskId)
-                    .map(connection => connection.text || 'No text associated with this line');
-        
+                    .map(connection => connection.text);
+
                 tasks.push({ name: taskName, connections: taskConnections });
             });
-        
+
             renderTasks(tasks);
         }
-
 
         function renderTasks(tasks) {
             const taskContainer = document.getElementById('taskContainer');
@@ -93,7 +92,7 @@
                     const connectionList = document.createElement('ul');
                     task.connections.forEach(connection => {
                         const listItem = document.createElement('li');
-                        listItem.innerText = connection || 'No text associated with this line';
+                        listItem.innerText = connection;
                         connectionList.appendChild(listItem);
                     });
                     taskRow.appendChild(connectionList);
