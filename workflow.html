@@ -100,16 +100,13 @@
                 mainWorkflow: [],
                 subWorkflow1: [],
                 standaloneWorkflow: []
-            }
+            },
+            subWorkflowCount: 1
         };
-        let subWorkflowCount = 1; // Track the number of sub workflows
+
+        let subWorkflowCount = workflowState.subWorkflowCount; // Track the number of sub workflows
 
         const taskBubbles = document.getElementById('taskBubbles');
-        const mainWorkflow = document.getElementById('mainWorkflow');
-        const standaloneWorkflow = document.getElementById('standaloneWorkflow');
-        const infoPanel = document.getElementById('infoPanel');
-        const taskName = document.getElementById('taskName');
-        const taskResults = document.getElementById('taskResults');
         const workflowContainer = document.getElementById('workflowContainer');
 
         // Restore state
@@ -124,12 +121,16 @@
         function saveState() {
             const workflows = {};
             document.querySelectorAll('.workflow-box').forEach(box => {
-                workflows[box.id] = Array.from(box.children).map(child => child.dataset.id);
+                workflows[box.id] = Array.from(box.children).map(child => child.dataset.id).filter(id => id);
             });
 
             const taskBubbleIds = Array.from(taskBubbles.children).map(child => child.dataset.id);
 
-            localStorage.setItem('workflowState', JSON.stringify({ taskBubbles: taskBubbleIds, workflows }));
+            localStorage.setItem('workflowState', JSON.stringify({
+                taskBubbles: taskBubbleIds,
+                workflows,
+                subWorkflowCount
+            }));
         }
 
         function restoreState() {
@@ -147,6 +148,11 @@
                     });
                 }
             });
+
+            // Restore additional sub workflows
+            for (let i = 2; i <= workflowState.subWorkflowCount; i++) {
+                addSubWorkflow(false);
+            }
         }
 
         function createTaskBubble(task) {
@@ -163,6 +169,9 @@
         }
 
         function displayTaskDetails(task) {
+            const taskName = document.getElementById('taskName');
+            const taskResults = document.getElementById('taskResults');
+
             taskName.innerHTML = `<strong>Task:</strong> ${task.name}`;
             taskResults.innerHTML = '';
 
@@ -178,6 +187,7 @@
                 taskResults.appendChild(listItem);
             }
 
+            const infoPanel = document.getElementById('infoPanel');
             infoPanel.classList.remove('d-none');
         }
 
@@ -220,7 +230,7 @@
             if (task) createTaskBubble(task);
         }
 
-        function addSubWorkflow() {
+        function addSubWorkflow(save = true) {
             subWorkflowCount++;
             const newSubWorkflow = document.createElement('div');
             newSubWorkflow.id = `subWorkflow${subWorkflowCount}`;
@@ -234,6 +244,8 @@
             newCol.appendChild(newSubWorkflow);
 
             workflowContainer.appendChild(newCol);
+
+            if (save) saveState();
         }
     </script>
 </body>
