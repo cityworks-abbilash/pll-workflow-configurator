@@ -22,6 +22,11 @@
             <h3>Tasks and Results</h3>
             <div id="tasks" class="mt-3"></div>
         </div>
+
+        <!-- Next Button -->
+        <div class="text-center mt-4">
+            <button id="nextButton" class="btn btn-primary d-none">Next</button>
+        </div>
     </div>
 
     <script>
@@ -100,7 +105,10 @@
         function renderTasks(tasks, statuses) {
             const taskContainer = document.getElementById('taskContainer');
             const tasksDiv = document.getElementById('tasks');
+            const nextButton = document.getElementById('nextButton');
             tasksDiv.innerHTML = '';
+
+            const taskData = []; // Collect data for saving
 
             tasks.forEach(task => {
                 const taskRow = document.createElement('div');
@@ -110,6 +118,8 @@
                 taskLabel.className = 'form-label';
                 taskLabel.innerText = `Task: ${task.name} (ID: ${task.id})`;
                 taskRow.appendChild(taskLabel);
+
+                const taskResults = [];
 
                 if (task.connections.length > 0) {
                     const connectionList = document.createElement('ul');
@@ -131,6 +141,8 @@
 
                             listItem.appendChild(connectionText);
                             listItem.appendChild(dropdown);
+
+                            taskResults.push({ result: connection, status: dropdown });
                         } else {
                             listItem.innerText = connection;
                         }
@@ -145,6 +157,24 @@
                 }
 
                 tasksDiv.appendChild(taskRow);
+                taskData.push({ id: task.id, name: task.name, results: taskResults });
+            });
+
+            nextButton.classList.remove('d-none');
+
+            // Save data to localStorage when Next is clicked
+            nextButton.addEventListener('click', () => {
+                const savedData = taskData.map(task => ({
+                    id: task.id,
+                    name: task.name,
+                    results: task.results.map(result => ({
+                        result: result.result,
+                        status: result.status.value,
+                    })),
+                }));
+
+                localStorage.setItem('workflowData', JSON.stringify(savedData));
+                window.location.href = 'workflow.html'; // Redirect to the next page
             });
 
             taskContainer.classList.remove('d-none');
