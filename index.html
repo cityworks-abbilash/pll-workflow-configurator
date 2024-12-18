@@ -10,7 +10,7 @@
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Cityworks Workflow Configurator</h1>
-        <p class="text-center">Upload your Draw.io (.drawio) file to view and configure your workflow.</p>
+        <p class="text-center">Upload your Draw.io (.drawio) file to extract tasks and results.</p>
 
         <!-- File Upload Section -->
         <div class="mb-4">
@@ -18,21 +18,11 @@
             <input type="file" id="drawioUpload" class="form-control" accept=".drawio">
         </div>
 
-        <div class="row">
-            <!-- Diagram Viewer Section -->
-            <div class="col-md-6">
-                <h3 class="text-center">Workflow Diagram</h3>
-                <div id="diagramViewer" style="border: 1px solid #ddd; height: 500px; overflow: auto;"></div>
-            </div>
-
-            <!-- Task and Results Section -->
-            <div class="col-md-6">
-                <div id="taskContainer" class="d-none">
-                    <h3>Tasks and Results</h3>
-                    <div id="tasks" class="mt-3"></div>
-                    <button id="saveSelections" class="btn btn-primary mt-3">Save Selections</button>
-                </div>
-            </div>
+        <!-- Task and Results Section -->
+        <div id="taskContainer" class="d-none">
+            <h3>Tasks and Results</h3>
+            <div id="tasks" class="mt-3"></div>
+            <button id="saveSelections" class="btn btn-primary mt-3">Save Selections</button>
         </div>
 
         <!-- Saved Data Section -->
@@ -65,7 +55,6 @@
 
                     // Extract and parse the diagram.xml file
                     zip.files[diagramFileName].async('string').then(xmlContent => {
-                        renderDiagramAsImage(xmlContent); // Render diagram
                         processDrawioFile(xmlContent); // Extract tasks
                     });
                 }).catch(err => {
@@ -74,26 +63,6 @@
                 });
             };
             reader.readAsArrayBuffer(file); // Read the file as an ArrayBuffer for JSZip
-        }
-
-        function renderDiagramAsImage(fileContent) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
-            const diagramElement = xmlDoc.querySelector('diagram');
-
-            if (diagramElement) {
-                const decodedData = atob(diagramElement.textContent); // Decode base64 content
-                const svgDoc = new DOMParser().parseFromString(decodedData, 'image/svg+xml');
-                const svgElement = svgDoc.documentElement;
-
-                // Display the SVG on the page
-                const diagramViewer = document.getElementById('diagramViewer');
-                diagramViewer.innerHTML = ''; // Clear previous content
-                diagramViewer.appendChild(svgElement);
-            } else {
-                const diagramViewer = document.getElementById('diagramViewer');
-                diagramViewer.innerHTML = '<p class="text-danger">Unable to render diagram. Invalid file format.</p>';
-            }
         }
 
         function processDrawioFile(fileContent) {
