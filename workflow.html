@@ -119,16 +119,12 @@
         const mainWorkflow = document.getElementById('mainWorkflow');
         const subWorkflow = document.getElementById('subWorkflow');
         const standaloneWorkflow = document.getElementById('standaloneWorkflow');
-        const infoPanel = document.getElementById('infoPanel');
-        const taskName = document.getElementById('taskName');
-        const taskResults = document.getElementById('taskResults');
         const addSubWorkflowBtn = document.getElementById('addSubWorkflow');
         const prevSubWorkflowBtn = document.getElementById('prevSubWorkflow');
         const nextSubWorkflowBtn = document.getElementById('nextSubWorkflow');
 
         restoreState();
 
-        // Add Sub Workflow
         addSubWorkflowBtn.addEventListener('click', () => {
             const newId = workflowState.workflows.subWorkflows.length + 1;
             workflowState.workflows.subWorkflows.push({ id: newId, tasks: [] });
@@ -136,7 +132,6 @@
             updateSubWorkflowUI();
         });
 
-        // Navigate Sub Workflows
         prevSubWorkflowBtn.addEventListener('click', () => {
             if (workflowState.currentSubWorkflowIndex > 0) {
                 workflowState.currentSubWorkflowIndex--;
@@ -156,28 +151,41 @@
         function updateSubWorkflowUI() {
             const current = workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex];
             subWorkflow.querySelector('h5').innerText = `Sub Workflow ${current.id}`;
-
             prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
             nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
-        }
 
-        function goBack() {
-            saveState();
-            window.location.href = 'index.html';
+            subWorkflow.innerHTML = current.tasks
+                .map(taskId => {
+                    const task = workflowData.find(t => t.id === taskId);
+                    return task
+                        ? `<div data-id="${task.id}" class="mb-2">
+                            <span>${task.name}</span>
+                            <span class="cancel-btn" onclick="returnTask('${task.id}', this)">Cancel</span>
+                        </div>`
+                        : '';
+                })
+                .join('');
         }
 
         function saveState() {
             workflowState.workflows.mainWorkflow = Array.from(mainWorkflow.children).map(child => child.dataset.id);
-            workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex].tasks = Array.from(subWorkflow.children).map(child => child.dataset.id);
-            workflowState.workflows.standaloneWorkflow = Array.from(standaloneWorkflow.children).map(child => child.dataset.id);
+            workflowState.workflows.subWorkflows[workflowState.currentSubWorkflowIndex].tasks = Array.from(
+                subWorkflow.children
+            ).map(child => child.dataset.id);
+            workflowState.workflows.standaloneWorkflow = Array.from(standaloneWorkflow.children).map(
+                child => child.dataset.id
+            );
 
             const taskBubbleIds = Array.from(taskBubbles.children).map(child => child.dataset.id);
 
-            localStorage.setItem('workflowState', JSON.stringify({
-                taskBubbles: taskBubbleIds,
-                workflows: workflowState.workflows,
-                currentSubWorkflowIndex: workflowState.currentSubWorkflowIndex
-            }));
+            localStorage.setItem(
+                'workflowState',
+                JSON.stringify({
+                    taskBubbles: taskBubbleIds,
+                    workflows: workflowState.workflows,
+                    currentSubWorkflowIndex: workflowState.currentSubWorkflowIndex
+                })
+            );
         }
 
         function restoreState() {
@@ -191,20 +199,6 @@
                 if (task) addTaskToWorkflowBox(mainWorkflow, task);
             });
 
-            workflowState.workflows.subWorkflows.forEach((subWorkflowData, index) => {
-                if (index === workflowState.currentSubWorkflowIndex) {
-                    subWorkflowData.tasks.forEach(taskId => {
-                        const task = workflowData.find(t => t.id === taskId);
-                        if (task) addTaskToWorkflowBox(subWorkflow, task);
-                    });
-                }
-            });
-
-            workflowState.workflows.standaloneWorkflow.forEach(taskId => {
-                const task = workflowData.find(t => t.id === taskId);
-                if (task) addTaskToWorkflowBox(standaloneWorkflow, task);
-            });
-
             updateSubWorkflowUI();
         }
 
@@ -215,29 +209,9 @@
             bubble.textContent = task.name;
             bubble.dataset.id = task.id;
 
-            bubble.addEventListener('mouseover', () => displayTaskDetails(task));
             bubble.addEventListener('dragstart', event => event.dataTransfer.setData('text', task.id));
 
             taskBubbles.appendChild(bubble);
-        }
-
-        function displayTaskDetails(task) {
-            taskName.innerHTML = `<strong>Task:</strong> ${task.name}`;
-            taskResults.innerHTML = '';
-
-            if (task.results.length > 0) {
-                task.results.forEach(result => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
-                    taskResults.appendChild(listItem);
-                });
-            } else {
-                const listItem = document.createElement('li');
-                listItem.textContent = 'No results or statuses available.';
-                taskResults.appendChild(listItem);
-            }
-
-            infoPanel.classList.remove('d-none');
         }
 
         function allowDrop(event) {
@@ -277,6 +251,11 @@
 
             const task = workflowData.find(t => t.id === taskId);
             if (task) createTaskBubble(task);
+        }
+
+        function goBack() {
+            saveState();
+            window.location.href = 'index.html';
         }
     </script>
 </body>
