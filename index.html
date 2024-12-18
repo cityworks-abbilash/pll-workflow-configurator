@@ -33,9 +33,9 @@
     <script>
         // Check if file data exists in localStorage
         const storedFileData = localStorage.getItem('fileContent');
-        const storedWorkflowData = localStorage.getItem('workflowData');
+        const storedWorkflowData = JSON.parse(localStorage.getItem('workflowData') || '[]');
 
-        if (storedFileData && storedWorkflowData) {
+        if (storedFileData && storedWorkflowData.length > 0) {
             processDrawioFile(storedFileData, true);
         }
 
@@ -157,6 +157,13 @@
                             statuses.forEach(status => {
                                 dropdown.innerHTML += `<option value="${status}">${status}</option>`;
                             });
+
+                            // Preselect saved status if restoring
+                            const savedTask = storedWorkflowData.find(t => t.id === task.id);
+                            const savedResult = savedTask?.results.find(r => r.result === connection);
+                            if (savedResult?.status) {
+                                dropdown.value = savedResult.status;
+                            }
 
                             const connectionText = document.createElement('span');
                             connectionText.innerText = connection;
