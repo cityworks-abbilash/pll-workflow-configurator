@@ -20,8 +20,8 @@
         <div class="row">
             <!-- Diagram Viewer Section -->
             <div class="col-md-6">
-                <h3 class="text-center">Workflow Diagram Viewer</h3>
-                <iframe id="diagramViewer" class="w-100" style="height: 500px; border: 1px solid #ddd;"></iframe>
+                <h3 class="text-center">Workflow Diagram</h3>
+                <div id="diagramViewer" style="border: 1px solid #ddd; height: 500px; overflow: auto;"></div>
             </div>
 
             <!-- Task and Results Section -->
@@ -52,15 +52,29 @@
             reader.onload = function (e) {
                 const fileContent = e.target.result;
 
-                // Load the Draw.io file into the viewer
-                const encodedDiagram = encodeURIComponent(fileContent);
-                const viewerURL = `https://app.diagrams.net/?embed=1&ui=atlas&target=blank&highlight=0000FF&title=Diagram#R${encodedDiagram}`;
-                document.getElementById('diagramViewer').src = viewerURL;
+                // Render the diagram as an image
+                renderDiagramAsImage(fileContent);
 
-                // Process the .drawio file content as XML to extract tasks
+                // Process the .drawio file content to extract tasks
                 processDrawioFile(fileContent);
             };
             reader.readAsText(file);
+        }
+
+        function renderDiagramAsImage(fileContent) {
+            const encodedDiagram = encodeURIComponent(fileContent);
+
+            // Use Draw.io Viewer API to generate an image URL
+            const viewerURL = `https://app.diagrams.net/export/svg.xml?s=1&format=svg&base64=0&embed=1&data=${encodedDiagram}`;
+
+            // Create and display an image
+            const diagramViewer = document.getElementById('diagramViewer');
+            diagramViewer.innerHTML = ''; // Clear any previous content
+            const img = document.createElement('img');
+            img.src = viewerURL;
+            img.alt = 'Diagram Viewer';
+            img.style.width = '100%';
+            diagramViewer.appendChild(img);
         }
 
         function processDrawioFile(fileContent) {
