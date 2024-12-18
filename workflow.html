@@ -37,6 +37,12 @@
             display: none;
             font-size: 0.9em;
         }
+        .cancel-btn {
+            color: red;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -73,12 +79,15 @@
     </div>
 
     <script>
-        // Load data from localStorage
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
         const taskBubbles = document.getElementById('taskBubbles');
 
         // Create task bubbles dynamically
         workflowData.forEach(task => {
+            createTaskBubble(task);
+        });
+
+        function createTaskBubble(task) {
             const bubble = document.createElement('div');
             bubble.className = 'task-bubble';
             bubble.draggable = true;
@@ -88,7 +97,9 @@
             // Add tooltip for task results and statuses
             bubble.addEventListener('mouseover', (event) => {
                 const tooltip = document.getElementById('tooltip');
-                const taskResults = task.results.map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`).join('<br>');
+                const taskResults = task.results
+                    .map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`)
+                    .join('<br>');
                 tooltip.innerHTML = `<strong>${task.name}</strong><br>${taskResults}`;
                 tooltip.style.display = 'block';
                 tooltip.style.left = `${event.pageX + 10}px`;
@@ -105,7 +116,7 @@
             });
 
             taskBubbles.appendChild(bubble);
-        });
+        }
 
         // Allow dropping in workflow boxes
         function allowDrop(event) {
@@ -120,9 +131,37 @@
 
             if (task) {
                 const workflowBox = event.target.closest('.workflow-box');
-                const taskElement = document.createElement('p');
-                taskElement.textContent = `${task.name}`;
-                workflowBox.appendChild(taskElement);
+
+                // Create a task entry with a cancel button
+                const taskEntry = document.createElement('div');
+                taskEntry.className = 'mb-2';
+                taskEntry.innerHTML = `
+                    <span>${task.name}</span>
+                    <span class="cancel-btn" onclick="returnTask('${taskId}', this)">Cancel</span>
+                `;
+
+                workflowBox.appendChild(taskEntry);
+
+                // Remove the bubble from the bottom list
+                const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
+                if (bubble) {
+                    bubble.remove();
+                }
+            }
+        }
+
+        // Return task to bottom list
+        function returnTask(taskId, cancelBtn) {
+            const workflowBox = cancelBtn.closest('.workflow-box');
+            const taskEntry = cancelBtn.parentElement;
+
+            // Remove task entry from the workflow box
+            workflowBox.removeChild(taskEntry);
+
+            // Recreate the bubble in the bottom list
+            const task = workflowData.find(t => t.id === taskId);
+            if (task) {
+                createTaskBubble(task);
             }
         }
     </script>
