@@ -159,7 +159,11 @@
             // Update the sub-workflow header
             subWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${current.id}</h5>`;
         
-            // Clear and repopulate tasks for the current sub-workflow
+            // Clear existing tasks in the sub-workflow box
+            const taskEntries = Array.from(subWorkflow.querySelectorAll('.mb-2'));
+            taskEntries.forEach(entry => entry.remove());
+        
+            // Append tasks dynamically
             current.tasks.forEach(taskId => {
                 const task = workflowData.find(t => t.id === taskId);
                 if (task) addTaskToWorkflowBox(subWorkflow, task);
@@ -169,6 +173,7 @@
             prevSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === 0;
             nextSubWorkflowBtn.disabled = workflowState.currentSubWorkflowIndex === workflowState.workflows.subWorkflows.length - 1;
         }
+
 
 
 
@@ -272,7 +277,7 @@
                     if (!currentSubWorkflow.tasks.includes(taskId)) {
                         currentSubWorkflow.tasks.push(taskId);
                         saveState();
-                        updateSubWorkflowUI(); // Update UI for sub-workflow
+                        updateSubWorkflowUI(); // Update the UI for the active sub-workflow
         
                         // Remove the task bubble only if added to sub-workflow
                         const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
@@ -303,6 +308,7 @@
                 }
             }
         }
+
 
 
         function addTaskToWorkflowBox(workflowBox, task) {
