@@ -68,7 +68,7 @@
                     .filter(connection => connection.source === taskId)
                     .map(connection => connection.text);
 
-                tasks.push({ name: taskName, connections: taskConnections });
+                tasks.push({ id: taskId, name: taskName, connections: taskConnections });
             });
 
             renderTasks(tasks);
@@ -85,7 +85,7 @@
 
                 const taskLabel = document.createElement('label');
                 taskLabel.className = 'form-label';
-                taskLabel.innerText = `Task: ${task.name}`;
+                taskLabel.innerText = `Task: ${task.name} (ID: ${task.id})`;
                 taskRow.appendChild(taskLabel);
 
                 if (task.connections.length > 0) {
