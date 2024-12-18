@@ -42,38 +42,38 @@
         function processDrawioFile(fileContent) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
-
+        
             const tasks = []; // Store tasks with their connections
-            const connections = {}; // Map source IDs to lines
-
+        
             // Extract connections (lines) from the diagram
+            const connections = [];
             xmlDoc.querySelectorAll('mxCell[edge="1"]').forEach(cell => {
                 const source = cell.getAttribute('source');
                 const lineText = cell.getAttribute('value') || '';
-
+        
                 if (source) {
-                    if (!connections[source]) {
-                        connections[source] = [];
-                    }
-                    connections[source].push(lineText.trim());
+                    connections.push({ source, text: lineText.trim() });
                 }
             });
-
+        
             // Extract tasks and associate their connections
             xmlDoc.querySelectorAll('mxCell[style*="rounded=1"]').forEach(cell => {
                 const rawValue = cell.getAttribute('value') || 'Unnamed Task';
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = rawValue;
                 const taskName = tempDiv.textContent.trim(); // Extract plain text
-
+        
                 const taskId = cell.getAttribute('id');
-                const taskConnections = connections[taskId] || [];
-
+                const taskConnections = connections
+                    .filter(connection => connection.source === taskId)
+                    .map(connection => connection.text || 'No text associated with this line');
+        
                 tasks.push({ name: taskName, connections: taskConnections });
             });
-
+        
             renderTasks(tasks);
         }
+
 
         function renderTasks(tasks) {
             const taskContainer = document.getElementById('taskContainer');
