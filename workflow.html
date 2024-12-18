@@ -40,10 +40,18 @@
             font-size: 0.8em;
             margin-left: 10px;
         }
+        .back-btn {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
+        <!-- Back Button -->
+        <div>
+            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
+        </div>
+
         <h1 class="text-center">Workflow Association</h1>
         <p class="text-center">Drag task bubbles into the workflow boxes below.</p>
 
@@ -80,16 +88,60 @@
     </div>
 
     <script>
+        // Load workflow data and state from localStorage
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
+        const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {
+            taskBubbles: workflowData.map(task => task.id),
+            workflows: {
+                mainWorkflow: [],
+                subWorkflow: [],
+                standaloneWorkflow: []
+            }
+        };
+
         const taskBubbles = document.getElementById('taskBubbles');
+        const mainWorkflow = document.getElementById('mainWorkflow');
+        const subWorkflow = document.getElementById('subWorkflow');
+        const standaloneWorkflow = document.getElementById('standaloneWorkflow');
         const infoPanel = document.getElementById('infoPanel');
         const taskName = document.getElementById('taskName');
         const taskResults = document.getElementById('taskResults');
 
-        // Create task bubbles dynamically
-        workflowData.forEach(task => {
-            createTaskBubble(task);
-        });
+        // Restore state
+        restoreState();
+
+        // Add the Back button functionality
+        function goBack() {
+            saveState();
+            window.location.href = 'index.html';
+        }
+
+        function saveState() {
+            const workflows = {
+                mainWorkflow: Array.from(mainWorkflow.children).map(child => child.dataset.id),
+                subWorkflow: Array.from(subWorkflow.children).map(child => child.dataset.id),
+                standaloneWorkflow: Array.from(standaloneWorkflow.children).map(child => child.dataset.id)
+            };
+
+            const taskBubbleIds = Array.from(taskBubbles.children).map(child => child.dataset.id);
+
+            localStorage.setItem('workflowState', JSON.stringify({ taskBubbles: taskBubbleIds, workflows }));
+        }
+
+        function restoreState() {
+            workflowState.taskBubbles.forEach(taskId => {
+                const task = workflowData.find(t => t.id === taskId);
+                if (task) createTaskBubble(task);
+            });
+
+            Object.entries(workflowState.workflows).forEach(([workflowId, taskIds]) => {
+                const workflowBox = document.getElementById(workflowId);
+                taskIds.forEach(taskId => {
+                    const task = workflowData.find(t => t.id === taskId);
+                    if (task) addTaskToWorkflowBox(workflowBox, task);
+                });
+            });
+        }
 
         function createTaskBubble(task) {
             const bubble = document.createElement('div');
@@ -98,15 +150,8 @@
             bubble.textContent = task.name;
             bubble.dataset.id = task.id;
 
-            // Show task details on hover
-            bubble.addEventListener('mouseover', () => {
-                displayTaskDetails(task);
-            });
-
-            // Allow dragging
-            bubble.addEventListener('dragstart', (event) => {
-                event.dataTransfer.setData('text', task.id);
-            });
+            bubble.addEventListener('mouseover', () => displayTaskDetails(task));
+            bubble.addEventListener('dragstart', event => event.dataTransfer.setData('text', task.id));
 
             taskBubbles.appendChild(bubble);
         }
@@ -130,12 +175,10 @@
             infoPanel.classList.remove('d-none');
         }
 
-        // Allow dropping in workflow boxes
         function allowDrop(event) {
             event.preventDefault();
         }
 
-        // Handle drop event
         function drop(event) {
             event.preventDefault();
             const taskId = event.dataTransfer.getData('text');
@@ -143,38 +186,32 @@
 
             if (task) {
                 const workflowBox = event.target.closest('.workflow-box');
+                addTaskToWorkflowBox(workflowBox, task);
 
-                // Create a task entry with a cancel button
-                const taskEntry = document.createElement('div');
-                taskEntry.className = 'mb-2';
-                taskEntry.innerHTML = `
-                    <span>${task.name}</span>
-                    <span class="cancel-btn" onclick="returnTask('${taskId}', this)">Cancel</span>
-                `;
-
-                workflowBox.appendChild(taskEntry);
-
-                // Remove the bubble from the bottom list
                 const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
-                if (bubble) {
-                    bubble.remove();
-                }
+                if (bubble) bubble.remove();
             }
         }
 
-        // Return task to bottom list
+        function addTaskToWorkflowBox(workflowBox, task) {
+            const taskEntry = document.createElement('div');
+            taskEntry.className = 'mb-2';
+            taskEntry.dataset.id = task.id;
+            taskEntry.innerHTML = `
+                <span>${task.name}</span>
+                <span class="cancel-btn" onclick="returnTask('${task.id}', this)">Cancel</span>
+            `;
+            workflowBox.appendChild(taskEntry);
+        }
+
         function returnTask(taskId, cancelBtn) {
             const workflowBox = cancelBtn.closest('.workflow-box');
             const taskEntry = cancelBtn.parentElement;
 
-            // Remove task entry from the workflow box
             workflowBox.removeChild(taskEntry);
 
-            // Recreate the bubble in the bottom list
             const task = workflowData.find(t => t.id === taskId);
-            if (task) {
-                createTaskBubble(task);
-            }
+            if (task) createTaskBubble(task);
         }
     </script>
 </body>
