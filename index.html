@@ -21,13 +21,6 @@
         <div id="taskContainer" class="d-none">
             <h3>Tasks and Results</h3>
             <div id="tasks" class="mt-3"></div>
-            <button id="saveSelections" class="btn btn-primary mt-3">Save Selections</button>
-        </div>
-
-        <!-- Saved Data Section -->
-        <div id="savedData" class="d-none mt-5">
-            <h3>Saved Selections</h3>
-            <pre id="output" class="bg-light p-3"></pre>
         </div>
     </div>
 
@@ -41,7 +34,7 @@
             const reader = new FileReader();
             reader.onload = function (e) {
                 const fileContent = e.target.result;
-                processDrawioFile(fileContent); // Extract tasks
+                processDrawioFile(fileContent); // Extract tasks and lines
             };
             reader.readAsText(file);
         }
@@ -50,20 +43,33 @@
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
 
-            // Extract tasks and results from the .drawio file
-            const tasks = [];
+            const tasks = []; // Store tasks with their connections
+            const connections = {}; // Map source IDs to lines
+
+            // Extract connections (lines) from the diagram
+            xmlDoc.querySelectorAll('mxCell[edge="1"]').forEach(cell => {
+                const source = cell.getAttribute('source');
+                const lineText = cell.getAttribute('value') || '';
+
+                if (source) {
+                    if (!connections[source]) {
+                        connections[source] = [];
+                    }
+                    connections[source].push(lineText.trim());
+                }
+            });
+
+            // Extract tasks and associate their connections
             xmlDoc.querySelectorAll('mxCell[style*="rounded=1"]').forEach(cell => {
                 const rawValue = cell.getAttribute('value') || 'Unnamed Task';
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = rawValue;
                 const taskName = tempDiv.textContent.trim(); // Extract plain text
 
-                const style = cell.getAttribute('style') || '';
-            
-                // Exclude shapes with 'shape=startState' or specific text like 'Start'
-                if (!style.includes('shape=startState') && !taskName.toLowerCase().includes('start')) {
-                    tasks.push(taskName);
-                }
+                const taskId = cell.getAttribute('id');
+                const taskConnections = connections[taskId] || [];
+
+                tasks.push({ name: taskName, connections: taskConnections });
             });
 
             renderTasks(tasks);
@@ -80,44 +86,23 @@
 
                 const taskLabel = document.createElement('label');
                 taskLabel.className = 'form-label';
-                taskLabel.innerText = `Task: ${task}`;
+                taskLabel.innerText = `Task: ${task.name}`;
                 taskRow.appendChild(taskLabel);
 
-                const statusSelect = document.createElement('select');
-                statusSelect.className = 'form-select';
-                statusSelect.innerHTML = `
-                    <option value="">Select Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Complete">Complete</option>
-                    <option value="In Review">In Review</option>
-                `;
-                taskRow.appendChild(statusSelect);
+                if (task.connections.length > 0) {
+                    const connectionList = document.createElement('ul');
+                    task.connections.forEach(connection => {
+                        const listItem = document.createElement('li');
+                        listItem.innerText = connection || 'No text associated with this line';
+                        connectionList.appendChild(listItem);
+                    });
+                    taskRow.appendChild(connectionList);
+                }
 
                 tasksDiv.appendChild(taskRow);
             });
 
             taskContainer.classList.remove('d-none');
-        }
-
-        document.getElementById('saveSelections').addEventListener('click', () => {
-            const tasksDiv = document.getElementById('tasks');
-            const taskRows = tasksDiv.querySelectorAll('.task-row');
-
-            const savedSelections = Array.from(taskRows).map(row => {
-                const task = row.querySelector('label').innerText.replace('Task: ', '');
-                const status = row.querySelector('select').value || 'No Status';
-                return { task, status };
-            });
-
-            displaySavedData(savedSelections);
-        });
-
-        function displaySavedData(data) {
-            const savedData = document.getElementById('savedData');
-            const output = document.getElementById('output');
-
-            output.textContent = JSON.stringify(data, null, 2);
-            savedData.classList.remove('d-none');
         }
     </script>
 </body>
