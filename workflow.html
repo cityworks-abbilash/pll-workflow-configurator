@@ -60,16 +60,24 @@
             background-color: darkred;
         }
         .back-btn {
-            margin-bottom: 20px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .next-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container mt-5">
         <!-- Back Button -->
-        <div>
-            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
-        </div>
+        <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
+        
+        <!-- Next Button -->
+        <button class="btn btn-success next-btn" onclick="goToNextPage()">Next</button>
 
         <h1 class="text-center">Workflow Association</h1>
         <p class="text-center">Drag task bubbles into the workflow boxes below.</p>
@@ -108,11 +116,6 @@
             <h5>Task Details</h5>
             <p id="taskName"><strong>Task:</strong> </p>
             <ul id="taskResults"></ul>
-        </div>
-
-        <!-- Next Button -->
-        <div class="text-center mt-4">
-            <button class="btn btn-success" onclick="goToNextPage()">Next</button>
         </div>
     </div>
 
