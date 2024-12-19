@@ -257,7 +257,19 @@
             newSubWorkflow.className = 'workflow-box';
             newSubWorkflow.ondragover = allowDrop;
             newSubWorkflow.ondrop = drop;
-            newSubWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${id.replace('subWorkflow', '')}</h5>`;
+
+            // Add a close button to the subworkflow
+            const closeButton = document.createElement('button');
+            closeButton.className = 'remove-btn';
+            closeButton.innerHTML = 'X';
+            closeButton.onclick = () => removeSubWorkflow(id);
+            newSubWorkflow.appendChild(closeButton);
+
+            // Add a title to the subworkflow
+            const title = document.createElement('h5');
+            title.className = 'text-center';
+            title.textContent = `Sub Workflow ${id.replace('subWorkflow', '')}`;
+            newSubWorkflow.appendChild(title);
 
             const newCol = document.createElement('div');
             newCol.className = 'col-md-4';
@@ -267,6 +279,7 @@
 
             if (save) saveState();
         }
+
 
         function removeSubWorkflow(id) {
             const workflowBox = document.getElementById(id);
@@ -282,8 +295,10 @@
                 // Remove the workflow box
                 workflowBox.parentElement.remove();
 
-                // Adjust numbering and IDs
+                // Update workflow state
                 delete workflowState.workflows[id];
+
+                // Reorganize numbering of subworkflows
                 const subWorkflows = Array.from(document.querySelectorAll('.workflow-box')).filter(box => box.id.startsWith('subWorkflow'));
                 subWorkflows.sort((a, b) => parseInt(a.id.replace('subWorkflow', ''), 10) - parseInt(b.id.replace('subWorkflow', ''), 10));
 
