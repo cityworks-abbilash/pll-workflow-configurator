@@ -40,6 +40,10 @@
 
         // Restore data and populate UI
         function restoreMilestones() {
+            if (!workflowState.milestones) {
+                workflowState.milestones = {};
+            }
+
             Object.entries(workflowState.workflows || {}).forEach(([workflowId, taskIds]) => {
                 if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
 
@@ -47,7 +51,9 @@
                 workflowSection.className = 'workflow-section';
 
                 const workflowTitle = document.createElement('h5');
-                workflowTitle.textContent = workflowId === 'mainWorkflow' ? 'Main Workflow' : workflowId.replace('subWorkflow', 'Sub Workflow ');
+                workflowTitle.textContent = workflowId === 'mainWorkflow' 
+                    ? 'Main Workflow' 
+                    : workflowId.replace('subWorkflow', 'Sub Workflow ');
                 workflowSection.appendChild(workflowTitle);
 
                 taskIds.forEach(taskId => {
@@ -56,6 +62,7 @@
 
                     const taskRow = document.createElement('div');
                     taskRow.className = 'mb-3';
+                    taskRow.dataset.id = taskId; // Keep task ID behind the scenes
 
                     const taskLabel = document.createElement('span');
                     taskLabel.textContent = `Task: ${taskName}`;
@@ -75,7 +82,6 @@
                     taskNumberInput.style.width = '150px';
                     taskNumberInput.value = milestoneData.taskNumber;
 
-                    // Save on input
                     milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
                     taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
 
@@ -95,6 +101,7 @@
             if (!workflowState.milestones) {
                 workflowState.milestones = {};
             }
+
             workflowState.milestones[taskId] = { milestone, taskNumber };
             localStorage.setItem('workflowState', JSON.stringify(workflowState));
         }
