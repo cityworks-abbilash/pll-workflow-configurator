@@ -38,56 +38,59 @@
         }, {});
         const taskGroupsContainer = document.getElementById('taskGroups');
 
-        // Populate tasks
-        Object.entries(workflowState.workflows || {}).forEach(([workflowId, taskIds]) => {
-            if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
+        // Restore data and populate UI
+        function restoreMilestones() {
+            Object.entries(workflowState.workflows || {}).forEach(([workflowId, taskIds]) => {
+                if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
 
-            const workflowSection = document.createElement('div');
-            workflowSection.className = 'workflow-section';
+                const workflowSection = document.createElement('div');
+                workflowSection.className = 'workflow-section';
 
-            const workflowTitle = document.createElement('h5');
-            workflowTitle.textContent = workflowId === 'mainWorkflow' ? 'Main Workflow' : workflowId.replace('subWorkflow', 'Sub Workflow ');
-            workflowSection.appendChild(workflowTitle);
+                const workflowTitle = document.createElement('h5');
+                workflowTitle.textContent = workflowId === 'mainWorkflow' ? 'Main Workflow' : workflowId.replace('subWorkflow', 'Sub Workflow ');
+                workflowSection.appendChild(workflowTitle);
 
-            taskIds.forEach(taskId => {
-                const taskName = taskMap[taskId] || 'Unnamed Task';
-                const milestoneData = workflowState.milestones?.[taskId] || { milestone: '', taskNumber: '' };
+                taskIds.forEach(taskId => {
+                    const taskName = taskMap[taskId] || 'Unnamed Task';
+                    const milestoneData = workflowState.milestones?.[taskId] || { milestone: '', taskNumber: '' };
 
-                const taskRow = document.createElement('div');
-                taskRow.className = 'mb-3';
+                    const taskRow = document.createElement('div');
+                    taskRow.className = 'mb-3';
 
-                const taskLabel = document.createElement('span');
-                taskLabel.textContent = `Task: ${taskName}`;
-                taskLabel.className = 'me-3';
+                    const taskLabel = document.createElement('span');
+                    taskLabel.textContent = `Task: ${taskName}`;
+                    taskLabel.className = 'me-3';
 
-                const milestoneInput = document.createElement('input');
-                milestoneInput.type = 'number';
-                milestoneInput.placeholder = 'Milestone';
-                milestoneInput.className = 'form-control d-inline-block me-3';
-                milestoneInput.style.width = '150px';
-                milestoneInput.value = milestoneData.milestone;
+                    const milestoneInput = document.createElement('input');
+                    milestoneInput.type = 'number';
+                    milestoneInput.placeholder = 'Milestone';
+                    milestoneInput.className = 'form-control d-inline-block me-3';
+                    milestoneInput.style.width = '150px';
+                    milestoneInput.value = milestoneData.milestone;
 
-                const taskNumberInput = document.createElement('input');
-                taskNumberInput.type = 'number';
-                taskNumberInput.placeholder = 'Task Number';
-                taskNumberInput.className = 'form-control d-inline-block';
-                taskNumberInput.style.width = '150px';
-                taskNumberInput.value = milestoneData.taskNumber;
+                    const taskNumberInput = document.createElement('input');
+                    taskNumberInput.type = 'number';
+                    taskNumberInput.placeholder = 'Task Number';
+                    taskNumberInput.className = 'form-control d-inline-block';
+                    taskNumberInput.style.width = '150px';
+                    taskNumberInput.value = milestoneData.taskNumber;
 
-                // Save data on input
-                milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
-                taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+                    // Save on input
+                    milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+                    taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
 
-                taskRow.appendChild(taskLabel);
-                taskRow.appendChild(milestoneInput);
-                taskRow.appendChild(taskNumberInput);
+                    taskRow.appendChild(taskLabel);
+                    taskRow.appendChild(milestoneInput);
+                    taskRow.appendChild(taskNumberInput);
 
-                workflowSection.appendChild(taskRow);
+                    workflowSection.appendChild(taskRow);
+                });
+
+                taskGroupsContainer.appendChild(workflowSection);
             });
+        }
 
-            taskGroupsContainer.appendChild(workflowSection);
-        });
-
+        // Save milestone data
         function saveMilestone(taskId, milestone, taskNumber) {
             if (!workflowState.milestones) {
                 workflowState.milestones = {};
@@ -96,14 +99,20 @@
             localStorage.setItem('workflowState', JSON.stringify(workflowState));
         }
 
+        // Navigate back
         function goBack() {
+            localStorage.setItem('workflowState', JSON.stringify(workflowState));
             window.location.href = 'workflow.html';
         }
 
+        // Proceed to next step
         function proceed() {
-            alert('Milestones saved successfully! Proceeding...');
-            // Logic to navigate to the next page can be added here
+            localStorage.setItem('workflowState', JSON.stringify(workflowState));
+            alert('Milestones saved successfully!');
         }
+
+        // Restore milestones on load
+        restoreMilestones();
     </script>
 </body>
 </html>
