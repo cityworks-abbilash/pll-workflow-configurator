@@ -30,8 +30,10 @@
     </div>
 
     <script>
+        // Retrieve data directly from localStorage
         const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {};
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
+        const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
         const taskMap = workflowData.reduce((acc, task) => {
             acc[task.id] = task.name;
             return acc;
@@ -40,10 +42,6 @@
 
         // Restore data and populate UI
         function restoreMilestones() {
-            if (!workflowState.milestones) {
-                workflowState.milestones = {};
-            }
-
             Object.entries(workflowState.workflows || {}).forEach(([workflowId, taskIds]) => {
                 if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
 
@@ -58,7 +56,7 @@
 
                 taskIds.forEach(taskId => {
                     const taskName = taskMap[taskId] || 'Unnamed Task';
-                    const milestoneData = workflowState.milestones?.[taskId] || { milestone: '', taskNumber: '' };
+                    const milestoneDataForTask = milestoneData[taskId] || { milestone: '', taskNumber: '' };
 
                     const taskRow = document.createElement('div');
                     taskRow.className = 'mb-3';
@@ -73,14 +71,14 @@
                     milestoneInput.placeholder = 'Milestone';
                     milestoneInput.className = 'form-control d-inline-block me-3';
                     milestoneInput.style.width = '150px';
-                    milestoneInput.value = milestoneData.milestone;
+                    milestoneInput.value = milestoneDataForTask.milestone;
 
                     const taskNumberInput = document.createElement('input');
                     taskNumberInput.type = 'number';
                     taskNumberInput.placeholder = 'Task Number';
                     taskNumberInput.className = 'form-control d-inline-block';
                     taskNumberInput.style.width = '150px';
-                    taskNumberInput.value = milestoneData.taskNumber;
+                    taskNumberInput.value = milestoneDataForTask.taskNumber;
 
                     milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
                     taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
@@ -96,25 +94,21 @@
             });
         }
 
-        // Save milestone data
+        // Save milestone data directly to localStorage
         function saveMilestone(taskId, milestone, taskNumber) {
-            if (!workflowState.milestones) {
-                workflowState.milestones = {};
-            }
-
-            workflowState.milestones[taskId] = { milestone, taskNumber };
-            localStorage.setItem('workflowState', JSON.stringify(workflowState));
+            milestoneData[taskId] = { milestone, taskNumber };
+            localStorage.setItem('milestoneData', JSON.stringify(milestoneData));
         }
 
         // Navigate back
         function goBack() {
-            localStorage.setItem('workflowState', JSON.stringify(workflowState));
+            localStorage.setItem('milestoneData', JSON.stringify(milestoneData));
             window.location.href = 'workflow.html';
         }
 
         // Proceed to next step
         function proceed() {
-            localStorage.setItem('workflowState', JSON.stringify(workflowState));
+            localStorage.setItem('milestoneData', JSON.stringify(milestoneData));
             alert('Milestones saved successfully!');
         }
 
