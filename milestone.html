@@ -16,10 +16,10 @@
 </head>
 <body>
     <div class="container mt-5">
-        <!-- Back Button -->
+        <!-- Navigation Buttons -->
         <div class="d-flex justify-content-between">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
-            <button class="btn btn-success" onclick="saveAndProceed()">Next</button>
+            <button class="btn btn-success" onclick="proceed()">Next</button>
         </div>
 
         <h1 class="text-center mt-3">Milestone and Task Numbers</h1>
@@ -30,26 +30,16 @@
     </div>
 
     <script>
-        // Load workflow state and data
         const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {};
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
         const taskMap = workflowData.reduce((acc, task) => {
             acc[task.id] = task.name;
             return acc;
         }, {});
-
-        const tasksGroupedByWorkflow = workflowState.workflows || {};
-
-        // Initialize milestones if not present
-        if (!workflowState.milestones) {
-            workflowState.milestones = {};
-            localStorage.setItem('workflowState', JSON.stringify(workflowState));
-        }
-
         const taskGroupsContainer = document.getElementById('taskGroups');
 
-        // Populate task groups
-        Object.entries(tasksGroupedByWorkflow).forEach(([workflowId, taskIds]) => {
+        // Populate tasks
+        Object.entries(workflowState.workflows || {}).forEach(([workflowId, taskIds]) => {
             if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
 
             const workflowSection = document.createElement('div');
@@ -61,7 +51,7 @@
 
             taskIds.forEach(taskId => {
                 const taskName = taskMap[taskId] || 'Unnamed Task';
-                const milestoneData = workflowState.milestones[taskId] || { milestone: '', taskNumber: '' };
+                const milestoneData = workflowState.milestones?.[taskId] || { milestone: '', taskNumber: '' };
 
                 const taskRow = document.createElement('div');
                 taskRow.className = 'mb-3';
@@ -84,37 +74,35 @@
                 taskNumberInput.style.width = '150px';
                 taskNumberInput.value = milestoneData.taskNumber;
 
+                // Save data on input
+                milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+                taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(milestoneInput);
                 taskRow.appendChild(taskNumberInput);
 
                 workflowSection.appendChild(taskRow);
-
-                // Save inputs on change
-                milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
-                taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
             });
 
             taskGroupsContainer.appendChild(workflowSection);
         });
 
-        // Save milestones and task numbers
         function saveMilestone(taskId, milestone, taskNumber) {
+            if (!workflowState.milestones) {
+                workflowState.milestones = {};
+            }
             workflowState.milestones[taskId] = { milestone, taskNumber };
             localStorage.setItem('workflowState', JSON.stringify(workflowState));
         }
 
-        // Back button navigation
         function goBack() {
-            localStorage.setItem('workflowState', JSON.stringify(workflowState)); // Save state
             window.location.href = 'workflow.html';
         }
 
-        // Next button action
-        function saveAndProceed() {
-            localStorage.setItem('workflowState', JSON.stringify(workflowState)); // Save state
-            alert('Milestones saved successfully! Proceeding to the next step...');
-            // Add logic to navigate to the next page here if required
+        function proceed() {
+            alert('Milestones saved successfully! Proceeding...');
+            // Logic to navigate to the next page can be added here
         }
     </script>
 </body>
