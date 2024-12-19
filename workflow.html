@@ -283,4 +283,30 @@
                         const task = workflowData.find(t => t.id === child.dataset.id);
                         if (task) createTaskBubble(task);
                     }
-               
+                });
+
+                // Remove the workflow box
+                workflowBox.parentElement.remove();
+
+                // Adjust numbering and IDs
+                delete workflowState.workflows[id];
+                const subWorkflows = Array.from(document.querySelectorAll('.workflow-box')).filter(box => box.id.startsWith('subWorkflow'));
+                subWorkflows.sort((a, b) => parseInt(a.id.replace('subWorkflow', ''), 10) - parseInt(b.id.replace('subWorkflow', ''), 10));
+
+                subWorkflows.forEach((box, index) => {
+                    const newId = `subWorkflow${index + 1}`;
+                    workflowState.workflows[newId] = Array.from(box.children)
+                        .filter(child => child.dataset.id)
+                        .map(child => child.dataset.id);
+                    delete workflowState.workflows[box.id];
+                    box.id = newId;
+                    box.querySelector('h5').textContent = `Sub Workflow ${index + 1}`;
+                });
+
+                subWorkflowCount = subWorkflows.length;
+                saveState();
+            }
+        }
+    </script>
+</body>
+</html>
