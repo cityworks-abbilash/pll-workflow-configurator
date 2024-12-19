@@ -29,18 +29,6 @@
         .task-bubble:hover {
             background-color: #0056b3;
         }
-        .info-panel {
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-        .cancel-btn {
-            color: red;
-            cursor: pointer;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
         .remove-btn {
             position: absolute;
             top: 5px;
@@ -59,254 +47,130 @@
         .remove-btn:hover {
             background-color: darkred;
         }
-        .back-btn {
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <!-- Back Button -->
-        <div>
-            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
-        </div>
-
         <h1 class="text-center">Workflow Association</h1>
         <p class="text-center">Drag task bubbles into the workflow boxes below.</p>
 
-        <!-- Workflow Boxes -->
-        <div class="row" id="workflowContainer">
-            <div class="col-md-4">
-                <div id="mainWorkflow" class="workflow-box" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    <h5 class="text-center">Main Workflow</h5>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div id="subWorkflow1" class="workflow-box" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    <h5 class="text-center">Sub Workflow 1</h5>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div id="standaloneWorkflow" class="workflow-box" ondragover="allowDrop(event)" ondrop="drop(event)">
-                    <h5 class="text-center">Standalone Workflow</h5>
-                </div>
-            </div>
+        <div id="workflowContainer" class="row">
+            <!-- Workflows will be dynamically added here -->
         </div>
 
-        <!-- Add Sub Workflow Button -->
         <div class="text-center mt-4">
             <button class="btn btn-primary" onclick="addSubWorkflow()">Add Sub Workflow</button>
         </div>
 
-        <!-- Task Bubbles -->
         <div id="taskBubbles" class="mt-5">
-            <h5>Tasks:</h5>
-        </div>
-
-        <!-- Info Panel -->
-        <div id="infoPanel" class="info-panel d-none">
-            <h5>Task Details</h5>
-            <p id="taskName"><strong>Task:</strong> </p>
-            <ul id="taskResults"></ul>
+            <h5>Task Bubbles:</h5>
         </div>
     </div>
 
     <script>
-        const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
-        const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {
-            taskBubbles: workflowData.map(task => task.id),
-            workflows: {
-                mainWorkflow: [],
-                subWorkflow1: [],
-                standaloneWorkflow: []
-            },
-            subWorkflowCount: 1
+        let workflowState = {
+            workflows: [
+                { id: "mainWorkflow", name: "Main Workflow", tasks: [] },
+                { id: "subWorkflow1", name: "Sub Workflow 1", tasks: [] }
+            ],
+            taskBubbles: [
+                { id: "task1", name: "Task 1" },
+                { id: "task2", name: "Task 2" },
+                { id: "task3", name: "Task 3" }
+            ]
         };
 
-        let subWorkflowCount = workflowState.subWorkflowCount; // Track the number of sub workflows
+        const workflowContainer = document.getElementById("workflowContainer");
+        const taskBubblesContainer = document.getElementById("taskBubbles");
 
-        const taskBubbles = document.getElementById('taskBubbles');
-        const workflowContainer = document.getElementById('workflowContainer');
+        function renderWorkflows() {
+            workflowContainer.innerHTML = "";
 
-        // Restore state
-        restoreState();
+            workflowState.workflows.forEach((workflow, index) => {
+                const workflowDiv = document.createElement("div");
+                workflowDiv.className = "col-md-4 workflow-box";
+                workflowDiv.id = workflow.id;
+                workflowDiv.ondragover = (e) => e.preventDefault();
+                workflowDiv.ondrop = (e) => dropTask(e, index);
 
-        // Add the Back button functionality
-        function goBack() {
-            saveState();
-            window.location.href = 'index.html';
+                workflowDiv.innerHTML = `
+                    <h5 class="text-center">${workflow.name}</h5>
+                    ${index > 0 ? '<button class="remove-btn" onclick="removeSubWorkflow(' + index + ')">&times;</button>' : ''}
+                `;
+
+                workflow.tasks.forEach(task => {
+                    const taskDiv = document.createElement("div");
+                    taskDiv.className = "task-bubble";
+                    taskDiv.draggable = true;
+                    taskDiv.dataset.id = task.id;
+                    taskDiv.textContent = task.name;
+                    taskDiv.ondragstart = (e) => e.dataTransfer.setData("text", task.id);
+                    workflowDiv.appendChild(taskDiv);
+                });
+
+                workflowContainer.appendChild(workflowDiv);
+            });
         }
 
-        function saveState() {
-            const workflows = {};
-            document.querySelectorAll('.workflow-box').forEach(box => {
-                workflows[box.id] = Array.from(box.children)
-                    .filter(child => child.dataset.id)
-                    .map(child => child.dataset.id);
+        function renderTaskBubbles() {
+            taskBubblesContainer.innerHTML = "<h5>Task Bubbles:</h5>";
+
+            workflowState.taskBubbles.forEach(task => {
+                const taskDiv = document.createElement("div");
+                taskDiv.className = "task-bubble";
+                taskDiv.draggable = true;
+                taskDiv.dataset.id = task.id;
+                taskDiv.textContent = task.name;
+                taskDiv.ondragstart = (e) => e.dataTransfer.setData("text", task.id);
+                taskBubblesContainer.appendChild(taskDiv);
             });
-
-            const taskBubbleIds = Array.from(taskBubbles.children).map(child => child.dataset.id);
-
-            localStorage.setItem('workflowState', JSON.stringify({
-                taskBubbles: taskBubbleIds,
-                workflows,
-                subWorkflowCount
-            }));
         }
 
-        function restoreState() {
-            workflowState.taskBubbles.forEach(taskId => {
-                const task = workflowData.find(t => t.id === taskId);
-                if (task) createTaskBubble(task);
-            });
+        function addSubWorkflow() {
+            const newIndex = workflowState.workflows.length;
+            const newWorkflow = {
+                id: `subWorkflow${newIndex}`,
+                name: `Sub Workflow ${newIndex}`,
+                tasks: []
+            };
+            workflowState.workflows.push(newWorkflow);
+            renderWorkflows();
+        }
 
-            Object.entries(workflowState.workflows).forEach(([workflowId, taskIds]) => {
-                const workflowBox = document.getElementById(workflowId);
-                if (!workflowBox && workflowId.startsWith('subWorkflow')) {
-                    addSubWorkflow(false, workflowId);
+        function removeSubWorkflow(index) {
+            const removedWorkflow = workflowState.workflows.splice(index, 1)[0];
+
+            // Return tasks to the task bubble list
+            workflowState.taskBubbles.push(...removedWorkflow.tasks);
+
+            // Renumber remaining sub workflows
+            workflowState.workflows.forEach((workflow, i) => {
+                if (i > 0) {
+                    workflow.id = `subWorkflow${i}`;
+                    workflow.name = `Sub Workflow ${i}`;
                 }
-                const targetBox = document.getElementById(workflowId);
-                if (targetBox) {
-                    taskIds.forEach(taskId => {
-                        const task = workflowData.find(t => t.id === taskId);
-                        if (task) addTaskToWorkflowBox(targetBox, task);
-                    });
-                }
             });
+
+            renderWorkflows();
+            renderTaskBubbles();
         }
 
-        function createTaskBubble(task) {
-            const bubble = document.createElement('div');
-            bubble.className = 'task-bubble';
-            bubble.draggable = true;
-            bubble.textContent = task.name;
-            bubble.dataset.id = task.id;
+        function dropTask(event, workflowIndex) {
+            const taskId = event.dataTransfer.getData("text");
+            const taskIndex = workflowState.taskBubbles.findIndex(t => t.id === taskId);
 
-            bubble.addEventListener('mouseover', () => displayTaskDetails(task));
-            bubble.addEventListener('dragstart', event => event.dataTransfer.setData('text', task.id));
-
-            taskBubbles.appendChild(bubble);
-        }
-
-        function displayTaskDetails(task) {
-            const taskName = document.getElementById('taskName');
-            const taskResults = document.getElementById('taskResults');
-
-            taskName.innerHTML = `<strong>Task:</strong> ${task.name}`;
-            taskResults.innerHTML = '';
-
-            if (task.results.length > 0) {
-                task.results.forEach(result => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
-                    taskResults.appendChild(listItem);
-                });
-            } else {
-                const listItem = document.createElement('li');
-                listItem.textContent = 'No results or statuses available.';
-                taskResults.appendChild(listItem);
+            if (taskIndex >= 0) {
+                const task = workflowState.taskBubbles.splice(taskIndex, 1)[0];
+                workflowState.workflows[workflowIndex].tasks.push(task);
             }
 
-            const infoPanel = document.getElementById('infoPanel');
-            infoPanel.classList.remove('d-none');
+            renderWorkflows();
+            renderTaskBubbles();
         }
 
-        function allowDrop(event) {
-            event.preventDefault();
-        }
-
-        function drop(event) {
-            event.preventDefault();
-            const taskId = event.dataTransfer.getData('text');
-            const task = workflowData.find(t => t.id === taskId);
-
-            if (task) {
-                const workflowBox = event.target.closest('.workflow-box');
-                addTaskToWorkflowBox(workflowBox, task);
-
-                const bubble = document.querySelector(`.task-bubble[data-id="${taskId}"]`);
-                if (bubble) bubble.remove();
-            }
-        }
-
-        function addTaskToWorkflowBox(workflowBox, task) {
-            const taskEntry = document.createElement('div');
-            taskEntry.className = 'mb-2';
-            taskEntry.dataset.id = task.id;
-            taskEntry.innerHTML = `
-                <span>${task.name}</span>
-                <span class="cancel-btn" onclick="returnTask('${task.id}', this)">Cancel</span>
-            `;
-            workflowBox.appendChild(taskEntry);
-        }
-
-        function returnTask(taskId, cancelBtn) {
-            const workflowBox = cancelBtn.closest('.workflow-box');
-            const taskEntry = cancelBtn.parentElement;
-
-            workflowBox.removeChild(taskEntry);
-
-            const task = workflowData.find(t => t.id === taskId);
-            if (task) createTaskBubble(task);
-        }
-
-        function addSubWorkflow(save = true, workflowId = null) {
-            const id = workflowId || `subWorkflow${++subWorkflowCount}`;
-            const newSubWorkflow = document.createElement('div');
-            newSubWorkflow.id = id;
-            newSubWorkflow.className = 'workflow-box';
-            newSubWorkflow.ondragover = allowDrop;
-            newSubWorkflow.ondrop = drop;
-            newSubWorkflow.innerHTML = `<h5 class="text-center">Sub Workflow ${id.replace('subWorkflow', '')}</h5>`;
-
-            const removeButton = document.createElement('button');
-            removeButton.className = 'remove-btn';
-            removeButton.innerHTML = '&times;';
-            removeButton.onclick = () => removeSubWorkflow(id);
-            newSubWorkflow.appendChild(removeButton);
-
-            const newCol = document.createElement('div');
-            newCol.className = 'col-md-4';
-            newCol.appendChild(newSubWorkflow);
-
-            workflowContainer.appendChild(newCol);
-
-            if (save) saveState();
-        }
-
-        function removeSubWorkflow(id) {
-            const workflowBox = document.getElementById(id);
-            if (workflowBox) {
-                // Return tasks to the task bubble list
-                Array.from(workflowBox.children).forEach(child => {
-                    if (child.dataset.id) {
-                        const task = workflowData.find(t => t.id === child.dataset.id);
-                        if (task) createTaskBubble(task);
-                    }
-                });
-
-                // Remove the workflow box
-                workflowBox.parentElement.remove();
-
-                // Adjust numbering and IDs
-                delete workflowState.workflows[id];
-                const subWorkflows = Array.from(document.querySelectorAll('.workflow-box')).filter(box => box.id.startsWith('subWorkflow'));
-                subWorkflows.sort((a, b) => parseInt(a.id.replace('subWorkflow', ''), 10) - parseInt(b.id.replace('subWorkflow', ''), 10));
-
-                subWorkflows.forEach((box, index) => {
-                    const newId = `subWorkflow${index + 1}`;
-                    workflowState.workflows[newId] = Array.from(box.children)
-                        .filter(child => child.dataset.id)
-                        .map(child => child.dataset.id);
-                    delete workflowState.workflows[box.id];
-                    box.id = newId;
-                    box.querySelector('h5').textContent = `Sub Workflow ${index + 1}`;
-                });
-
-                subWorkflowCount = subWorkflows.length;
-                saveState();
-            }
-        }
+        // Initial render
+        renderWorkflows();
+        renderTaskBubbles();
     </script>
 </body>
 </html>
