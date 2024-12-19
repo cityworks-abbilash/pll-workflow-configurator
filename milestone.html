@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milestone Page</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .workflow-section {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- Back Button -->
+        <div>
+            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+        </div>
+
+        <h1 class="text-center">Milestone and Task Numbers</h1>
+        <p class="text-center">Assign milestones and task numbers to tasks.</p>
+
+        <!-- Workflow Tasks Section -->
+        <div id="taskGroups"></div>
+
+        <!-- Next Button -->
+        <div class="text-center mt-4">
+            <button class="btn btn-success" onclick="saveAndProceed()">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Load workflow state
+        const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {};
+        const tasksGroupedByWorkflow = workflowState.workflows || {};
+
+        // Populate task groups
+        const taskGroupsContainer = document.getElementById('taskGroups');
+        Object.entries(tasksGroupedByWorkflow).forEach(([workflowId, taskIds]) => {
+            if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
+
+            const workflowSection = document.createElement('div');
+            workflowSection.className = 'workflow-section';
+
+            const workflowTitle = document.createElement('h5');
+            workflowTitle.textContent = workflowId === 'mainWorkflow' ? 'Main Workflow' : workflowId.replace('subWorkflow', 'Sub Workflow ');
+            workflowSection.appendChild(workflowTitle);
+
+            taskIds.forEach(taskId => {
+                const taskRow = document.createElement('div');
+                taskRow.className = 'mb-3';
+
+                const taskLabel = document.createElement('span');
+                taskLabel.textContent = `Task ID: ${taskId}`;
+                taskLabel.className = 'me-3';
+
+                const milestoneInput = document.createElement('input');
+                milestoneInput.type = 'number';
+                milestoneInput.placeholder = 'Milestone';
+                milestoneInput.className = 'form-control d-inline-block me-3';
+                milestoneInput.style.width = '150px';
+                milestoneInput.value = workflowState.milestones?.[taskId]?.milestone || '';
+
+                const taskNumberInput = document.createElement('input');
+                taskNumberInput.type = 'number';
+                taskNumberInput.placeholder = 'Task Number';
+                taskNumberInput.className = 'form-control d-inline-block';
+                taskNumberInput.style.width = '150px';
+                taskNumberInput.value = workflowState.milestones?.[taskId]?.taskNumber || '';
+
+                taskRow.appendChild(taskLabel);
+                taskRow.appendChild(milestoneInput);
+                taskRow.appendChild(taskNumberInput);
+
+                workflowSection.appendChild(taskRow);
+
+                // Save inputs on change
+                milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+                taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+            });
+
+            taskGroupsContainer.appendChild(workflowSection);
+        });
+
+        function saveMilestone(taskId, milestone, taskNumber) {
+            const milestones = JSON.parse(localStorage.getItem('workflowState')).milestones || {};
+            milestones[taskId] = { milestone, taskNumber };
+            const updatedState = { ...workflowState, milestones };
+            localStorage.setItem('workflowState', JSON.stringify(updatedState));
+        }
+
+        function goBack() {
+            window.location.href = 'workflow.html'; // Navigate back to workflow page
+        }
+
+        function saveAndProceed() {
+            alert('Data saved successfully!');
+            // Additional navigation logic can be added here
+        }
+    </script>
+</body>
+</html>
