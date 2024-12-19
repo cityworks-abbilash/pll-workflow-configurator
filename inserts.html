@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Display</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .task-hover {
+            position: relative;
+        }
+        .popup {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 10;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .task-hover:hover .popup {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Workflow Display</h1>
+        <p class="text-center">View workflows and tasks with milestones and statuses.</p>
+
+        <div id="workflows"></div>
+    </div>
+
+    <script>
+        const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
+        const workflowsContainer = document.getElementById('workflows');
+
+        // Render workflows and tasks
+        displayData.forEach(workflow => {
+            const workflowSection = document.createElement('div');
+            workflowSection.className = 'mb-5';
+
+            const title = document.createElement('h3');
+            title.textContent = workflow.title;
+            workflowSection.appendChild(title);
+
+            const taskList = document.createElement('ul');
+            taskList.className = 'list-group';
+
+            workflow.tasks.forEach(task => {
+                const taskItem = document.createElement('li');
+                taskItem.className = 'list-group-item task-hover';
+                taskItem.textContent = `Task: ${task.name} (Milestone: ${task.milestone}, Task Number: ${task.taskNumber})`;
+
+                // Create popup for task results and statuses
+                const popup = document.createElement('div');
+                popup.className = 'popup';
+
+                if (task.results.length > 0) {
+                    const resultList = document.createElement('ul');
+                    task.results.forEach(result => {
+                        const resultItem = document.createElement('li');
+                        resultItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
+                        resultList.appendChild(resultItem);
+                    });
+                    popup.appendChild(resultList);
+                } else {
+                    popup.textContent = 'No results or statuses available.';
+                }
+
+                taskItem.appendChild(popup);
+                taskList.appendChild(taskItem);
+            });
+
+            workflowSection.appendChild(taskList);
+            workflowsContainer.appendChild(workflowSection);
+        });
+    </script>
+</body>
+</html>
