@@ -109,6 +109,11 @@
             <p id="taskName"><strong>Task:</strong> </p>
             <ul id="taskResults"></ul>
         </div>
+
+        <!-- Next Button -->
+        <div class="text-center mt-4">
+            <button class="btn btn-success" onclick="goToNextPage()">Next</button>
+        </div>
     </div>
 
     <script>
@@ -135,6 +140,11 @@
         function goBack() {
             saveState();
             window.location.href = 'index.html';
+        }
+
+        function goToNextPage() {
+            saveState();
+            window.location.href = 'next.html'; // Navigate to the next page
         }
 
         function saveState() {
@@ -280,50 +290,48 @@
             if (save) saveState();
         }
 
+        function removeSubWorkflow(id) {
+            const workflowBox = document.getElementById(id);
+            if (workflowBox) {
+                // Return tasks to the task bubble list
+                Array.from(workflowBox.children).forEach(child => {
+                    if (child.dataset.id) {
+                        const task = workflowData.find(t => t.id === child.dataset.id);
+                        if (task) createTaskBubble(task);
+                    }
+                });
 
-function removeSubWorkflow(id) {
-    const workflowBox = document.getElementById(id);
-    if (workflowBox) {
-        // Return tasks to the task bubble list
-        Array.from(workflowBox.children).forEach(child => {
-            if (child.dataset.id) {
-                const task = workflowData.find(t => t.id === child.dataset.id);
-                if (task) createTaskBubble(task);
+                // Remove the workflow box
+                workflowBox.parentElement.remove();
+
+                // Update workflowState
+                delete workflowState.workflows[id];
+
+                // Reorganize numbering and IDs of subworkflows
+                const subWorkflows = Array.from(document.querySelectorAll('.workflow-box')).filter(box => box.id.startsWith('subWorkflow'));
+                subWorkflows.sort((a, b) => parseInt(a.id.replace('subWorkflow', ''), 10) - parseInt(b.id.replace('subWorkflow', ''), 10));
+
+                subWorkflows.forEach((box, index) => {
+                    const oldId = box.id;
+                    const newId = `subWorkflow${index + 1}`;
+
+                    // Update ID and title
+                    workflowState.workflows[newId] = workflowState.workflows[oldId] || [];
+                    delete workflowState.workflows[oldId];
+                    box.id = newId;
+                    box.querySelector('h5').textContent = `Sub Workflow ${index + 1}`;
+
+                    // Update the close button's onclick event
+                    const closeButton = box.querySelector('.remove-btn');
+                    if (closeButton) {
+                        closeButton.onclick = () => removeSubWorkflow(newId);
+                    }
+                });
+
+                subWorkflowCount = subWorkflows.length;
+                saveState();
             }
-        });
-
-        // Remove the workflow box
-        workflowBox.parentElement.remove();
-
-        // Update workflowState
-        delete workflowState.workflows[id];
-
-        // Reorganize numbering and IDs of subworkflows
-        const subWorkflows = Array.from(document.querySelectorAll('.workflow-box')).filter(box => box.id.startsWith('subWorkflow'));
-        subWorkflows.sort((a, b) => parseInt(a.id.replace('subWorkflow', ''), 10) - parseInt(b.id.replace('subWorkflow', ''), 10));
-
-        subWorkflows.forEach((box, index) => {
-            const oldId = box.id;
-            const newId = `subWorkflow${index + 1}`;
-
-            // Update ID and title
-            workflowState.workflows[newId] = workflowState.workflows[oldId] || [];
-            delete workflowState.workflows[oldId];
-            box.id = newId;
-            box.querySelector('h5').textContent = `Sub Workflow ${index + 1}`;
-
-            // Update the close button's onclick event
-            const closeButton = box.querySelector('.remove-btn');
-            if (closeButton) {
-                closeButton.onclick = () => removeSubWorkflow(newId);
-            }
-        });
-
-        subWorkflowCount = subWorkflows.length;
-        saveState();
-    }
-}
-
+        }
     </script>
 </body>
 </html>
