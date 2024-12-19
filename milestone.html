@@ -40,8 +40,15 @@
 
         const tasksGroupedByWorkflow = workflowState.workflows || {};
 
-        // Populate task groups
+        // Initialize milestones if not present
+        if (!workflowState.milestones) {
+            workflowState.milestones = {};
+            localStorage.setItem('workflowState', JSON.stringify(workflowState));
+        }
+
         const taskGroupsContainer = document.getElementById('taskGroups');
+
+        // Populate task groups
         Object.entries(tasksGroupedByWorkflow).forEach(([workflowId, taskIds]) => {
             if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
 
@@ -54,6 +61,8 @@
 
             taskIds.forEach(taskId => {
                 const taskName = taskMap[taskId] || 'Unnamed Task';
+                const milestoneData = workflowState.milestones[taskId] || { milestone: '', taskNumber: '' };
+
                 const taskRow = document.createElement('div');
                 taskRow.className = 'mb-3';
 
@@ -66,14 +75,14 @@
                 milestoneInput.placeholder = 'Milestone';
                 milestoneInput.className = 'form-control d-inline-block me-3';
                 milestoneInput.style.width = '150px';
-                milestoneInput.value = workflowState.workflows[workflowId]?.find(t => t.id === taskId)?.milestone || '';
+                milestoneInput.value = milestoneData.milestone;
 
                 const taskNumberInput = document.createElement('input');
                 taskNumberInput.type = 'number';
                 taskNumberInput.placeholder = 'Task Number';
                 taskNumberInput.className = 'form-control d-inline-block';
                 taskNumberInput.style.width = '150px';
-                taskNumberInput.value = workflowState.workflows[workflowId]?.find(t => t.id === taskId)?.taskNumber || '';
+                taskNumberInput.value = milestoneData.taskNumber;
 
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(milestoneInput);
@@ -82,20 +91,16 @@
                 workflowSection.appendChild(taskRow);
 
                 // Save inputs on change
-                milestoneInput.addEventListener('input', () => saveMilestone(workflowId, taskId, milestoneInput.value, taskNumberInput.value));
-                taskNumberInput.addEventListener('input', () => saveMilestone(workflowId, taskId, milestoneInput.value, taskNumberInput.value));
+                milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+                taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
             });
 
             taskGroupsContainer.appendChild(workflowSection);
         });
 
         // Save milestones and task numbers
-        function saveMilestone(workflowId, taskId, milestone, taskNumber) {
-            const workflowTasks = workflowState.workflows[workflowId] || [];
-            const taskIndex = workflowTasks.findIndex(t => t.id === taskId);
-            if (taskIndex !== -1) {
-                workflowTasks[taskIndex] = { ...workflowTasks[taskIndex], milestone, taskNumber };
-            }
+        function saveMilestone(taskId, milestone, taskNumber) {
+            workflowState.milestones[taskId] = { milestone, taskNumber };
             localStorage.setItem('workflowState', JSON.stringify(workflowState));
         }
 
