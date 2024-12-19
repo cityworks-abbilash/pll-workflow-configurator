@@ -3,33 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workflow Display</title>
+    <title>Workflow Inserts</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        .task-hover {
-            position: relative;
-        }
-        .popup {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            z-index: 10;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .task-hover:hover .popup {
-            display: block;
+        .task-results {
+            margin-left: 20px;
+            font-size: 0.9rem;
+            color: #555;
         }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Workflow Display</h1>
-        <p class="text-center">View workflows and tasks with milestones and statuses.</p>
+        <div class="d-flex justify-content-between mb-4">
+            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+        </div>
+
+        <h1 class="text-center">Workflow Inserts</h1>
+        <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
 
         <div id="workflows"></div>
     </div>
@@ -38,41 +29,48 @@
         const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         const workflowsContainer = document.getElementById('workflows');
 
-        // Render workflows and tasks
+        // Back button functionality
+        function goBack() {
+            window.location.href = 'milestone-V3.html'; // Navigate back to the milestone page
+        }
+
+        // Render workflows and tasks with results
         displayData.forEach(workflow => {
             const workflowSection = document.createElement('div');
             workflowSection.className = 'mb-5';
 
+            // Workflow Title
             const title = document.createElement('h3');
             title.textContent = workflow.title;
             workflowSection.appendChild(title);
 
+            // Task List
             const taskList = document.createElement('ul');
             taskList.className = 'list-group';
 
             workflow.tasks.forEach(task => {
+                // Task Item
                 const taskItem = document.createElement('li');
-                taskItem.className = 'list-group-item task-hover';
+                taskItem.className = 'list-group-item';
                 taskItem.textContent = `Task: ${task.name} (Milestone: ${task.milestone}, Task Number: ${task.taskNumber})`;
 
-                // Create popup for task results and statuses
-                const popup = document.createElement('div');
-                popup.className = 'popup';
-
-                if (task.results.length > 0) {
-                    const resultList = document.createElement('ul');
-                    task.results.forEach(result => {
-                        const resultItem = document.createElement('li');
-                        resultItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
-                        resultList.appendChild(resultItem);
-                    });
-                    popup.appendChild(resultList);
-                } else {
-                    popup.textContent = 'No results or statuses available.';
-                }
-
-                taskItem.appendChild(popup);
+                // Append task to list
                 taskList.appendChild(taskItem);
+
+                // Task Results and Statuses
+                if (task.results.length > 0) {
+                    task.results.forEach(result => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'task-results';
+                        resultItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
+                        taskList.appendChild(resultItem);
+                    });
+                } else {
+                    const noResultItem = document.createElement('div');
+                    noResultItem.className = 'task-results';
+                    noResultItem.textContent = 'No results or statuses available.';
+                    taskList.appendChild(noResultItem);
+                }
             });
 
             workflowSection.appendChild(taskList);
