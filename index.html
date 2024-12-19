@@ -59,12 +59,14 @@
         }
 
         function restartConfigurator() {
-            // Clear localStorage and reload the page
+            // Clear all localStorage items related to workflow and milestones
             localStorage.removeItem('fileContent');
             localStorage.removeItem('workflowData');
             localStorage.removeItem('workflowState');
-            window.location.reload();
+            localStorage.removeItem('milestoneData'); // Add this to clear milestone data
+            window.location.reload(); // Refresh the page
         }
+
 
         function extractStatuses(xmlDoc) {
             const statuses = [];
