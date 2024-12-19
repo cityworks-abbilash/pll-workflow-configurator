@@ -130,9 +130,48 @@
 
         // Proceed to next step
         function proceed() {
+            // Save milestone data to localStorage
             localStorage.setItem('milestoneData', JSON.stringify(milestoneData));
-            alert('Milestones saved successfully!');
+        
+            // Prepare consolidated data
+            const displayData = [];
+        
+            // Process milestone workflows
+            Object.entries(workflowState.workflows || {}).forEach(([workflowId, taskIds]) => {
+                const workflowTasks = [];
+                taskIds.forEach(taskId => {
+                    const taskData = milestoneData[taskId] || { milestone: '', taskNumber: '' };
+                    workflowTasks.push({
+                        id: taskId,
+                        name: taskMap[taskId] || 'Unnamed Task',
+                        milestone: taskData.milestone || 0,
+                        taskNumber: taskData.taskNumber || 0,
+                        results: workflowData.find(task => task.id === taskId)?.results || [],
+                    });
+                });
+        
+                workflowTasks.sort((a, b) => {
+                    if (a.milestone !== b.milestone) return a.milestone - b.milestone;
+                    return a.taskNumber - b.taskNumber;
+                });
+        
+                displayData.push({
+                    workflowId,
+                    title: workflowId === 'mainWorkflow'
+                        ? 'Main Workflow'
+                        : workflowId.startsWith('subWorkflow')
+                        ? `Sub Workflow ${workflowId.replace('subWorkflow', '')}`
+                        : 'Standalone Workflow',
+                    tasks: workflowTasks,
+                });
+            });
+        
+            // Save consolidated data for display on next page
+            localStorage.setItem('displayData', JSON.stringify(displayData));
+        
+            window.location.href = 'inserts.html'; // Navigate to the display page
         }
+
 
         // Restore milestones on load
         restoreMilestones();
