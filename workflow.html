@@ -47,10 +47,18 @@
         .remove-btn:hover {
             background-color: darkred;
         }
+        .back-btn {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
+        <!-- Back Button -->
+        <div>
+            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
+        </div>
+
         <h1 class="text-center">Workflow Association</h1>
         <p class="text-center">Drag task bubbles into the workflow boxes below.</p>
 
@@ -68,16 +76,13 @@
     </div>
 
     <script>
-        let workflowState = {
+        let workflowState = JSON.parse(localStorage.getItem('workflowState')) || {
             workflows: [
                 { id: "mainWorkflow", name: "Main Workflow", tasks: [] },
-                { id: "subWorkflow1", name: "Sub Workflow 1", tasks: [] }
+                { id: "subWorkflow1", name: "Sub Workflow 1", tasks: [] },
+                { id: "standaloneWorkflow", name: "Standalone Workflow", tasks: [] }
             ],
-            taskBubbles: [
-                { id: "task1", name: "Task 1" },
-                { id: "task2", name: "Task 2" },
-                { id: "task3", name: "Task 3" }
-            ]
+            taskBubbles: JSON.parse(localStorage.getItem('taskBubbles')) || []
         };
 
         const workflowContainer = document.getElementById("workflowContainer");
@@ -95,7 +100,7 @@
 
                 workflowDiv.innerHTML = `
                     <h5 class="text-center">${workflow.name}</h5>
-                    ${index > 0 ? '<button class="remove-btn" onclick="removeSubWorkflow(' + index + ')">&times;</button>' : ''}
+                    ${index > 1 ? '<button class="remove-btn" onclick="removeSubWorkflow(' + index + ')">&times;</button>' : ''}
                 `;
 
                 workflow.tasks.forEach(task => {
@@ -135,6 +140,7 @@
             };
             workflowState.workflows.push(newWorkflow);
             renderWorkflows();
+            saveState();
         }
 
         function removeSubWorkflow(index) {
@@ -145,7 +151,7 @@
 
             // Renumber remaining sub workflows
             workflowState.workflows.forEach((workflow, i) => {
-                if (i > 0) {
+                if (i > 1) {
                     workflow.id = `subWorkflow${i}`;
                     workflow.name = `Sub Workflow ${i}`;
                 }
@@ -153,6 +159,7 @@
 
             renderWorkflows();
             renderTaskBubbles();
+            saveState();
         }
 
         function dropTask(event, workflowIndex) {
@@ -166,6 +173,16 @@
 
             renderWorkflows();
             renderTaskBubbles();
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('workflowState', JSON.stringify(workflowState));
+        }
+
+        function goBack() {
+            saveState();
+            window.location.href = 'index.html';
         }
 
         // Initial render
