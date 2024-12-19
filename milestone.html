@@ -42,6 +42,8 @@
 
         // Restore data and populate UI
         function restoreMilestones() {
+            taskGroupsContainer.innerHTML = ''; // Clear existing content
+
             Object.entries(workflowState.workflows || {}).forEach(([workflowId, taskIds]) => {
                 if (workflowId === 'standaloneWorkflow' || taskIds.length === 0) return;
 
@@ -54,7 +56,20 @@
                     : workflowId.replace('subWorkflow', 'Sub Workflow ');
                 workflowSection.appendChild(workflowTitle);
 
-                taskIds.forEach(taskId => {
+                // Sort tasks by milestone and task number
+                const sortedTaskIds = taskIds.sort((a, b) => {
+                    const milestoneA = milestoneData[a]?.milestone || 0;
+                    const milestoneB = milestoneData[b]?.milestone || 0;
+                    const taskNumberA = milestoneData[a]?.taskNumber || 0;
+                    const taskNumberB = milestoneData[b]?.taskNumber || 0;
+
+                    if (milestoneA !== milestoneB) {
+                        return milestoneA - milestoneB; // Order by milestone number
+                    }
+                    return taskNumberA - taskNumberB; // If milestones are equal, order by task number
+                });
+
+                sortedTaskIds.forEach(taskId => {
                     const taskName = taskMap[taskId] || 'Unnamed Task';
                     const milestoneDataForTask = milestoneData[taskId] || { milestone: '', taskNumber: '' };
 
@@ -80,8 +95,15 @@
                     taskNumberInput.style.width = '150px';
                     taskNumberInput.value = milestoneDataForTask.taskNumber;
 
-                    milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
-                    taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+                    milestoneInput.addEventListener('input', () => {
+                        saveMilestone(taskId, milestoneInput.value, taskNumberInput.value);
+                        restoreMilestones(); // Reorder tasks dynamically on input
+                    });
+
+                    taskNumberInput.addEventListener('input', () => {
+                        saveMilestone(taskId, milestoneInput.value, taskNumberInput.value);
+                        restoreMilestones(); // Reorder tasks dynamically on input
+                    });
 
                     taskRow.appendChild(taskLabel);
                     taskRow.appendChild(milestoneInput);
