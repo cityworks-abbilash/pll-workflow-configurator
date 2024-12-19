@@ -295,7 +295,9 @@
 
                 subWorkflows.forEach((box, index) => {
                     const newId = `subWorkflow${index + 1}`;
-                    workflowState.workflows[newId] = workflowState.workflows[box.id] || [];
+                    workflowState.workflows[newId] = Array.from(box.children)
+                        .filter(child => child.dataset.id)
+                        .map(child => child.dataset.id);
                     delete workflowState.workflows[box.id];
                     box.id = newId;
                     box.querySelector('h5').textContent = `Sub Workflow ${index + 1}`;
