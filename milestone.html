@@ -17,20 +17,16 @@
 <body>
     <div class="container mt-5">
         <!-- Back Button -->
-        <div>
+        <div class="d-flex justify-content-between">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
+            <button class="btn btn-success" onclick="saveAndProceed()">Next</button>
         </div>
 
-        <h1 class="text-center">Milestone and Task Numbers</h1>
+        <h1 class="text-center mt-3">Milestone and Task Numbers</h1>
         <p class="text-center">Assign milestones and task numbers to tasks.</p>
 
         <!-- Workflow Tasks Section -->
         <div id="taskGroups"></div>
-
-        <!-- Next Button -->
-        <div class="text-center mt-4">
-            <button class="btn btn-success" onclick="saveAndProceed()">Next</button>
-        </div>
     </div>
 
     <script>
@@ -42,7 +38,6 @@
             return acc;
         }, {});
 
-        const milestones = workflowState.milestones || {};
         const tasksGroupedByWorkflow = workflowState.workflows || {};
 
         // Populate task groups
@@ -71,14 +66,14 @@
                 milestoneInput.placeholder = 'Milestone';
                 milestoneInput.className = 'form-control d-inline-block me-3';
                 milestoneInput.style.width = '150px';
-                milestoneInput.value = milestones[taskId]?.milestone || '';
+                milestoneInput.value = workflowState.workflows[workflowId]?.find(t => t.id === taskId)?.milestone || '';
 
                 const taskNumberInput = document.createElement('input');
                 taskNumberInput.type = 'number';
                 taskNumberInput.placeholder = 'Task Number';
                 taskNumberInput.className = 'form-control d-inline-block';
                 taskNumberInput.style.width = '150px';
-                taskNumberInput.value = milestones[taskId]?.taskNumber || '';
+                taskNumberInput.value = workflowState.workflows[workflowId]?.find(t => t.id === taskId)?.taskNumber || '';
 
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(milestoneInput);
@@ -87,17 +82,20 @@
                 workflowSection.appendChild(taskRow);
 
                 // Save inputs on change
-                milestoneInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
-                taskNumberInput.addEventListener('input', () => saveMilestone(taskId, milestoneInput.value, taskNumberInput.value));
+                milestoneInput.addEventListener('input', () => saveMilestone(workflowId, taskId, milestoneInput.value, taskNumberInput.value));
+                taskNumberInput.addEventListener('input', () => saveMilestone(workflowId, taskId, milestoneInput.value, taskNumberInput.value));
             });
 
             taskGroupsContainer.appendChild(workflowSection);
         });
 
         // Save milestones and task numbers
-        function saveMilestone(taskId, milestone, taskNumber) {
-            milestones[taskId] = { milestone, taskNumber };
-            workflowState.milestones = milestones;
+        function saveMilestone(workflowId, taskId, milestone, taskNumber) {
+            const workflowTasks = workflowState.workflows[workflowId] || [];
+            const taskIndex = workflowTasks.findIndex(t => t.id === taskId);
+            if (taskIndex !== -1) {
+                workflowTasks[taskIndex] = { ...workflowTasks[taskIndex], milestone, taskNumber };
+            }
             localStorage.setItem('workflowState', JSON.stringify(workflowState));
         }
 
