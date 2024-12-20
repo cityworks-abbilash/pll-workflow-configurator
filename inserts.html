@@ -15,6 +15,33 @@
             font-weight: bold;
             margin-right: 10px;
         }
+        .custom-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 10;
+            max-width: 300px;
+        }
+        .dropdown-menu.visible {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 5px;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
         .tooltip {
             position: absolute;
             display: none;
@@ -52,7 +79,7 @@
             window.location.href = 'milestone.html'; // Navigate back to the milestone page
         }
 
-        // Prepare dropdown options with tooltips
+        // Prepare dropdown options
         const tasksAndGroups = displayData.reduce((acc, workflow) => {
             if (workflow.tasks.length > 0) {
                 // Add subworkflow name if applicable
@@ -74,11 +101,7 @@
             return acc;
         }, { tasks: [], groups: [] });
 
-        // Remove duplicates
-        const uniqueTasks = [...new Set(tasksAndGroups.tasks)];
-        const uniqueGroups = [...new Set(tasksAndGroups.groups)];
-
-        // Render workflows and tasks with results and dropdowns
+        // Render workflows and tasks with dropdowns
         displayData
             .filter(workflow => workflow.tasks.length > 0) // Only include workflows with tasks
             .forEach(workflow => {
@@ -103,54 +126,64 @@
                     // Append task to list
                     taskList.appendChild(taskItem);
 
-                    // Task Results and Statuses
+                    // Task Results and Dropdown
                     if (task.results.length > 0) {
                         task.results.forEach(result => {
                             const resultItem = document.createElement('div');
                             resultItem.className = 'task-results';
 
-                            // Dropdown for insert task/group
                             const dropdownLabel = document.createElement('span');
                             dropdownLabel.className = 'dropdown-label';
                             dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
 
-                            const dropdown = document.createElement('select');
-                            dropdown.className = 'form-select d-inline-block w-auto';
+                            const dropdownContainer = document.createElement('div');
+                            dropdownContainer.className = 'custom-dropdown';
 
-                            // Populate dropdown options
-                            dropdown.innerHTML = `
-                                <option value="">Select</option>
-                                ${tasksAndGroups.tasks.map(task => `
-                                    <option value="${task.name}" data-tooltip="${generateTooltip(task.results)}">
-                                        ${task.name}
-                                    </option>
-                                `).join('')}
-                                ${tasksAndGroups.groups.map(group => `
-                                    <option value="${group.name}" data-tooltip="${generateGroupTooltip(group.tasks)}">
-                                        ${group.name} (Group)
-                                    </option>
-                                `).join('')}
-                            `;
+                            const dropdownButton = document.createElement('button');
+                            dropdownButton.className = 'btn btn-secondary';
+                            dropdownButton.textContent = 'Select';
 
-                            // Add hover event to the dropdown
-                            dropdown.addEventListener('mousemove', event => {
-                                const hoveredOption = dropdown.options[dropdown.selectedIndex];
-                                const tooltipContent = hoveredOption.getAttribute('data-tooltip') || '';
+                            const dropdownMenu = document.createElement('div');
+                            dropdownMenu.className = 'dropdown-menu';
 
-                                if (tooltipContent) {
-                                    tooltip.innerHTML = tooltipContent;
+                            // Populate dropdown with tasks and groups
+                            tasksAndGroups.tasks.forEach(taskOption => {
+                                const dropdownItem = document.createElement('div');
+                                dropdownItem.className = 'dropdown-item';
+                                dropdownItem.textContent = taskOption.name;
+                                dropdownItem.addEventListener('mouseenter', () => {
+                                    tooltip.innerHTML = generateTooltip(taskOption.results);
                                     tooltip.style.display = 'block';
-                                    tooltip.style.left = `${event.pageX + 10}px`;
-                                    tooltip.style.top = `${event.pageY + 10}px`;
-                                }
+                                });
+                                dropdownItem.addEventListener('mouseleave', () => {
+                                    tooltip.style.display = 'none';
+                                });
+                                dropdownMenu.appendChild(dropdownItem);
                             });
 
-                            dropdown.addEventListener('mouseleave', () => {
-                                tooltip.style.display = 'none';
+                            tasksAndGroups.groups.forEach(groupOption => {
+                                const dropdownItem = document.createElement('div');
+                                dropdownItem.className = 'dropdown-item';
+                                dropdownItem.textContent = `${groupOption.name} (Group)`;
+                                dropdownItem.addEventListener('mouseenter', () => {
+                                    tooltip.innerHTML = generateGroupTooltip(groupOption.tasks);
+                                    tooltip.style.display = 'block';
+                                });
+                                dropdownItem.addEventListener('mouseleave', () => {
+                                    tooltip.style.display = 'none';
+                                });
+                                dropdownMenu.appendChild(dropdownItem);
                             });
+
+                            dropdownButton.addEventListener('click', () => {
+                                dropdownMenu.classList.toggle('visible');
+                            });
+
+                            dropdownContainer.appendChild(dropdownButton);
+                            dropdownContainer.appendChild(dropdownMenu);
 
                             resultItem.appendChild(dropdownLabel);
-                            resultItem.appendChild(dropdown);
+                            resultItem.appendChild(dropdownContainer);
                             taskList.appendChild(resultItem);
                         });
                     } else {
