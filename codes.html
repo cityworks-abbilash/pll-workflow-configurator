@@ -23,23 +23,28 @@
         }
 
         function renderTables() {
+            // Fetch updated data from localStorage
+            const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
+            const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
+            const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
+        
             const container = document.getElementById('tablesContainer');
             container.innerHTML = ''; // Clear existing content
-
-            displayData.forEach(workflow => {
+        
+            workflowData.forEach(workflow => {
                 if (workflow.tasks.length === 0) return; // Skip empty workflows
-
+        
                 // Create a table for each workflow
                 const tableWrapper = document.createElement('div');
                 tableWrapper.className = 'mb-5';
-
+        
                 const title = document.createElement('h3');
                 title.textContent = workflow.title;
                 tableWrapper.appendChild(title);
-
+        
                 const table = document.createElement('table');
                 table.className = 'table table-bordered';
-
+        
                 // Create table header
                 const headerRow = document.createElement('tr');
                 ['Milestone', 'Task Number', 'Task Name', 'Task Result Name', 'Insert Task/Group', 'Associated Status'].forEach(header => {
@@ -50,23 +55,26 @@
                 const thead = document.createElement('thead');
                 thead.appendChild(headerRow);
                 table.appendChild(thead);
-
+        
                 // Create table body
                 const tbody = document.createElement('tbody');
                 workflow.tasks.forEach(task => {
-                    const { milestone, taskNumber, name, results = [], insertTaskGroup = '', status = '' } = task;
-
+                    const { id, name, results = [] } = task;
+                    const milestone = milestoneData[id]?.milestone || 'N/A';
+                    const taskNumber = milestoneData[id]?.taskNumber || 'N/A';
+                    const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}`] || 'N/A';
+        
                     // Handle multiple results
                     if (results.length > 0) {
                         results.forEach(result => {
                             const row = document.createElement('tr');
                             [
-                                milestone || 'N/A',
-                                taskNumber || 'N/A',
+                                milestone,
+                                taskNumber,
                                 name,
-                                result.result,
-                                insertTaskGroup || 'N/A',
-                                status || 'N/A'
+                                result,
+                                insertTaskGroup,
+                                'N/A' // Placeholder for status if needed
                             ].forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
@@ -77,12 +85,12 @@
                     } else {
                         const row = document.createElement('tr');
                         [
-                            milestone || 'N/A',
-                            taskNumber || 'N/A',
+                            milestone,
+                            taskNumber,
                             name,
-                            'N/A',
-                            insertTaskGroup || 'N/A',
-                            status || 'N/A'
+                            'N/A', // No result
+                            insertTaskGroup,
+                            'N/A' // Placeholder for status
                         ].forEach(value => {
                             const td = document.createElement('td');
                             td.textContent = value;
@@ -93,10 +101,11 @@
                 });
                 table.appendChild(tbody);
                 tableWrapper.appendChild(table);
-
+        
                 container.appendChild(tableWrapper);
             });
         }
+
 
         renderTables(); // Render tables on page load
     </script>
