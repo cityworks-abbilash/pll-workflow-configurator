@@ -230,6 +230,20 @@
                             dropdownContainer.appendChild(dropdownButton);
                             dropdownContainer.appendChild(dropdownMenu);
 
+                            // Add a clear selection button
+                            const clearButton = document.createElement('button');
+                            clearButton.className = 'btn btn-link text-danger p-0 ms-2'; // Styling for a small, unobtrusive button
+                            clearButton.textContent = 'Clear';
+                            clearButton.addEventListener('click', () => {
+                                const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
+                                delete insertsData[taskKey]; // Remove the saved selection from localStorage
+                                localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Update localStorage
+                                dropdownButton.textContent = 'Select an option'; // Reset the dropdown button text
+                            });
+                            
+                            dropdownContainer.appendChild(clearButton);
+
+
 
                             resultItem.appendChild(dropdownLabel);
                             resultItem.appendChild(dropdownContainer);
