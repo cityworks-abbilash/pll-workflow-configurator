@@ -38,21 +38,21 @@
         function renderTables() {
             const container = document.getElementById('tablesContainer');
             container.innerHTML = ''; // Clear existing content
-
+        
             displayData.forEach(workflow => {
                 if (workflow.tasks.length === 0) return; // Skip workflows without tasks
-
+        
                 // Create a table for each workflow
                 const tableWrapper = document.createElement('div');
                 tableWrapper.className = 'mb-5';
-
+        
                 const title = document.createElement('h3');
                 title.textContent = workflow.title;
                 tableWrapper.appendChild(title);
-
+        
                 const table = document.createElement('table');
                 table.className = 'table table-bordered';
-
+        
                 // Create table header
                 const headerRow = document.createElement('tr');
                 ['Milestone', 'Task Number', 'Task Name', 'Task Result Name', 'Insert Task/Group', 'Associated Status'].forEach(header => {
@@ -63,37 +63,47 @@
                 const thead = document.createElement('thead');
                 thead.appendChild(headerRow);
                 table.appendChild(thead);
-
+        
                 // Create table body
                 const tbody = document.createElement('tbody');
                 workflow.tasks.forEach(task => {
                     const { id, name, milestone, taskNumber, results = [] } = task;
-
-                    results.forEach(result => {
+        
+                    results.forEach((result, index) => {
                         const row = document.createElement('tr');
                         const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}-${result.result}`] || 'N/A';
                         const associatedStatus = result.status || 'N/A';
-
-                        [
-                            milestone || 'N/A',
-                            taskNumber || 'N/A',
-                            name,
-                            result.result,
-                            insertTaskGroup,
-                            associatedStatus
-                        ].forEach(value => {
-                            const td = document.createElement('td');
-                            td.textContent = value;
-                            row.appendChild(td);
-                        });
+        
+                        // For the first result, display milestone, task number, and task name
+                        if (index === 0) {
+                            [
+                                milestone || 'N/A',
+                                taskNumber || 'N/A',
+                                name,
+                                result.result,
+                                insertTaskGroup,
+                                associatedStatus
+                            ].forEach(value => {
+                                const td = document.createElement('td');
+                                td.textContent = value;
+                                row.appendChild(td);
+                            });
+                        } else {
+                            // For subsequent results, leave milestone, task number, and task name empty
+                            ['', '', '', result.result, insertTaskGroup, associatedStatus].forEach(value => {
+                                const td = document.createElement('td');
+                                td.textContent = value;
+                                row.appendChild(td);
+                            });
+                        }
                         tbody.appendChild(row);
                     });
-
+        
                     // Handle tasks with no results
                     if (results.length === 0) {
                         const row = document.createElement('tr');
                         const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}`] || 'N/A';
-
+        
                         [
                             milestone || 'N/A',
                             taskNumber || 'N/A',
@@ -111,10 +121,11 @@
                 });
                 table.appendChild(tbody);
                 tableWrapper.appendChild(table);
-
+        
                 container.appendChild(tableWrapper);
             });
         }
+
 
         // Render tables on page load
         renderTables();
