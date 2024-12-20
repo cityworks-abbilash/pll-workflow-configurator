@@ -55,7 +55,7 @@
         
                 // Create table header
                 const headerRow = document.createElement('tr');
-                ['Milestone', 'Task Number', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task/Group', 'Associated Status'].forEach(header => {
+                ['Milestone', 'Task Number', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task', 'Insert Group', 'Associated Status'].forEach(header => {
                     const th = document.createElement('th');
                     th.textContent = header;
                     headerRow.appendChild(th);
@@ -79,6 +79,10 @@
                         const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}-${result.result}`] || '—';
                         const associatedStatus = result.status || '—';
         
+                        // Determine if the insert is a task or a group
+                        const insertTask = insertTaskGroup.includes('Task') ? insertTaskGroup : '';
+                        const insertGroup = insertTaskGroup.includes('Subworkflow') ? insertTaskGroup : '';
+        
                         // For the first result, display full details
                         if (index === 0) {
                             [
@@ -87,7 +91,8 @@
                                 name,
                                 taskResultSet || '—',
                                 result.result,
-                                insertTaskGroup,
+                                insertTask || '',
+                                insertGroup || '',
                                 associatedStatus
                             ].forEach(value => {
                                 const td = document.createElement('td');
@@ -97,7 +102,7 @@
                             });
                         } else {
                             // For subsequent results, leave specific columns blank
-                            ['', '', '', '', result.result, insertTaskGroup, associatedStatus].forEach(value => {
+                            ['', '', '', '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
                                 if (value === '—') td.style.textAlign = 'center'; // Center em dash for missing data
@@ -111,6 +116,8 @@
                     if (results.length === 0) {
                         const row = document.createElement('tr');
                         const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}`] || '—';
+                        const insertTask = insertTaskGroup.includes('Task') ? insertTaskGroup : '';
+                        const insertGroup = insertTaskGroup.includes('Subworkflow') ? insertTaskGroup : '';
         
                         [
                             milestone || '—',
@@ -118,7 +125,8 @@
                             name,
                             '—', // Task Result Set
                             '—', // Task Result Name
-                            insertTaskGroup,
+                            insertTask || '',
+                            insertGroup || '',
                             '—' // Associated Status
                         ].forEach(value => {
                             const td = document.createElement('td');
@@ -135,6 +143,7 @@
                 container.appendChild(tableWrapper);
             });
         }
+
 
 
 
