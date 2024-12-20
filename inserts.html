@@ -87,6 +87,9 @@
     </div>
 
     <script>
+        // Initialize or retrieve insertsData from localStorage
+        const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
+
         const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         const workflowsContainer = document.getElementById('workflows');
 
@@ -188,6 +191,9 @@
                                     <span class="additional-info">Results: ${formatResults(taskOption.results)}</span>
                                 `;
                                 dropdownItem.addEventListener('click', () => {
+                                    const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`;
+                                    insertsData[taskKey] = taskOption.name; // Save selection
+                                    localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Update localStorage
                                     dropdownButton.textContent = taskOption.name;
                                     dropdownMenu.classList.remove('visible');
                                 });
@@ -201,15 +207,29 @@
                                     <span class="main-text">${groupOption.name}</span>
                                     <span class="additional-info">Tasks: ${groupOption.tasks.join(', ')}</span>
                                 `;
+                            
                                 dropdownItem.addEventListener('click', () => {
-                                    dropdownButton.textContent = groupOption.name;
-                                    dropdownMenu.classList.remove('visible');
+                                    const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
+                                    insertsData[taskKey] = groupOption.name; // Save selection to localStorage
+                                    localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Persist data
+                                    dropdownButton.textContent = groupOption.name; // Update button text
+                                    dropdownMenu.classList.remove('visible'); // Hide dropdown menu
                                 });
+                            
                                 dropdownMenu.appendChild(dropdownItem);
                             });
-
+                            
+                            // Restore saved selection if it exists
+                            const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
+                            const savedValue = insertsData[taskKey]; // Retrieve saved value from localStorage
+                            if (savedValue) {
+                                dropdownButton.textContent = savedValue; // Prepopulate dropdown with saved value
+                            }
+                            
+                            // Append button and menu to the container
                             dropdownContainer.appendChild(dropdownButton);
                             dropdownContainer.appendChild(dropdownMenu);
+
 
                             resultItem.appendChild(dropdownLabel);
                             resultItem.appendChild(dropdownContainer);
