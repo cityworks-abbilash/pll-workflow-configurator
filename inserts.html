@@ -89,7 +89,9 @@
     <div class="container mt-5">
         <div class="d-flex justify-content-between mb-4">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
+            <button class="btn btn-primary" onclick="goToCodes()">Next</button>
         </div>
+
 
         <h1 class="text-center">Workflow Inserts</h1>
         <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
@@ -104,10 +106,14 @@
         const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         const workflowsContainer = document.getElementById('workflows');
 
-        // Back button functionality
         function goBack() {
             window.location.href = 'milestone.html'; // Navigate back to the milestone page
         }
+        
+        function goToCodes() {
+            window.location.href = 'codes.html'; // Navigate to the Codes page
+        }
+
 
         // Prepare dropdown options
         const tasksAndGroups = displayData.reduce((acc, workflow) => {
