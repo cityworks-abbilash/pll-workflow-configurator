@@ -31,51 +31,53 @@
 
         // Back button functionality
         function goBack() {
-            window.location.href = 'milestone.html'; // Navigate back to the milestone page
+            window.location.href = 'milestone-V3.html'; // Navigate back to the milestone page
         }
 
         // Render workflows and tasks with results
-        displayData.forEach(workflow => {
-            const workflowSection = document.createElement('div');
-            workflowSection.className = 'mb-5';
+        displayData
+            .filter(workflow => workflow.tasks.length > 0) // Only include workflows with tasks
+            .forEach(workflow => {
+                const workflowSection = document.createElement('div');
+                workflowSection.className = 'mb-5';
 
-            // Workflow Title
-            const title = document.createElement('h3');
-            title.textContent = workflow.title;
-            workflowSection.appendChild(title);
+                // Workflow Title
+                const title = document.createElement('h3');
+                title.textContent = workflow.title;
+                workflowSection.appendChild(title);
 
-            // Task List
-            const taskList = document.createElement('ul');
-            taskList.className = 'list-group';
+                // Task List
+                const taskList = document.createElement('ul');
+                taskList.className = 'list-group';
 
-            workflow.tasks.forEach(task => {
-                // Task Item
-                const taskItem = document.createElement('li');
-                taskItem.className = 'list-group-item';
-                taskItem.textContent = `Task: ${task.name} (Milestone: ${task.milestone}, Task Number: ${task.taskNumber})`;
+                workflow.tasks.forEach(task => {
+                    // Task Item
+                    const taskItem = document.createElement('li');
+                    taskItem.className = 'list-group-item';
+                    taskItem.textContent = `Task: ${task.name} (Milestone: ${task.milestone}, Task Number: ${task.taskNumber})`;
 
-                // Append task to list
-                taskList.appendChild(taskItem);
+                    // Append task to list
+                    taskList.appendChild(taskItem);
 
-                // Task Results and Statuses
-                if (task.results.length > 0) {
-                    task.results.forEach(result => {
-                        const resultItem = document.createElement('div');
-                        resultItem.className = 'task-results';
-                        resultItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
-                        taskList.appendChild(resultItem);
-                    });
-                } else {
-                    const noResultItem = document.createElement('div');
-                    noResultItem.className = 'task-results';
-                    noResultItem.textContent = 'No results or statuses available.';
-                    taskList.appendChild(noResultItem);
-                }
+                    // Task Results and Statuses
+                    if (task.results.length > 0) {
+                        task.results.forEach(result => {
+                            const resultItem = document.createElement('div');
+                            resultItem.className = 'task-results';
+                            resultItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
+                            taskList.appendChild(resultItem);
+                        });
+                    } else {
+                        const noResultItem = document.createElement('div');
+                        noResultItem.className = 'task-results';
+                        noResultItem.textContent = 'No results or statuses available.';
+                        taskList.appendChild(noResultItem);
+                    }
+                });
+
+                workflowSection.appendChild(taskList);
+                workflowsContainer.appendChild(workflowSection);
             });
-
-            workflowSection.appendChild(taskList);
-            workflowsContainer.appendChild(workflowSection);
-        });
     </script>
 </body>
 </html>
