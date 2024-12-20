@@ -31,7 +31,6 @@
     </div>
 
     <script>
-        // Check if file data exists in localStorage
         const storedFileData = localStorage.getItem('fileContent');
         const storedWorkflowData = JSON.parse(localStorage.getItem('workflowData') || '[]');
 
@@ -50,97 +49,96 @@
             reader.onload = function (e) {
                 const fileContent = e.target.result;
 
-                // Save file content to localStorage
                 localStorage.setItem('fileContent', fileContent);
-
-                processDrawioFile(fileContent, false); // Extract tasks and lines
+                processDrawioFile(fileContent, false);
             };
             reader.readAsText(file);
         }
 
         function restartConfigurator() {
-            // Clear all localStorage items related to workflow and milestones
-            localStorage.removeItem('fileContent');
-            localStorage.removeItem('workflowData');
-            localStorage.removeItem('workflowState');
-            localStorage.removeItem('milestoneData'); // Add this to clear milestone data
-            window.location.reload(); // Refresh the page
+            localStorage.clear();
+            window.location.reload();
         }
-
 
         function extractStatuses(xmlDoc) {
             const statuses = [];
-
             xmlDoc.querySelectorAll('mxCell').forEach(cell => {
                 const value = cell.getAttribute('value') || '';
                 const style = cell.getAttribute('style') || '';
-
-                // Identify statuses dynamically based on common style attributes
-                if (style.includes('edgeLabel') && style.includes('align=left') && style.includes('verticalAlign=bottom')) {
+                if (style.includes('edgeLabel') && style.includes('align=left')) {
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = value;
                     const cleanValue = tempDiv.textContent.trim();
-
                     if (cleanValue && !statuses.includes(cleanValue)) {
                         statuses.push(cleanValue);
                     }
                 }
             });
-
             return statuses;
         }
 
         function processDrawioFile(fileContent, isRestoring) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
-        
+            const pages = Array.from(xmlDoc.querySelectorAll('diagram'));
+
+            if (pages.length > 1 && !isRestoring) {
+                showPageSelection(pages, fileContent);
+                return;
+            }
+
+            const selectedPageContent = pages.length === 1 ? pages[0].textContent : getSelectedPageContent(xmlDoc);
+            if (!selectedPageContent) {
+                alert('No valid page content found.');
+                return;
+            }
+
+            const pageXmlDoc = parser.parseFromString(selectedPageContent, 'text/xml');
+            processPage(pageXmlDoc, isRestoring);
+        }
+
+        function processPage(xmlDoc, isRestoring) {
             const statuses = extractStatuses(xmlDoc);
             const tasks = [];
             const connections = [];
             const containers = [];
-        
-            // Extract connections (lines) from the diagram
+
             xmlDoc.querySelectorAll('mxCell[edge="1"]').forEach(cell => {
                 const source = cell.getAttribute('source');
                 const lineText = cell.getAttribute('value') || 'No text associated with this line';
-        
                 if (source) {
                     connections.push({ source, text: lineText.trim() });
                 }
             });
-        
-            // Extract containers
+
             xmlDoc.querySelectorAll('mxCell[style*="swimlane"]').forEach(cell => {
                 const containerId = cell.getAttribute('id');
                 const containerName = cell.getAttribute('value') || 'Unnamed Container';
                 containers.push({ id: containerId, name: containerName.trim() });
             });
-        
-            // Extract tasks and associate their connections
+
             xmlDoc.querySelectorAll('mxCell[style*="rounded=1"]').forEach(cell => {
                 const rawValue = cell.getAttribute('value') || 'Unnamed Task';
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = rawValue;
-                const taskName = tempDiv.textContent.trim(); // Extract plain text
-        
+                const taskName = tempDiv.textContent.trim();
+
                 const taskId = cell.getAttribute('id');
                 const parentId = cell.getAttribute('parent');
                 const taskConnections = connections
                     .filter(connection => connection.source === taskId)
                     .map(connection => connection.text);
-        
+
                 tasks.push({ id: taskId, name: taskName, connections: taskConnections, parent: parentId });
             });
-        
-            // Add container connections to tasks inside the container
+
             containers.forEach(container => {
                 const containerConnections = connections
                     .filter(connection => connection.source === container.id)
                     .map(connection => connection.text);
-        
+
                 tasks.forEach(task => {
                     if (task.parent === container.id) {
-                        // Add container connections to the task's connections
                         containerConnections.forEach(connection => {
                             if (!task.connections.includes(connection)) {
                                 task.connections.push(connection);
@@ -149,10 +147,54 @@
                     }
                 });
             });
-        
+
             renderTasks(tasks, statuses, isRestoring);
         }
 
+        function showPageSelection(pages, fileContent) {
+            const container = document.querySelector('.container');
+            const pageSelectDiv = document.createElement('div');
+            pageSelectDiv.className = 'mb-4';
+
+            const pageSelectLabel = document.createElement('label');
+            pageSelectLabel.className = 'form-label';
+            pageSelectLabel.innerText = 'Select the workflow page to configure:';
+
+            const pageSelectDropdown = document.createElement('select');
+            pageSelectDropdown.className = 'form-select';
+
+            pages.forEach((page, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = page.getAttribute('name') || `Page ${index + 1}`;
+                pageSelectDropdown.appendChild(option);
+            });
+
+            const submitButton = document.createElement('button');
+            submitButton.className = 'btn btn-primary mt-3';
+            submitButton.innerText = 'Load Workflow';
+            submitButton.addEventListener('click', () => {
+                const selectedIndex = pageSelectDropdown.value;
+                if (selectedIndex !== null) {
+                    localStorage.setItem('selectedPage', selectedIndex);
+                    processDrawioFile(fileContent, false);
+                }
+            });
+
+            pageSelectDiv.appendChild(pageSelectLabel);
+            pageSelectDiv.appendChild(pageSelectDropdown);
+            pageSelectDiv.appendChild(submitButton);
+            container.appendChild(pageSelectDiv);
+        }
+
+        function getSelectedPageContent(xmlDoc) {
+            const selectedPageIndex = parseInt(localStorage.getItem('selectedPage'), 10);
+            const pages = Array.from(xmlDoc.querySelectorAll('diagram'));
+            if (!isNaN(selectedPageIndex) && pages[selectedPageIndex]) {
+                return pages[selectedPageIndex].textContent;
+            }
+            return null;
+        }
 
         function renderTasks(tasks, statuses, isRestoring) {
             const taskContainer = document.getElementById('taskContainer');
@@ -161,7 +203,7 @@
             const restartButton = document.getElementById('restartButton');
 
             tasksDiv.innerHTML = '';
-            const taskData = []; // Collect data for saving
+            const taskData = [];
 
             tasks.forEach(task => {
                 const taskRow = document.createElement('div');
@@ -173,7 +215,6 @@
                 taskRow.appendChild(taskLabel);
 
                 const taskResults = [];
-
                 if (task.connections.length > 0) {
                     const connectionList = document.createElement('ul');
                     task.connections.forEach(connection => {
@@ -181,19 +222,10 @@
                         if (connection !== 'No text associated with this line') {
                             const dropdown = document.createElement('select');
                             dropdown.className = 'form-select mt-1';
-
-                            // Populate dropdown with dynamic statuses
                             dropdown.innerHTML = `<option value="">Select Status</option>`;
                             statuses.forEach(status => {
                                 dropdown.innerHTML += `<option value="${status}">${status}</option>`;
                             });
-
-                            // Preselect saved status if restoring
-                            const savedTask = storedWorkflowData.find(t => t.id === task.id);
-                            const savedResult = savedTask?.results.find(r => r.result === connection);
-                            if (savedResult?.status) {
-                                dropdown.value = savedResult.status;
-                            }
 
                             const connectionText = document.createElement('span');
                             connectionText.innerText = connection;
@@ -220,7 +252,6 @@
                 taskData.push({ id: task.id, name: task.name, results: taskResults });
             });
 
-            // Save task data to localStorage if not restoring
             if (!isRestoring) {
                 localStorage.setItem('workflowData', JSON.stringify(taskData));
             }
@@ -228,7 +259,6 @@
             taskContainer.classList.remove('d-none');
             restartButton.classList.remove('d-none');
 
-            // Next button functionality
             nextButton.addEventListener('click', () => {
                 saveSelections(taskData);
                 window.location.href = 'workflow.html';
@@ -244,7 +274,6 @@
                     status: result.status.value,
                 })),
             }));
-
             localStorage.setItem('workflowData', JSON.stringify(savedData));
         }
     </script>
