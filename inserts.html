@@ -34,7 +34,7 @@
             display: none;
             position: absolute;
             width: 100%;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
             background: white;
             border: 1px solid #ccc;
@@ -60,6 +60,17 @@
             font-size: 0.85rem;
             color: #aaa;
             margin-top: 4px;
+        }
+        .search-input {
+            width: calc(100% - 20px);
+            margin: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+        }
+        .search-input:focus {
+            border-color: #007bff;
         }
     </style>
 </head>
@@ -153,6 +164,20 @@
 
                             const dropdownMenu = document.createElement('div');
                             dropdownMenu.className = 'dropdown-menu';
+
+                            // Add search input
+                            const searchInput = document.createElement('input');
+                            searchInput.className = 'search-input';
+                            searchInput.setAttribute('placeholder', 'Search...');
+                            searchInput.addEventListener('input', () => {
+                                const query = searchInput.value.toLowerCase();
+                                Array.from(dropdownMenu.querySelectorAll('.dropdown-item')).forEach(item => {
+                                    const text = item.textContent.toLowerCase();
+                                    item.style.display = text.includes(query) ? 'block' : 'none';
+                                });
+                            });
+
+                            dropdownMenu.appendChild(searchInput);
 
                             // Populate dropdown with tasks and groups
                             tasksAndGroups.tasks.forEach(taskOption => {
