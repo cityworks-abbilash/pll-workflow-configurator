@@ -15,6 +15,27 @@
             font-weight: bold;
             margin-right: 10px;
         }
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-content {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 10;
+            max-width: 300px;
+            font-size: 0.9rem;
+        }
+        .tooltip-container:hover .tooltip-content {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -38,27 +59,29 @@
             window.location.href = 'milestone.html'; // Navigate back to the milestone page
         }
 
-        // Prepare dropdown options (task names and subworkflow names)
+        // Prepare dropdown options with tooltips
         const tasksAndGroups = displayData.reduce((acc, workflow) => {
             if (workflow.tasks.length > 0) {
                 // Add subworkflow name if applicable
                 if (workflow.workflowId.startsWith('subWorkflow')) {
-                    acc.groups.push(workflow.title); // Subworkflow names
+                    acc.groups.push({
+                        name: workflow.title,
+                        tasks: workflow.tasks
+                    });
                 }
 
-                // Add task names
+                // Add individual task names
                 workflow.tasks.forEach(task => {
-                    acc.tasks.push(task.name);
+                    acc.tasks.push({
+                        name: task.name,
+                        results: task.results
+                    });
                 });
             }
             return acc;
         }, { tasks: [], groups: [] });
 
-        // Remove duplicates
-        const uniqueTasks = [...new Set(tasksAndGroups.tasks)];
-        const uniqueGroups = [...new Set(tasksAndGroups.groups)];
-
-        // Render workflows and tasks with results and dropdown
+        // Render workflows and tasks with results and dropdowns
         displayData
             .filter(workflow => workflow.tasks.length > 0) // Only include workflows with tasks
             .forEach(workflow => {
@@ -96,14 +119,25 @@
 
                             const dropdown = document.createElement('select');
                             dropdown.className = 'form-select d-inline-block w-auto';
+
+                            // Tooltip logic for each dropdown item
                             dropdown.innerHTML = `
                                 <option value="">Select</option>
-                                ${uniqueTasks.map(taskName => `<option value="${taskName}">${taskName}</option>`).join('')}
-                                ${uniqueGroups.map(groupName => `<option value="${groupName}">${groupName} (Group)</option>`).join('')}
+                                ${tasksAndGroups.tasks.map(task => `
+                                    <option value="${task.name}" data-tooltip="${generateTooltip(task.results)}">
+                                        ${task.name}
+                                    </option>
+                                `).join('')}
+                                ${tasksAndGroups.groups.map(group => `
+                                    <option value="${group.name}" data-tooltip="${generateGroupTooltip(group.tasks)}">
+                                        ${group.name} (Group)
+                                    </option>
+                                `).join('')}
                             `;
 
+                            // Add dropdown and label
                             resultItem.appendChild(dropdownLabel);
-                            resultItem.appendChild(dropdown);
+                            resultItem.appendChild(wrapWithTooltip(dropdown));
                             taskList.appendChild(resultItem);
                         });
                     } else {
@@ -117,6 +151,42 @@
                 workflowSection.appendChild(taskList);
                 workflowsContainer.appendChild(workflowSection);
             });
+
+        // Generate tooltip content for a task's results
+        function generateTooltip(results) {
+            if (results.length === 0) return 'No results or statuses available.';
+            return results.map(result => `Result: ${result.result}, Status: ${result.status || 'None'}`).join('<br>');
+        }
+
+        // Generate tooltip content for a group's tasks
+        function generateGroupTooltip(tasks) {
+            if (tasks.length === 0) return 'No tasks available in this group.';
+            return tasks.map(task => `
+                Task: ${task.name} - 
+                ${task.results.length > 0 
+                    ? task.results.map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`).join('<br>')
+                    : 'No results or statuses'}
+            `).join('<br>');
+        }
+
+        // Wrap an element with tooltip logic
+        function wrapWithTooltip(element) {
+            const tooltipContainer = document.createElement('div');
+            tooltipContainer.className = 'tooltip-container';
+            const tooltipContent = document.createElement('div');
+            tooltipContent.className = 'tooltip-content';
+            tooltipContent.innerHTML = element.options[0].getAttribute('data-tooltip') || '';
+            tooltipContainer.appendChild(element);
+            tooltipContainer.appendChild(tooltipContent);
+
+            element.addEventListener('mouseover', event => {
+                const selectedOption = event.target.options[event.target.selectedIndex];
+                const tooltip = tooltipContainer.querySelector('.tooltip-content');
+                tooltip.innerHTML = selectedOption.getAttribute('data-tooltip') || '';
+            });
+
+            return tooltipContainer;
+        }
     </script>
 </body>
 </html>
