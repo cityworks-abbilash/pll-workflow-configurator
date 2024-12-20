@@ -93,38 +93,66 @@
         function processDrawioFile(fileContent, isRestoring) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
-
+        
             const statuses = extractStatuses(xmlDoc);
             const tasks = [];
             const connections = [];
-
+            const containers = [];
+        
             // Extract connections (lines) from the diagram
             xmlDoc.querySelectorAll('mxCell[edge="1"]').forEach(cell => {
                 const source = cell.getAttribute('source');
                 const lineText = cell.getAttribute('value') || 'No text associated with this line';
-
+        
                 if (source) {
                     connections.push({ source, text: lineText.trim() });
                 }
             });
-
+        
+            // Extract containers
+            xmlDoc.querySelectorAll('mxCell[style*="swimlane"]').forEach(cell => {
+                const containerId = cell.getAttribute('id');
+                const containerName = cell.getAttribute('value') || 'Unnamed Container';
+                containers.push({ id: containerId, name: containerName.trim() });
+            });
+        
             // Extract tasks and associate their connections
             xmlDoc.querySelectorAll('mxCell[style*="rounded=1"]').forEach(cell => {
                 const rawValue = cell.getAttribute('value') || 'Unnamed Task';
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = rawValue;
                 const taskName = tempDiv.textContent.trim(); // Extract plain text
-
+        
                 const taskId = cell.getAttribute('id');
+                const parentId = cell.getAttribute('parent');
                 const taskConnections = connections
                     .filter(connection => connection.source === taskId)
                     .map(connection => connection.text);
-
-                tasks.push({ id: taskId, name: taskName, connections: taskConnections });
+        
+                tasks.push({ id: taskId, name: taskName, connections: taskConnections, parent: parentId });
             });
-
+        
+            // Add container connections to tasks inside the container
+            containers.forEach(container => {
+                const containerConnections = connections
+                    .filter(connection => connection.source === container.id)
+                    .map(connection => connection.text);
+        
+                tasks.forEach(task => {
+                    if (task.parent === container.id) {
+                        // Add container connections to the task's connections
+                        containerConnections.forEach(connection => {
+                            if (!task.connections.includes(connection)) {
+                                task.connections.push(connection);
+                            }
+                        });
+                    }
+                });
+            });
+        
             renderTasks(tasks, statuses, isRestoring);
         }
+
 
         function renderTasks(tasks, statuses, isRestoring) {
             const taskContainer = document.getElementById('taskContainer');
