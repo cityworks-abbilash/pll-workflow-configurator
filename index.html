@@ -99,17 +99,18 @@
         
             // If multiple diagrams are found, prompt user for selection
             if (diagrams.length > 1) {
-                displayWorkflowSelection(diagrams);
+                displayWorkflowSelection(diagrams, isRestoring, parser);
                 return; // Stop further processing until the user selects a workflow
             }
         
             // Default: Process the first diagram if only one exists
             const selectedDiagram = diagrams[0];
-            const workflowXml = new DOMParser().parseFromString(selectedDiagram.textContent, 'text/xml');
+            const workflowXml = parser.parseFromString(selectedDiagram.textContent, 'text/xml');
             processWorkflowXml(workflowXml, isRestoring);
         }
 
-        function displayWorkflowSelection(diagrams) {
+
+        function displayWorkflowSelection(diagrams, isRestoring, parser) {
             const container = document.querySelector('.container');
             const workflowDropdown = document.createElement('div');
             workflowDropdown.className = 'mb-4';
@@ -132,8 +133,8 @@
                 const selectedIndex = event.target.value;
                 if (selectedIndex) {
                     const selectedDiagram = diagrams[selectedIndex];
-                    const workflowXml = new DOMParser().parseFromString(selectedDiagram.textContent, 'text/xml');
-                    processWorkflowXml(workflowXml, false);
+                    const workflowXml = parser.parseFromString(selectedDiagram.textContent, 'text/xml');
+                    processWorkflowXml(workflowXml, isRestoring);
                     workflowDropdown.remove(); // Remove dropdown after selection
                 }
             });
@@ -141,6 +142,7 @@
             workflowDropdown.appendChild(select);
             container.appendChild(workflowDropdown);
         }
+
 
         function processWorkflowXml(xmlDoc, isRestoring) {
             const statuses = extractStatuses(xmlDoc);
@@ -201,6 +203,7 @@
         
             renderTasks(tasks, statuses, isRestoring);
         }
+
 
 
         function renderTasks(tasks, statuses, isRestoring) {
