@@ -11,6 +11,10 @@
             font-size: 0.9rem;
             color: #555;
         }
+        .dropdown-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -34,7 +38,27 @@
             window.location.href = 'milestone.html'; // Navigate back to the milestone page
         }
 
-        // Render workflows and tasks with results
+        // Prepare dropdown options (task names and subworkflow names)
+        const tasksAndGroups = displayData.reduce((acc, workflow) => {
+            if (workflow.tasks.length > 0) {
+                // Add subworkflow name if applicable
+                if (workflow.workflowId.startsWith('subWorkflow')) {
+                    acc.groups.push(workflow.title); // Subworkflow names
+                }
+
+                // Add task names
+                workflow.tasks.forEach(task => {
+                    acc.tasks.push(task.name);
+                });
+            }
+            return acc;
+        }, { tasks: [], groups: [] });
+
+        // Remove duplicates
+        const uniqueTasks = [...new Set(tasksAndGroups.tasks)];
+        const uniqueGroups = [...new Set(tasksAndGroups.groups)];
+
+        // Render workflows and tasks with results and dropdown
         displayData
             .filter(workflow => workflow.tasks.length > 0) // Only include workflows with tasks
             .forEach(workflow => {
@@ -64,7 +88,22 @@
                         task.results.forEach(result => {
                             const resultItem = document.createElement('div');
                             resultItem.className = 'task-results';
-                            resultItem.textContent = `Result: ${result.result}, Status: ${result.status || 'None'}`;
+
+                            // Dropdown for insert task/group
+                            const dropdownLabel = document.createElement('span');
+                            dropdownLabel.className = 'dropdown-label';
+                            dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
+
+                            const dropdown = document.createElement('select');
+                            dropdown.className = 'form-select d-inline-block w-auto';
+                            dropdown.innerHTML = `
+                                <option value="">Select</option>
+                                ${uniqueTasks.map(taskName => `<option value="${taskName}">${taskName}</option>`).join('')}
+                                ${uniqueGroups.map(groupName => `<option value="${groupName}">${groupName} (Group)</option>`).join('')}
+                            `;
+
+                            resultItem.appendChild(dropdownLabel);
+                            resultItem.appendChild(dropdown);
                             taskList.appendChild(resultItem);
                         });
                     } else {
