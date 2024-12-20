@@ -15,26 +15,17 @@
             font-weight: bold;
             margin-right: 10px;
         }
-        .tooltip-container {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip-content {
-            display: none;
+        .tooltip {
             position: absolute;
-            left: 100%;
-            top: 0;
-            background: #fff;
+            display: none;
+            background: white;
             border: 1px solid #ccc;
             border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             padding: 10px;
-            z-index: 10;
-            max-width: 300px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
             font-size: 0.9rem;
-        }
-        .tooltip-container:hover .tooltip-content {
-            display: block;
+            max-width: 300px;
         }
     </style>
 </head>
@@ -48,11 +39,13 @@
         <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
 
         <div id="workflows"></div>
+        <div id="tooltip" class="tooltip"></div>
     </div>
 
     <script>
         const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         const workflowsContainer = document.getElementById('workflows');
+        const tooltip = document.getElementById('tooltip');
 
         // Back button functionality
         function goBack() {
@@ -80,6 +73,10 @@
             }
             return acc;
         }, { tasks: [], groups: [] });
+
+        // Remove duplicates
+        const uniqueTasks = [...new Set(tasksAndGroups.tasks)];
+        const uniqueGroups = [...new Set(tasksAndGroups.groups)];
 
         // Render workflows and tasks with results and dropdowns
         displayData
@@ -120,7 +117,7 @@
                             const dropdown = document.createElement('select');
                             dropdown.className = 'form-select d-inline-block w-auto';
 
-                            // Tooltip logic for each dropdown item
+                            // Populate dropdown options
                             dropdown.innerHTML = `
                                 <option value="">Select</option>
                                 ${tasksAndGroups.tasks.map(task => `
@@ -135,9 +132,25 @@
                                 `).join('')}
                             `;
 
-                            // Add dropdown and label
+                            // Add hover event to the dropdown
+                            dropdown.addEventListener('mousemove', event => {
+                                const hoveredOption = dropdown.options[dropdown.selectedIndex];
+                                const tooltipContent = hoveredOption.getAttribute('data-tooltip') || '';
+
+                                if (tooltipContent) {
+                                    tooltip.innerHTML = tooltipContent;
+                                    tooltip.style.display = 'block';
+                                    tooltip.style.left = `${event.pageX + 10}px`;
+                                    tooltip.style.top = `${event.pageY + 10}px`;
+                                }
+                            });
+
+                            dropdown.addEventListener('mouseleave', () => {
+                                tooltip.style.display = 'none';
+                            });
+
                             resultItem.appendChild(dropdownLabel);
-                            resultItem.appendChild(wrapWithTooltip(dropdown));
+                            resultItem.appendChild(dropdown);
                             taskList.appendChild(resultItem);
                         });
                     } else {
@@ -154,38 +167,19 @@
 
         // Generate tooltip content for a task's results
         function generateTooltip(results) {
-            if (results.length === 0) return 'No results or statuses available.';
+            if (!results || results.length === 0) return 'No results or statuses available.';
             return results.map(result => `Result: ${result.result}, Status: ${result.status || 'None'}`).join('<br>');
         }
 
         // Generate tooltip content for a group's tasks
         function generateGroupTooltip(tasks) {
-            if (tasks.length === 0) return 'No tasks available in this group.';
+            if (!tasks || tasks.length === 0) return 'No tasks available in this group.';
             return tasks.map(task => `
                 Task: ${task.name} - 
                 ${task.results.length > 0 
                     ? task.results.map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`).join('<br>')
                     : 'No results or statuses'}
             `).join('<br>');
-        }
-
-        // Wrap an element with tooltip logic
-        function wrapWithTooltip(element) {
-            const tooltipContainer = document.createElement('div');
-            tooltipContainer.className = 'tooltip-container';
-            const tooltipContent = document.createElement('div');
-            tooltipContent.className = 'tooltip-content';
-            tooltipContent.innerHTML = element.options[0].getAttribute('data-tooltip') || '';
-            tooltipContainer.appendChild(element);
-            tooltipContainer.appendChild(tooltipContent);
-
-            element.addEventListener('mouseover', event => {
-                const selectedOption = event.target.options[event.target.selectedIndex];
-                const tooltip = tooltipContainer.querySelector('.tooltip-content');
-                tooltip.innerHTML = selectedOption.getAttribute('data-tooltip') || '';
-            });
-
-            return tooltipContainer;
         }
     </script>
 </body>
