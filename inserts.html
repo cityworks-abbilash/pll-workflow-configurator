@@ -72,6 +72,17 @@
         .search-input:focus {
             border-color: #007bff;
         }
+
+        .text-danger {
+            font-size: 1.2rem; /* Adjust size if needed */
+            margin-right: 8px; /* Space between "x" and dropdown */
+            cursor: pointer; /* Make it clickable */
+            vertical-align: middle; /* Align vertically */
+        }
+        
+        .dropdown-button {
+            flex-grow: 1; /* Allow the button to take up remaining space */
+        }
     </style>
 </head>
 <body>
@@ -240,10 +251,19 @@
                                 dropdownButton.textContent = 'Select an option'; // Reset the dropdown text
                             });
                             
-                            // Insert the "x" icon before the dropdown button
-                            dropdownContainer.appendChild(clearIcon);
-                            dropdownContainer.appendChild(dropdownButton);
+                            // Create a wrapper for alignment
+                            const controlWrapper = document.createElement('div');
+                            controlWrapper.style.display = 'flex'; // Flexbox for horizontal alignment
+                            controlWrapper.style.alignItems = 'center'; // Center items vertically
+                            
+                            // Append "x" and dropdown button to the wrapper
+                            controlWrapper.appendChild(clearIcon);
+                            controlWrapper.appendChild(dropdownButton);
+                            
+                            // Append the wrapper and menu to the container
+                            dropdownContainer.appendChild(controlWrapper);
                             dropdownContainer.appendChild(dropdownMenu);
+
 
 
 
