@@ -71,14 +71,14 @@
         
                     results.forEach((result, index) => {
                         const row = document.createElement('tr');
-                        const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}-${result.result}`] || 'N/A';
-                        const associatedStatus = result.status || 'N/A';
+                        const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}-${result.result}`] || '-';
+                        const associatedStatus = result.status || '-';
         
                         // For the first result, display milestone, task number, and task name
                         if (index === 0) {
                             [
-                                milestone || 'N/A',
-                                taskNumber || 'N/A',
+                                milestone || '-',
+                                taskNumber || '-',
                                 name,
                                 result.result,
                                 insertTaskGroup,
@@ -102,15 +102,15 @@
                     // Handle tasks with no results
                     if (results.length === 0) {
                         const row = document.createElement('tr');
-                        const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}`] || 'N/A';
+                        const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}`] || '-';
         
                         [
-                            milestone || 'N/A',
-                            taskNumber || 'N/A',
+                            milestone || '-',
+                            taskNumber || '-',
                             name,
-                            'N/A',
+                            '-',
                             insertTaskGroup,
-                            'N/A'
+                            '-'
                         ].forEach(value => {
                             const td = document.createElement('td');
                             td.textContent = value;
