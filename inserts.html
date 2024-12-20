@@ -15,9 +15,51 @@
             font-weight: bold;
             margin-right: 10px;
         }
-        .lighter-text {
-            font-size: 0.8rem;
+        .custom-dropdown {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .dropdown-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        .dropdown-menu.visible {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown-item .main-text {
+            font-weight: bold;
+            display: block;
+        }
+        .dropdown-item .additional-info {
+            font-size: 0.85rem;
             color: #aaa;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -99,28 +141,53 @@
                             dropdownLabel.className = 'dropdown-label';
                             dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
 
-                            const dropdown = document.createElement('select');
-                            dropdown.className = 'form-select d-inline-block w-auto';
+                            const dropdownContainer = document.createElement('div');
+                            dropdownContainer.className = 'custom-dropdown';
+
+                            const dropdownButton = document.createElement('button');
+                            dropdownButton.className = 'dropdown-button';
+                            dropdownButton.textContent = 'Select an option';
+                            dropdownButton.addEventListener('click', () => {
+                                dropdownMenu.classList.toggle('visible');
+                            });
+
+                            const dropdownMenu = document.createElement('div');
+                            dropdownMenu.className = 'dropdown-menu';
 
                             // Populate dropdown with tasks and groups
-                            dropdown.innerHTML = `
-                                <option value="">Select</option>
-                                ${tasksAndGroups.tasks.map(taskOption => `
-                                    <option value="${taskOption.name}">
-                                        ${taskOption.name} 
-                                        <span class="lighter-text">(Results: ${formatResults(taskOption.results)})</span>
-                                    </option>
-                                `).join('')}
-                                ${tasksAndGroups.groups.map(groupOption => `
-                                    <option value="${groupOption.name}">
-                                        ${groupOption.name} 
-                                        <span class="lighter-text">(Tasks: ${groupOption.tasks.join(', ')})</span>
-                                    </option>
-                                `).join('')}
-                            `;
+                            tasksAndGroups.tasks.forEach(taskOption => {
+                                const dropdownItem = document.createElement('div');
+                                dropdownItem.className = 'dropdown-item';
+                                dropdownItem.innerHTML = `
+                                    <span class="main-text">${taskOption.name}</span>
+                                    <span class="additional-info">Results: ${formatResults(taskOption.results)}</span>
+                                `;
+                                dropdownItem.addEventListener('click', () => {
+                                    dropdownButton.textContent = taskOption.name;
+                                    dropdownMenu.classList.remove('visible');
+                                });
+                                dropdownMenu.appendChild(dropdownItem);
+                            });
+
+                            tasksAndGroups.groups.forEach(groupOption => {
+                                const dropdownItem = document.createElement('div');
+                                dropdownItem.className = 'dropdown-item';
+                                dropdownItem.innerHTML = `
+                                    <span class="main-text">${groupOption.name}</span>
+                                    <span class="additional-info">Tasks: ${groupOption.tasks.join(', ')}</span>
+                                `;
+                                dropdownItem.addEventListener('click', () => {
+                                    dropdownButton.textContent = groupOption.name;
+                                    dropdownMenu.classList.remove('visible');
+                                });
+                                dropdownMenu.appendChild(dropdownItem);
+                            });
+
+                            dropdownContainer.appendChild(dropdownButton);
+                            dropdownContainer.appendChild(dropdownMenu);
 
                             resultItem.appendChild(dropdownLabel);
-                            resultItem.appendChild(dropdown);
+                            resultItem.appendChild(dropdownContainer);
                             taskList.appendChild(resultItem);
                         });
                     } else {
