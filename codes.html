@@ -35,114 +35,124 @@
             window.location.href = 'index.html'; // Restart from the index page
         }
 
-        function renderTables() {
-            const container = document.getElementById('tablesContainer');
-            container.innerHTML = ''; // Clear existing content
-        
-            displayData.forEach(workflow => {
-                if (workflow.tasks.length === 0) return; // Skip workflows without tasks
-        
-                // Create a table for each workflow
-                const tableWrapper = document.createElement('div');
-                tableWrapper.className = 'mb-5';
-        
-                const title = document.createElement('h3');
-                title.textContent = workflow.title;
-                tableWrapper.appendChild(title);
-        
-                const table = document.createElement('table');
-                table.className = 'table table-bordered';
-        
-                // Create table header
-                const headerRow = document.createElement('tr');
-                ['Milestone', 'Task Number', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task', 'Insert Group', 'Associated Status'].forEach(header => {
-                    const th = document.createElement('th');
-                    th.textContent = header;
-                    headerRow.appendChild(th);
-                });
-                const thead = document.createElement('thead');
-                thead.appendChild(headerRow);
-                table.appendChild(thead);
-        
-                // Create table body
-                const tbody = document.createElement('tbody');
-                workflow.tasks.forEach(task => {
-                    const { id, name, milestone, taskNumber, results = [] } = task;
-        
-                    // Generate Task Result Set content
-                    const taskResultSet = results
-                        .map(result => `${result.result}${result.status ? ` (${result.status})` : ''}`)
-                        .join(', ');
-        
-                    results.forEach((result, index) => {
-                        const row = document.createElement('tr');
-                        const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}-${result.result}`] || '—';
-                        const associatedStatus = result.status || '—';
-        
-                        // Determine if the insert is a task or a group
-                        const insertTask = insertTaskGroup.includes('Task') ? insertTaskGroup : '';
-                        const insertGroup = insertTaskGroup.includes('Subworkflow') ? insertTaskGroup : '';
-        
-                        // For the first result, display full details
-                        if (index === 0) {
-                            [
-                                milestone || '—',
-                                taskNumber || '—',
-                                name,
-                                taskResultSet || '—',
-                                result.result,
-                                insertTask || '',
-                                insertGroup || '',
-                                associatedStatus
-                            ].forEach(value => {
-                                const td = document.createElement('td');
-                                td.textContent = value;
-                                if (value === '—') td.style.textAlign = 'center'; // Center em dash for missing data
-                                row.appendChild(td);
-                            });
-                        } else {
-                            // For subsequent results, leave specific columns blank
-                            ['', '', '', '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
-                                const td = document.createElement('td');
-                                td.textContent = value;
-                                if (value === '—') td.style.textAlign = 'center'; // Center em dash for missing data
-                                row.appendChild(td);
-                            });
-                        }
-                        tbody.appendChild(row);
+function renderTables() {
+    const container = document.getElementById('tablesContainer');
+    container.innerHTML = ''; // Clear existing content
+
+    const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
+    const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
+
+    // Retrieve tasks and groups for classification
+    const tasks = displayData.flatMap(workflow => workflow.tasks.map(task => task.name));
+    const groups = displayData.filter(workflow => workflow.workflowId.startsWith('subWorkflow')).map(workflow => workflow.title);
+
+    displayData.forEach(workflow => {
+        if (workflow.tasks.length === 0) return; // Skip workflows without tasks
+
+        // Create a table for each workflow
+        const tableWrapper = document.createElement('div');
+        tableWrapper.className = 'mb-5';
+
+        const title = document.createElement('h3');
+        title.textContent = workflow.title;
+        tableWrapper.appendChild(title);
+
+        const table = document.createElement('table');
+        table.className = 'table table-bordered';
+
+        // Create table header
+        const headerRow = document.createElement('tr');
+        ['Milestone', 'Task Number', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task', 'Insert Group', 'Associated Status'].forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        const thead = document.createElement('thead');
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create table body
+        const tbody = document.createElement('tbody');
+        workflow.tasks.forEach(task => {
+            const { id, name, milestone, taskNumber, results = [] } = task;
+
+            // Generate Task Result Set content
+            const taskResultSet = results
+                .map(result => `${result.result}${result.status ? ` (${result.status})` : ''}`)
+                .join(', ');
+
+            results.forEach((result, index) => {
+                const row = document.createElement('tr');
+                const taskKey = `${workflow.workflowId}-${id}-${result.result}`;
+                const insertSelection = insertsData[taskKey] || '—';
+                const associatedStatus = result.status || '—';
+
+                // Dynamically classify Insert Task/Group
+                const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
+                const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
+
+                // For the first result, display full details
+                if (index === 0) {
+                    [
+                        milestone || '—',
+                        taskNumber || '—',
+                        name,
+                        taskResultSet || '—',
+                        result.result,
+                        insertTask || '',
+                        insertGroup || '',
+                        associatedStatus
+                    ].forEach(value => {
+                        const td = document.createElement('td');
+                        td.textContent = value;
+                        if (value === '—') td.style.textAlign = 'center'; // Center em dash for missing data
+                        row.appendChild(td);
                     });
-        
-                    // Handle tasks with no results
-                    if (results.length === 0) {
-                        const row = document.createElement('tr');
-                        const insertTaskGroup = insertsData[`${workflow.workflowId}-${id}`] || '—';
-                        const insertTask = insertTaskGroup.includes('Task') ? insertTaskGroup : '';
-                        const insertGroup = insertTaskGroup.includes('Subworkflow') ? insertTaskGroup : '';
-        
-                        [
-                            milestone || '—',
-                            taskNumber || '—',
-                            name,
-                            '—', // Task Result Set
-                            '—', // Task Result Name
-                            insertTask || '',
-                            insertGroup || '',
-                            '—' // Associated Status
-                        ].forEach(value => {
-                            const td = document.createElement('td');
-                            td.textContent = value;
-                            if (value === '—') td.style.textAlign = 'center'; // Center em dash for missing data
-                            row.appendChild(td);
-                        });
-                        tbody.appendChild(row);
-                    }
-                });
-                table.appendChild(tbody);
-                tableWrapper.appendChild(table);
-        
-                container.appendChild(tableWrapper);
+                } else {
+                    // For subsequent results, leave specific columns blank
+                    ['', '', '', '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
+                        const td = document.createElement('td');
+                        td.textContent = value;
+                        row.appendChild(td);
+                    });
+                }
+                tbody.appendChild(row);
             });
-        }
+
+            // Handle tasks with no results
+            if (results.length === 0) {
+                const row = document.createElement('tr');
+                const taskKey = `${workflow.workflowId}-${id}`;
+                const insertSelection = insertsData[taskKey] || '—';
+
+                const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
+                const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
+
+                [
+                    milestone || '—',
+                    taskNumber || '—',
+                    name,
+                    '—', // Task Result Set
+                    '—', // Task Result Name
+                    insertTask || '',
+                    insertGroup || '',
+                    '—' // Associated Status
+                ].forEach(value => {
+                    const td = document.createElement('td');
+                    td.textContent = value;
+                    if (value === '—') td.style.textAlign = 'center'; // Center em dash for missing data
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            }
+        });
+        table.appendChild(tbody);
+        tableWrapper.appendChild(table);
+
+        container.appendChild(tableWrapper);
+    });
+}
+
 
 
 
