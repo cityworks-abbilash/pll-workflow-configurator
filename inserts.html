@@ -15,42 +15,9 @@
             font-weight: bold;
             margin-right: 10px;
         }
-        .custom-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            left: 0;
-            top: 100%;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-            width: 200px;
-        }
-        .dropdown-menu.visible {
-            display: block;
-        }
-        .dropdown-item {
-            padding: 8px;
-            cursor: pointer;
-        }
-        .dropdown-item:hover {
-            background-color: #f1f1f1;
-        }
-        .info-box {
-            margin-top: 20px;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            display: none;
-        }
-        .info-box.visible {
-            display: block;
+        .lighter-text {
+            font-size: 0.8rem;
+            color: #aaa;
         }
     </style>
 </head>
@@ -64,13 +31,11 @@
         <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
 
         <div id="workflows"></div>
-        <div id="infoBox" class="info-box"></div>
     </div>
 
     <script>
         const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         const workflowsContainer = document.getElementById('workflows');
-        const infoBox = document.getElementById('infoBox');
 
         // Back button functionality
         function goBack() {
@@ -84,7 +49,7 @@
                 if (workflow.workflowId.startsWith('subWorkflow')) {
                     acc.groups.push({
                         name: workflow.title,
-                        tasks: workflow.tasks
+                        tasks: workflow.tasks.map(task => task.name)
                     });
                 }
 
@@ -134,48 +99,28 @@
                             dropdownLabel.className = 'dropdown-label';
                             dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
 
-                            const dropdownContainer = document.createElement('div');
-                            dropdownContainer.className = 'custom-dropdown';
-
-                            const dropdownButton = document.createElement('button');
-                            dropdownButton.className = 'btn btn-secondary';
-                            dropdownButton.textContent = 'Select';
-
-                            const dropdownMenu = document.createElement('div');
-                            dropdownMenu.className = 'dropdown-menu';
+                            const dropdown = document.createElement('select');
+                            dropdown.className = 'form-select d-inline-block w-auto';
 
                             // Populate dropdown with tasks and groups
-                            tasksAndGroups.tasks.forEach(taskOption => {
-                                const dropdownItem = document.createElement('div');
-                                dropdownItem.className = 'dropdown-item';
-                                dropdownItem.textContent = taskOption.name;
-                                dropdownItem.addEventListener('mouseenter', () => {
-                                    displayInfoBox(generateTooltip(taskOption.results));
-                                });
-                                dropdownItem.addEventListener('mouseleave', hideInfoBox);
-                                dropdownMenu.appendChild(dropdownItem);
-                            });
-
-                            tasksAndGroups.groups.forEach(groupOption => {
-                                const dropdownItem = document.createElement('div');
-                                dropdownItem.className = 'dropdown-item';
-                                dropdownItem.textContent = `${groupOption.name} (Group)`;
-                                dropdownItem.addEventListener('mouseenter', () => {
-                                    displayInfoBox(generateGroupTooltip(groupOption.tasks));
-                                });
-                                dropdownItem.addEventListener('mouseleave', hideInfoBox);
-                                dropdownMenu.appendChild(dropdownItem);
-                            });
-
-                            dropdownButton.addEventListener('click', () => {
-                                dropdownMenu.classList.toggle('visible');
-                            });
-
-                            dropdownContainer.appendChild(dropdownButton);
-                            dropdownContainer.appendChild(dropdownMenu);
+                            dropdown.innerHTML = `
+                                <option value="">Select</option>
+                                ${tasksAndGroups.tasks.map(taskOption => `
+                                    <option value="${taskOption.name}">
+                                        ${taskOption.name} 
+                                        <span class="lighter-text">(Results: ${formatResults(taskOption.results)})</span>
+                                    </option>
+                                `).join('')}
+                                ${tasksAndGroups.groups.map(groupOption => `
+                                    <option value="${groupOption.name}">
+                                        ${groupOption.name} 
+                                        <span class="lighter-text">(Tasks: ${groupOption.tasks.join(', ')})</span>
+                                    </option>
+                                `).join('')}
+                            `;
 
                             resultItem.appendChild(dropdownLabel);
-                            resultItem.appendChild(dropdownContainer);
+                            resultItem.appendChild(dropdown);
                             taskList.appendChild(resultItem);
                         });
                     } else {
@@ -190,32 +135,10 @@
                 workflowsContainer.appendChild(workflowSection);
             });
 
-        // Show the info box with content
-        function displayInfoBox(content) {
-            infoBox.innerHTML = content;
-            infoBox.classList.add('visible');
-        }
-
-        // Hide the info box
-        function hideInfoBox() {
-            infoBox.classList.remove('visible');
-        }
-
-        // Generate tooltip content for a task's results
-        function generateTooltip(results) {
-            if (!results || results.length === 0) return 'No results or statuses available.';
-            return results.map(result => `Result: ${result.result}, Status: ${result.status || 'None'}`).join('<br>');
-        }
-
-        // Generate tooltip content for a group's tasks
-        function generateGroupTooltip(tasks) {
-            if (!tasks || tasks.length === 0) return 'No tasks available in this group.';
-            return tasks.map(task => `
-                Task: ${task.name} - 
-                ${task.results.length > 0 
-                    ? task.results.map(r => `Result: ${r.result}, Status: ${r.status || 'None'}`).join('<br>')
-                    : 'No results or statuses'}
-            `).join('<br>');
+        // Format task results for display
+        function formatResults(results) {
+            if (!results || results.length === 0) return 'None';
+            return results.map(result => `${result.result} (${result.status || 'None'})`).join(', ');
         }
     </script>
 </body>
