@@ -17,8 +17,6 @@
             <input type="file" id="drawioUpload" class="form-control" accept=".drawio">
         </div>
 
-        <div id="workflowSelection" class="d-none"></div>
-        
         <!-- Restart Button -->
         <div class="mb-4 text-center">
             <button id="restartButton" class="btn btn-danger d-none">Restart</button>
@@ -95,56 +93,7 @@
         function processDrawioFile(fileContent, isRestoring) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(fileContent, 'text/xml');
-            const diagrams = xmlDoc.querySelectorAll('diagram');
         
-            // If multiple diagrams are found, prompt user for selection
-            if (diagrams.length > 1) {
-                displayWorkflowSelection(diagrams, isRestoring, parser);
-                return; // Stop further processing until the user selects a workflow
-            }
-        
-            // Default: Process the first diagram if only one exists
-            const selectedDiagram = diagrams[0];
-            const workflowXml = parser.parseFromString(selectedDiagram.textContent, 'text/xml');
-            processWorkflowXml(workflowXml, isRestoring);
-        }
-
-
-        function displayWorkflowSelection(diagrams, isRestoring, parser) {
-            const container = document.querySelector('.container');
-            const workflowDropdown = document.createElement('div');
-            workflowDropdown.className = 'mb-4';
-        
-            const label = document.createElement('label');
-            label.innerText = 'Select Workflow to Configure:';
-            label.className = 'form-label';
-            workflowDropdown.appendChild(label);
-        
-            const select = document.createElement('select');
-            select.className = 'form-select';
-            select.innerHTML = '<option value="">Select a Workflow</option>';
-        
-            diagrams.forEach((diagram, index) => {
-                const name = diagram.getAttribute('name') || `Workflow ${index + 1}`;
-                select.innerHTML += `<option value="${index}">${name}</option>`;
-            });
-        
-            select.addEventListener('change', (event) => {
-                const selectedIndex = event.target.value;
-                if (selectedIndex) {
-                    const selectedDiagram = diagrams[selectedIndex];
-                    const workflowXml = parser.parseFromString(selectedDiagram.textContent, 'text/xml');
-                    processWorkflowXml(workflowXml, isRestoring);
-                    workflowDropdown.remove(); // Remove dropdown after selection
-                }
-            });
-        
-            workflowDropdown.appendChild(select);
-            container.appendChild(workflowDropdown);
-        }
-
-
-        function processWorkflowXml(xmlDoc, isRestoring) {
             const statuses = extractStatuses(xmlDoc);
             const tasks = [];
             const connections = [];
@@ -172,7 +121,7 @@
                 const rawValue = cell.getAttribute('value') || 'Unnamed Task';
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = rawValue;
-                const taskName = tempDiv.textContent.trim();
+                const taskName = tempDiv.textContent.trim(); // Extract plain text
         
                 const taskId = cell.getAttribute('id');
                 const parentId = cell.getAttribute('parent');
@@ -203,7 +152,6 @@
         
             renderTasks(tasks, statuses, isRestoring);
         }
-
 
 
         function renderTasks(tasks, statuses, isRestoring) {
