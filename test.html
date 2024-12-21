@@ -71,14 +71,19 @@
                 return;
             }
         
+            // Assign the current workflow ID to all tasks in the current workflow
+            tasksToShow.forEach(task => {
+                if (!task.workflowId) {
+                    task.workflowId = workflowState.workflows[currentTasks.workflowId]?.includes(task.id)
+                        ? currentTasks.workflowId
+                        : "mainWorkflow";
+                }
+            });
+        
             // Sort tasks by taskNumber
             tasksToShow.sort((a, b) => parseInt(a.taskNumber || 0) - parseInt(b.taskNumber || 0));
         
             tasksToShow.forEach(task => {
-                // Assign the correct workflowId to each task
-                task.workflowId = currentTasks.workflowId || "mainWorkflow";
-        
-                // Ensure tasks are appended, not replaced
                 if (document.querySelector(`[data-task-id="${task.id}"]`)) {
                     console.log(`Task ${task.name} is already rendered.`);
                     return; // Skip rendering if already present
