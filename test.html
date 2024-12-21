@@ -32,12 +32,12 @@
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
         const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
         const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
-        const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
+        const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {};
 
         const workflowContainer = document.getElementById('workflowContainer');
 
         let currentTasks = [];
-        let currentMilestone = 0;
+        let currentMilestone = 1; // Start from the first milestone
 
         function goBack() {
             window.location.href = 'codes.html';
@@ -48,27 +48,16 @@
         }
 
         function startTestWorkflow() {
-            const mainWorkflow = displayData.find(wf => wf.workflowId === 'mainWorkflow');
-            if (!mainWorkflow || mainWorkflow.tasks.length === 0) {
-                workflowContainer.innerHTML = '<p class="text-center">No tasks available in the Main Workflow.</p>';
-                return;
-            }
-
-            currentTasks = mainWorkflow.tasks.sort((a, b) => {
-                const milestoneA = milestoneData[a.id]?.milestone || 0;
-                const milestoneB = milestoneData[b.id]?.milestone || 0;
-                return milestoneA - milestoneB;
-            });
-
-            currentMilestone = 1; // Start with the first milestone
+            const mainWorkflowTaskIds = workflowState.workflows.mainWorkflow || [];
+            currentTasks = mainWorkflowTaskIds.map(taskId => workflowData.find(task => task.id === taskId));
             displayTasksForMilestone();
         }
 
         function displayTasksForMilestone() {
-            workflowContainer.innerHTML = ''; // Clear the container
+            workflowContainer.innerHTML = ''; // Clear container
 
             const tasksToShow = currentTasks.filter(task => {
-                const milestone = milestoneData[task.id]?.milestone || 0;
+                const milestone = parseInt(milestoneData[task.id]?.milestone || 0);
                 return milestone === currentMilestone;
             });
 
@@ -111,22 +100,16 @@
             const insertSelection = insertsData[taskKey];
 
             if (insertSelection) {
-                const isSubWorkflow = displayData.some(wf => wf.title === insertSelection);
-
+                const isSubWorkflow = workflowState.workflows[insertSelection.toLowerCase()];
                 if (isSubWorkflow) {
-                    const subWorkflow = displayData.find(wf => wf.title === insertSelection);
-                    currentTasks = subWorkflow.tasks.sort((a, b) => {
-                        const milestoneA = milestoneData[a.id]?.milestone || 0;
-                        const milestoneB = milestoneData[b.id]?.milestone || 0;
-                        return milestoneA - milestoneB;
-                    });
+                    currentTasks = isSubWorkflow.map(taskId => workflowData.find(task => task.id === taskId));
                     currentMilestone = 1; // Reset milestone for subworkflow
                 } else {
                     const nextTask = workflowData.find(t => t.name === insertSelection);
                     if (nextTask) currentTasks = [nextTask];
                 }
             } else {
-                currentMilestone++; // Proceed to the next milestone
+                currentMilestone++; // Move to next milestone
             }
 
             displayTasksForMilestone();
