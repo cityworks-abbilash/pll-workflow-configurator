@@ -12,6 +12,10 @@
         .task-title {
             font-weight: bold;
         }
+        .disabled-dropdown {
+            pointer-events: none;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -38,6 +42,7 @@
 
         let currentTasks = [];
         let currentMilestone = 1;
+        const completedTasks = new Set();
 
         function goBack() {
             window.location.href = 'codes.html';
@@ -64,6 +69,11 @@
                 return;
             }
 
+            // Sort tasks by taskNumber
+            tasksToShow.sort((a, b) => parseInt(a.taskNumber || 0) - parseInt(b.taskNumber || 0));
+
+            let lowestTaskNumberProcessed = false;
+
             tasksToShow.forEach(task => {
                 const taskSection = document.createElement('div');
                 taskSection.className = 'task-section';
@@ -84,6 +94,18 @@
                     dropdown.appendChild(option);
                 });
 
+                // Disable dropdowns based on taskNumber logic
+                if (!lowestTaskNumberProcessed && !completedTasks.has(task.id)) {
+                    dropdown.disabled = false;
+                    lowestTaskNumberProcessed = true;
+                } else if (completedTasks.has(task.id)) {
+                    dropdown.disabled = true;
+                    dropdown.classList.add("disabled-dropdown");
+                } else {
+                    dropdown.disabled = true;
+                    dropdown.classList.add("disabled-dropdown");
+                }
+
                 dropdown.addEventListener('change', () => handleResultSelection(task, dropdown.value));
                 taskSection.appendChild(dropdown);
 
@@ -100,6 +122,8 @@
             console.log("Task Key:", taskKey);
             console.log("Insert Selection:", insertSelection);
 
+            completedTasks.add(task.id); // Mark task as completed
+
             if (insertSelection) {
                 // Look up workflowId in displayData
                 const workflow = displayData.find(wf => wf.title === insertSelection);
@@ -114,9 +138,19 @@
                 }
             }
 
-            // If no inserts, proceed to the next milestone
-            currentMilestone++;
-            displayTasksForMilestone();
+            // If no inserts, check if there are remaining tasks in the current milestone
+            const remainingTasks = currentTasks.filter(t => {
+                const milestone = parseInt(t.milestone || 0);
+                return milestone === currentMilestone && !completedTasks.has(t.id);
+            });
+
+            if (remainingTasks.length > 0) {
+                displayTasksForMilestone();
+            } else {
+                // Proceed to the next milestone if no remaining tasks
+                currentMilestone++;
+                displayTasksForMilestone();
+            }
         }
 
         startTestWorkflow();
