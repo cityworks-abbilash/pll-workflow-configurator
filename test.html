@@ -94,13 +94,12 @@
                     dropdown.appendChild(option);
                 });
 
-                // Disable dropdowns based on taskNumber logic
+                // Determine if the dropdown should be enabled
                 if (!lowestTaskNumberProcessed && !completedTasks.has(task.id)) {
                     dropdown.disabled = false;
-                    lowestTaskNumberProcessed = true;
+                    lowestTaskNumberProcessed = true; // Activate only the lowest-numbered task initially
                 } else if (completedTasks.has(task.id)) {
-                    dropdown.disabled = true;
-                    dropdown.classList.add("disabled-dropdown");
+                    dropdown.disabled = false; // Keep already-completed dropdowns enabled
                 } else {
                     dropdown.disabled = true;
                     dropdown.classList.add("disabled-dropdown");
@@ -138,16 +137,17 @@
                 }
             }
 
-            // If no inserts, check if there are remaining tasks in the current milestone
+            // Check if all tasks in the current milestone are completed
             const remainingTasks = currentTasks.filter(t => {
                 const milestone = parseInt(t.milestone || 0);
                 return milestone === currentMilestone && !completedTasks.has(t.id);
             });
 
             if (remainingTasks.length > 0) {
+                // Enable the next dropdown within the same milestone
                 displayTasksForMilestone();
             } else {
-                // Proceed to the next milestone if no remaining tasks
+                // Move to the next milestone if all tasks in the current one are complete
                 currentMilestone++;
                 displayTasksForMilestone();
             }
