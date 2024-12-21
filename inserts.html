@@ -209,19 +209,16 @@
                                 `;
                                 dropdownItem.addEventListener('click', () => {
                                     const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
-                                    const isSubWorkflow = groupOption ? true : false; // Check if the selection is a subworkflow
-                                    const insertValue = isSubWorkflow
-                                        ? groupOption.name // For subworkflows, just store the name
-                                        : `${taskOption.name}-${taskOption.id}`; // For tasks, store "Task Name-Task ID"
-                                
+                                    const insertValue = `${taskOption.name}-${taskOption.id}`; // Store "Task Name-Task ID"
+                            
                                     insertsData[taskKey] = insertValue; // Save selection
                                     localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Persist in localStorage
-                                    dropdownButton.textContent = taskOption.name || groupOption.name; // Update button text
+                                    dropdownButton.textContent = taskOption.name; // Update button text
                                     dropdownMenu.classList.remove('visible'); // Close the dropdown
                                 });
                                 dropdownMenu.appendChild(dropdownItem);
                             });
-
+                            
                             tasksAndGroups.groups.forEach(groupOption => {
                                 const dropdownItem = document.createElement('div');
                                 dropdownItem.className = 'dropdown-item';
@@ -229,7 +226,6 @@
                                     <span class="main-text">${groupOption.name}</span>
                                     <span class="additional-info">Tasks: ${groupOption.tasks.join(', ')}</span>
                                 `;
-                            
                                 dropdownItem.addEventListener('click', () => {
                                     const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
                                     insertsData[taskKey] = groupOption.name; // Save selection to localStorage
@@ -237,9 +233,9 @@
                                     dropdownButton.textContent = groupOption.name; // Update button text
                                     dropdownMenu.classList.remove('visible'); // Hide dropdown menu
                                 });
-                            
                                 dropdownMenu.appendChild(dropdownItem);
                             });
+
                             
                             // Restore saved selection if it exists
                             const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
