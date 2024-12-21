@@ -55,32 +55,42 @@
         
                     // Convert to uppercase and remove spaces
                     let baseCode = taskResultName.toUpperCase().replace(/\s+/g, '');
+                    const vowels = /[AEIOU]/g;
         
                     // Shorten by removing vowels only as necessary to reach 10 characters
                     if (baseCode.length > 10) {
-                        const vowels = /[AEIOU]/g;
                         let shortenedCode = baseCode;
-        
-                        // Remove vowels from the end of the string
-                        for (let i = shortenedCode.length - 1; i >= 0 && shortenedCode.length > 10; i--) {
-                            if (vowels.test(shortenedCode[i])) {
-                                shortenedCode = shortenedCode.slice(0, i) + shortenedCode.slice(i + 1);
-                            }
+                        while (shortenedCode.length > 10) {
+                            shortenedCode = shortenedCode.replace(vowels, (match, offset, string) => {
+                                return string.slice(offset).length > 10 ? '' : match;
+                            });
+                            if (!vowels.test(shortenedCode)) break; // Stop if no vowels remain
                         }
                         baseCode = shortenedCode.slice(0, 10); // Ensure it's exactly 10 characters
                     }
         
                     // Ensure uniqueness for the same result name with different statuses
                     const key = `${baseCode}-${status || 'NO_STATUS'}`;
-                    if (!resultCodeTracker[baseCode]) {
-                        resultCodeTracker[baseCode] = {}; // Initialize tracking for this base code
-                    }
-                    if (!resultCodeTracker[baseCode][key]) {
-                        resultCodeTracker[baseCode][key] = Object.keys(resultCodeTracker[baseCode]).length; // Assign sequential number
+                    if (!resultCodeTracker[key]) {
+                        resultCodeTracker[key] = 0; // Initialize sequential number
+                    } else {
+                        resultCodeTracker[key] += 1; // Increment sequential number
                     }
         
-                    const uniqueNumber = resultCodeTracker[baseCode][key];
-                    return uniqueNumber === 0 ? baseCode : `${baseCode}${uniqueNumber}`;
+                    const uniqueNumber = resultCodeTracker[key];
+                    let resultCode = uniqueNumber === 0 ? baseCode : `${baseCode}${uniqueNumber}`;
+        
+                    // Ensure final result code length with sequential number
+                    if (resultCode.length > 10) {
+                        while (resultCode.length > 10) {
+                            resultCode = resultCode.replace(vowels, (match, offset, string) => {
+                                return string.slice(offset).length > 10 ? '' : match;
+                            });
+                        }
+                        resultCode = resultCode.slice(0, 10); // Truncate again if needed
+                    }
+        
+                    return resultCode;
                 }
         
                 displayData.forEach(workflow => {
