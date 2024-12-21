@@ -106,13 +106,10 @@
                     dropdown.disabled = false; // Completed tasks remain accessible
                     console.log(`Dropdown for Task ${task.name} is already completed and accessible.`);
                 } else {
-                    const isSameTaskNumber = tasksToShow.every(t => t.taskNumber === task.taskNumber);
-                    if (isSameTaskNumber) {
-                        dropdown.disabled = false; // Enable all tasks of the same task number
-                        console.log(`Dropdown for Task ${task.name} is accessible (same milestone and task number).`);
-                    } else if (completedTasks.has(task.id)) {
-                        dropdown.disabled = false;
-                        console.log(`Dropdown for Task ${task.name} is accessible (completed).`);
+                    const lowestTaskNumber = Math.min(...tasksToShow.map(t => t.taskNumber));
+                    if (parseInt(task.taskNumber) === lowestTaskNumber) {
+                        dropdown.disabled = false; // Enable the lowest task number in the milestone
+                        console.log(`Dropdown for Task ${task.name} is accessible (lowest task number in milestone).`);
                     } else {
                         dropdown.disabled = true;
                         dropdown.classList.add("disabled-dropdown");
