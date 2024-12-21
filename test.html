@@ -149,32 +149,28 @@
                 }
             }
         
-            // Find the next task in the sequence
+            // Check if all tasks in the current milestone are completed
             const tasksInCurrentMilestone = currentTasks.filter(
                 t => parseInt(t.milestone || 0) === currentMilestone
             );
-            const nextTask = tasksInCurrentMilestone.find(
-                t => parseInt(t.taskNumber) > parseInt(task.taskNumber) && !completedTasks.has(t.id)
-            );
+            const remainingTasks = tasksInCurrentMilestone.filter(t => !completedTasks.has(t.id));
         
-            if (nextTask) {
+            if (remainingTasks.length > 0) {
+                // Enable the next dropdown within the same milestone
+                const nextTask = remainingTasks.sort((a, b) => a.taskNumber - b.taskNumber)[0];
                 const nextDropdown = document.querySelector(`[data-task-id="${nextTask.id}"]`);
                 if (nextDropdown) {
-                    nextDropdown.disabled = false; // Enable the dropdown for the next task
+                    nextDropdown.disabled = false;
                     nextDropdown.classList.remove("disabled-dropdown");
                     console.log(`Dropdown for Task ${nextTask.name} is now enabled.`);
                 }
             } else {
-                // Check if all tasks in the current milestone are completed
-                const remainingTasks = tasksInCurrentMilestone.filter(t => !completedTasks.has(t.id));
-        
-                if (remainingTasks.length === 0) {
-                    // Move to the next milestone if all tasks in the current one are complete
-                    currentMilestone++;
-                    displayTasksForMilestone();
-                }
+                // Move to the next milestone if all tasks in the current one are complete
+                currentMilestone++;
+                displayTasksForMilestone();
             }
         }
+
 
 
         startTestWorkflow();
