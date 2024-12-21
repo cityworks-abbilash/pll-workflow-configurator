@@ -48,7 +48,6 @@
         }
 
         function startTestWorkflow() {
-            // Filter tasks from the Main Workflow
             const mainWorkflow = displayData.find(wf => wf.workflowId === 'mainWorkflow');
             if (!mainWorkflow || mainWorkflow.tasks.length === 0) {
                 workflowContainer.innerHTML = '<p class="text-center">No tasks available in the Main Workflow.</p>';
@@ -61,11 +60,12 @@
                 return milestoneA - milestoneB;
             });
 
+            currentMilestone = 1; // Start with the first milestone
             displayTasksForMilestone();
         }
 
         function displayTasksForMilestone() {
-            workflowContainer.innerHTML = ''; // Clear existing tasks
+            workflowContainer.innerHTML = ''; // Clear the container
 
             const tasksToShow = currentTasks.filter(task => {
                 const milestone = milestoneData[task.id]?.milestone || 0;
@@ -111,26 +111,22 @@
             const insertSelection = insertsData[taskKey];
 
             if (insertSelection) {
-                // Check if the selection is a Sub Workflow Insert
                 const isSubWorkflow = displayData.some(wf => wf.title === insertSelection);
 
                 if (isSubWorkflow) {
-                    // Load Sub Workflow tasks
                     const subWorkflow = displayData.find(wf => wf.title === insertSelection);
                     currentTasks = subWorkflow.tasks.sort((a, b) => {
                         const milestoneA = milestoneData[a.id]?.milestone || 0;
                         const milestoneB = milestoneData[b.id]?.milestone || 0;
                         return milestoneA - milestoneB;
                     });
-                    currentMilestone = 0; // Restart milestone progression for subworkflow
+                    currentMilestone = 1; // Reset milestone for subworkflow
                 } else {
-                    // Load Insert Task
                     const nextTask = workflowData.find(t => t.name === insertSelection);
                     if (nextTask) currentTasks = [nextTask];
                 }
             } else {
-                // Move to the next milestone in Main Workflow
-                currentMilestone++;
+                currentMilestone++; // Proceed to the next milestone
             }
 
             displayTasksForMilestone();
