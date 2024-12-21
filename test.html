@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Workflow</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .task-section {
+            margin-bottom: 20px;
+        }
+        .task-title {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Test Workflow</h1>
+        <p class="text-center">Simulate and validate your workflow based on previous configurations.</p>
+
+        <div id="workflowContainer"></div>
+
+        <div class="text-center mt-4">
+            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+            <button class="btn btn-danger" onclick="restartConfigurator()">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // Retrieve data from localStorage
+        const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
+        const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
+        const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
+        const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
+
+        const workflowContainer = document.getElementById('workflowContainer');
+
+        let currentTasks = [];
+        let currentMilestone = 0;
+
+        function goBack() {
+            window.location.href = 'codes.html';
+        }
+
+        function restartConfigurator() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        function startTestWorkflow() {
+            // Filter tasks from the Main Workflow
+            const mainWorkflow = displayData.find(wf => wf.workflowId === 'mainWorkflow');
+            if (!mainWorkflow || mainWorkflow.tasks.length === 0) {
+                workflowContainer.innerHTML = '<p class="text-center">No tasks available in the Main Workflow.</p>';
+                return;
+            }
+
+            currentTasks = mainWorkflow.tasks.sort((a, b) => {
+                const milestoneA = milestoneData[a.id]?.milestone || 0;
+                const milestoneB = milestoneData[b.id]?.milestone || 0;
+                return milestoneA - milestoneB;
+            });
+
+            displayTasksForMilestone();
+        }
+
+        function displayTasksForMilestone() {
+            workflowContainer.innerHTML = ''; // Clear existing tasks
+
+            const tasksToShow = currentTasks.filter(task => {
+                const milestone = milestoneData[task.id]?.milestone || 0;
+                return milestone === currentMilestone;
+            });
+
+            if (tasksToShow.length === 0) {
+                workflowContainer.innerHTML = '<p class="text-center">Workflow complete! All tasks processed.</p>';
+                return;
+            }
+
+            tasksToShow.forEach(task => {
+                const taskSection = document.createElement('div');
+                taskSection.className = 'task-section';
+
+                const taskTitle = document.createElement('div');
+                taskTitle.className = 'task-title';
+                taskTitle.textContent = `Task: ${task.name}`;
+                taskSection.appendChild(taskTitle);
+
+                const dropdown = document.createElement('select');
+                dropdown.className = 'form-select';
+                dropdown.innerHTML = '<option value="">Select a result</option>';
+
+                task.results.forEach(result => {
+                    const option = document.createElement('option');
+                    option.value = result.result;
+                    option.textContent = result.result;
+                    dropdown.appendChild(option);
+                });
+
+                dropdown.addEventListener('change', () => handleResultSelection(task, dropdown.value));
+                taskSection.appendChild(dropdown);
+
+                workflowContainer.appendChild(taskSection);
+            });
+        }
+
+        function handleResultSelection(task, selectedResult) {
+            if (!selectedResult) return;
+
+            const taskKey = `${task.id}-${selectedResult}`;
+            const insertSelection = insertsData[taskKey];
+
+            if (insertSelection) {
+                const isSubWorkflow = displayData.some(wf => wf.title === insertSelection);
+
+                if (isSubWorkflow) {
+                    const subWorkflow = displayData.find(wf => wf.title === insertSelection);
+                    currentTasks = subWorkflow.tasks.sort((a, b) => {
+                        const milestoneA = milestoneData[a.id]?.milestone || 0;
+                        const milestoneB = milestoneData[b.id]?.milestone || 0;
+                        return milestoneA - milestoneB;
+                    });
+                    currentMilestone = 0; // Restart milestone progression for subworkflow
+                } else {
+                    const nextTask = workflowData.find(t => t.name === insertSelection);
+                    if (nextTask) currentTasks = [nextTask];
+                }
+            } else {
+                currentMilestone++;
+            }
+
+            displayTasksForMilestone();
+        }
+
+        // Initialize the test workflow
+        startTestWorkflow();
+    </script>
+</body>
+</html>
