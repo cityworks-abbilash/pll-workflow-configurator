@@ -39,160 +39,136 @@
             const container = document.getElementById('tablesContainer');
             container.innerHTML = ''; // Clear existing content
         
-            const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
-            const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
-            const resultCodeTracker = {}; // To track unique result codes for each task result name
+            try {
+                const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
+                const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
+                const resultCodeTracker = {}; // To track unique result codes for each task result name
         
-            // Retrieve tasks and groups for classification
-            const tasks = displayData.flatMap(workflow => workflow.tasks.map(task => task.name));
-            const groups = displayData.filter(workflow => workflow.workflowId.startsWith('subWorkflow')).map(workflow => workflow.title);
+                // Retrieve tasks and groups for classification
+                const tasks = displayData.flatMap(workflow => workflow.tasks.map(task => task.name));
+                const groups = displayData.filter(workflow => workflow.workflowId.startsWith('subWorkflow')).map(workflow => workflow.title);
         
-            function generateResultCode(taskResultName, status) {
-                if (!taskResultName) return '';
-                let baseCode = taskResultName.toUpperCase(); // Convert to uppercase
-                if (baseCode.length > 10) {
-                    // Shorten by removing vowels starting from the end
+                // Safely generate a Result Code
+                function generateResultCode(taskResultName, status) {
+                    if (!taskResultName) return '';
+                    let baseCode = taskResultName.toUpperCase(); // Convert to uppercase
                     const vowels = /[AEIOU]/g;
-                    while (baseCode.length > 10) {
-                        baseCode = baseCode.replace(vowels, (match, offset) => {
-                            if (baseCode.length - offset > 10) return '';
-                            return match;
-                        });
-                    }
-                }
-                baseCode = baseCode.slice(0, 10); // Ensure it's exactly 10 characters
         
-                // Handle uniqueness based on status
-                const key = `${baseCode}-${status || 'NO_STATUS'}`; // Use status as part of the uniqueness
-                if (!resultCodeTracker[key]) {
-                    resultCodeTracker[key] = 0; // Start tracking this result code
-                } else {
-                    resultCodeTracker[key] += 1; // Increment for uniqueness
-                }
-        
-                return resultCodeTracker[key] === 0 ? baseCode : `${baseCode}${resultCodeTracker[key]}`;
-            }
-        
-            displayData.forEach(workflow => {
-                if (workflow.tasks.length === 0) return; // Skip workflows without tasks
-        
-                // Create a table for each workflow
-                const tableWrapper = document.createElement('div');
-                tableWrapper.className = 'mb-5';
-        
-                const title = document.createElement('h3');
-                title.textContent = workflow.title;
-                tableWrapper.appendChild(title);
-        
-                const table = document.createElement('table');
-                table.className = 'table table-bordered';
-        
-                // Create table header
-                const headerRow = document.createElement('tr');
-                ['Milestone', 'Task Number', 'Task Name', 'Task Result Set', 'Result Code', 'Task Result Name', 'Insert Task', 'Insert Group', 'Associated Status'].forEach(header => {
-                    const th = document.createElement('th');
-                    th.textContent = header;
-                    headerRow.appendChild(th);
-                });
-                const thead = document.createElement('thead');
-                thead.appendChild(headerRow);
-                table.appendChild(thead);
-        
-                // Create table body
-                const tbody = document.createElement('tbody');
-                workflow.tasks.forEach(task => {
-                    const { id, name, milestone, taskNumber, results = [] } = task;
-        
-                    // Generate Task Result Set content
-                    const taskResultSet = results
-                        .map(result => `${result.result}${result.status ? ` (${result.status})` : ''}`)
-                        .join(', ');
-        
-                    results.forEach((result, index) => {
-                        const row = document.createElement('tr');
-                        const taskKey = `${workflow.workflowId}-${id}-${result.result}`;
-                        const insertSelection = insertsData[taskKey] || '';
-                        const associatedStatus = result.status || '';
-        
-                        // Dynamically classify Insert Task/Group
-                        const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
-                        const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
-        
-                        // Generate Result Code
-                        const resultCode = generateResultCode(result.result, associatedStatus);
-        
-                        // For the first result, display full details
-                        if (index === 0) {
-                            [
-                                milestone || '',
-                                taskNumber || '',
-                                name,
-                                taskResultSet || '',
-                                resultCode || '',
-                                result.result,
-                                insertTask || '',
-                                insertGroup || '',
-                                associatedStatus
-                            ].forEach(value => {
-                                const td = document.createElement('td');
-                                td.textContent = value;
-                                row.appendChild(td);
-                            });
-                        } else {
-                            // For subsequent results, leave specific columns blank
-                            ['', '', '', '', resultCode || '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
-                                const td = document.createElement('td');
-                                td.textContent = value;
-                                row.appendChild(td);
-                            });
+                    if (baseCode.length > 10) {
+                        // Safeguard against infinite loop by truncating if vowel removal doesn't suffice
+                        while (baseCode.length > 10) {
+                            baseCode = baseCode.replace(vowels, '');
+                            if (!vowels.test(baseCode)) break; // Stop if no vowels remain
                         }
-                        tbody.appendChild(row);
+                        baseCode = baseCode.slice(0, 10);
+                    }
+        
+                    // Ensure uniqueness
+                    const key = `${baseCode}-${status || 'NO_STATUS'}`;
+                    if (!resultCodeTracker[key]) {
+                        resultCodeTracker[key] = 0;
+                    } else {
+                        resultCodeTracker[key] += 1;
+                    }
+        
+                    return resultCodeTracker[key] === 0 ? baseCode : `${baseCode}${resultCodeTracker[key]}`;
+                }
+        
+                // Render workflow data
+                displayData.forEach(workflow => {
+                    if (!workflow.tasks || workflow.tasks.length === 0) return; // Skip invalid workflows
+        
+                    // Create a table for each workflow
+                    const tableWrapper = document.createElement('div');
+                    tableWrapper.className = 'mb-5';
+        
+                    const title = document.createElement('h3');
+                    title.textContent = workflow.title;
+                    tableWrapper.appendChild(title);
+        
+                    const table = document.createElement('table');
+                    table.className = 'table table-bordered';
+        
+                    // Create table header
+                    const headerRow = document.createElement('tr');
+                    ['Milestone', 'Task Number', 'Task Name', 'Task Result Set', 'Result Code', 'Task Result Name', 'Insert Task', 'Insert Group', 'Associated Status'].forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    const thead = document.createElement('thead');
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+        
+                    // Create table body
+                    const tbody = document.createElement('tbody');
+                    workflow.tasks.forEach(task => {
+                        const { id, name, milestone, taskNumber, results = [] } = task;
+        
+                        // Generate Task Result Set content
+                        const taskResultSet = results
+                            .map(result => `${result.result}${result.status ? ` (${result.status})` : ''}`)
+                            .join(', ');
+        
+                        results.forEach((result, index) => {
+                            const row = document.createElement('tr');
+                            const taskKey = `${workflow.workflowId}-${id}-${result.result}`;
+                            const insertSelection = insertsData[taskKey] || '';
+                            const associatedStatus = result.status || '';
+        
+                            // Dynamically classify Insert Task/Group
+                            const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
+                            const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
+        
+                            // Generate Result Code
+                            const resultCode = generateResultCode(result.result, associatedStatus);
+        
+                            // For the first result, display full details
+                            if (index === 0) {
+                                [
+                                    milestone || '',
+                                    taskNumber || '',
+                                    name,
+                                    taskResultSet || '',
+                                    resultCode || '',
+                                    result.result,
+                                    insertTask || '',
+                                    insertGroup || '',
+                                    associatedStatus
+                                ].forEach(value => {
+                                    const td = document.createElement('td');
+                                    td.textContent = value;
+                                    row.appendChild(td);
+                                });
+                            } else {
+                                // For subsequent results, leave specific columns blank
+                                ['', '', '', '', resultCode || '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
+                                    const td = document.createElement('td');
+                                    td.textContent = value;
+                                    row.appendChild(td);
+                                });
+                            }
+                            tbody.appendChild(row);
+                        });
                     });
         
-                    // Handle tasks with no results
-                    if (results.length === 0) {
-                        const row = document.createElement('tr');
-                        const taskKey = `${workflow.workflowId}-${id}`;
-                        const insertSelection = insertsData[taskKey] || '';
+                    table.appendChild(tbody);
+                    tableWrapper.appendChild(table);
         
-                        const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
-                        const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
-        
-                        [
-                            milestone || '',
-                            taskNumber || '',
-                            name,
-                            '', // Task Result Set
-                            '', // Result Code
-                            '', // Task Result Name
-                            insertTask || '',
-                            insertGroup || '',
-                            '' // Associated Status
-                        ].forEach(value => {
-                            const td = document.createElement('td');
-                            td.textContent = value;
-                            row.appendChild(td);
-                        });
-                        tbody.appendChild(row);
-                    }
+                    container.appendChild(tableWrapper);
                 });
-                table.appendChild(tbody);
-                tableWrapper.appendChild(table);
-        
-                container.appendChild(tableWrapper);
-            });
+            } catch (error) {
+                console.error('Error rendering tables:', error);
+                container.innerHTML = `<p class="text-danger">Failed to load table data. Check console for details.</p>`;
+            }
         }
-
-
-
-
-
-
-
-
-
+        
         // Render tables on page load
         renderTables();
+
+
+
+
     </script>
 </body>
 </html>
