@@ -45,6 +45,16 @@
                 const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
                 const resultCodeTracker = {}; // To track unique result codes for each task result name
         
+                // Log data for debugging
+                console.log('insertsData:', insertsData);
+                console.log('displayData:', displayData);
+        
+                // Check if displayData is empty
+                if (displayData.length === 0) {
+                    container.innerHTML = `<p class="text-danger">No data available to display. Please complete the previous steps.</p>`;
+                    return;
+                }
+        
                 // Retrieve tasks and groups for classification
                 const tasks = displayData.flatMap(workflow => workflow.tasks.map(task => task.name));
                 const groups = displayData.filter(workflow => workflow.workflowId.startsWith('subWorkflow')).map(workflow => workflow.title);
@@ -59,30 +69,29 @@
         
                     // Shorten by removing vowels only as necessary to reach 10 characters
                     if (baseCode.length > 10) {
-                        let shortenedCode = baseCode;
-                        while (shortenedCode.length > 10) {
-                            shortenedCode = shortenedCode.replace(vowels, (match, offset, string) => {
+                        while (baseCode.length > 10 && vowels.test(baseCode)) {
+                            baseCode = baseCode.replace(vowels, (match, offset, string) => {
                                 return string.slice(offset).length > 10 ? '' : match;
                             });
-                            if (!vowels.test(shortenedCode)) break; // Stop if no vowels remain
                         }
-                        baseCode = shortenedCode.slice(0, 10); // Ensure it's exactly 10 characters
+                        baseCode = baseCode.slice(0, 10); // Ensure it's exactly 10 characters
                     }
         
                     // Ensure uniqueness for the same result name with different statuses
                     const key = `${baseCode}-${status || 'NO_STATUS'}`;
-                    if (!resultCodeTracker[key]) {
-                        resultCodeTracker[key] = 0; // Initialize sequential number
-                    } else {
-                        resultCodeTracker[key] += 1; // Increment sequential number
+                    if (!resultCodeTracker[baseCode]) {
+                        resultCodeTracker[baseCode] = {}; // Initialize tracking for this base code
+                    }
+                    if (!resultCodeTracker[baseCode][key]) {
+                        resultCodeTracker[baseCode][key] = Object.keys(resultCodeTracker[baseCode]).length; // Assign sequential number
                     }
         
-                    const uniqueNumber = resultCodeTracker[key];
+                    const uniqueNumber = resultCodeTracker[baseCode][key];
                     let resultCode = uniqueNumber === 0 ? baseCode : `${baseCode}${uniqueNumber}`;
         
                     // Ensure final result code length with sequential number
                     if (resultCode.length > 10) {
-                        while (resultCode.length > 10) {
+                        while (resultCode.length > 10 && vowels.test(resultCode)) {
                             resultCode = resultCode.replace(vowels, (match, offset, string) => {
                                 return string.slice(offset).length > 10 ? '' : match;
                             });
@@ -183,6 +192,7 @@
         
         // Render tables on page load
         renderTables();
+
 
 
 
