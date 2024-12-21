@@ -23,7 +23,7 @@
 
         <div class="text-center mt-4">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
-            <button class="btn btn-danger" onclick="restartConfigurator()">Restart</button>
+            <button class="btn btn-primary" onclick="restartConfigurator()">Restart</button>
         </div>
     </div>
 
@@ -44,7 +44,6 @@
         }
 
         function restartConfigurator() {
-            localStorage.clear();
             window.location.href = 'index.html';
         }
 
@@ -112,9 +111,11 @@
             const insertSelection = insertsData[taskKey];
 
             if (insertSelection) {
+                // Check if the selection is a Sub Workflow Insert
                 const isSubWorkflow = displayData.some(wf => wf.title === insertSelection);
 
                 if (isSubWorkflow) {
+                    // Load Sub Workflow tasks
                     const subWorkflow = displayData.find(wf => wf.title === insertSelection);
                     currentTasks = subWorkflow.tasks.sort((a, b) => {
                         const milestoneA = milestoneData[a.id]?.milestone || 0;
@@ -123,10 +124,12 @@
                     });
                     currentMilestone = 0; // Restart milestone progression for subworkflow
                 } else {
+                    // Load Insert Task
                     const nextTask = workflowData.find(t => t.name === insertSelection);
                     if (nextTask) currentTasks = [nextTask];
                 }
             } else {
+                // Move to the next milestone in Main Workflow
                 currentMilestone++;
             }
 
