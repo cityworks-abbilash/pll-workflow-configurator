@@ -41,26 +41,36 @@
         
             const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
             const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
+            const resultCodeTracker = {}; // To track unique result codes for each task result name
         
             // Retrieve tasks and groups for classification
             const tasks = displayData.flatMap(workflow => workflow.tasks.map(task => task.name));
             const groups = displayData.filter(workflow => workflow.workflowId.startsWith('subWorkflow')).map(workflow => workflow.title);
         
-            function generateResultCode(taskResultName) {
+            function generateResultCode(taskResultName, status) {
                 if (!taskResultName) return '';
-                let resultCode = taskResultName.toUpperCase(); // Convert to uppercase
-                if (resultCode.length > 10) {
+                let baseCode = taskResultName.toUpperCase(); // Convert to uppercase
+                if (baseCode.length > 10) {
                     // Shorten by removing vowels starting from the end
                     const vowels = /[AEIOU]/g;
-                    while (resultCode.length > 10) {
-                        resultCode = resultCode.replace(vowels, (match, offset) => {
-                            // Remove vowels only if they are within the last characters
-                            if (resultCode.length - offset > 10) return '';
+                    while (baseCode.length > 10) {
+                        baseCode = baseCode.replace(vowels, (match, offset) => {
+                            if (baseCode.length - offset > 10) return '';
                             return match;
                         });
                     }
                 }
-                return resultCode.slice(0, 10); // Ensure final result is exactly 10 characters
+                baseCode = baseCode.slice(0, 10); // Ensure it's exactly 10 characters
+        
+                // Handle uniqueness based on status
+                const key = `${baseCode}-${status || 'NO_STATUS'}`; // Use status as part of the uniqueness
+                if (!resultCodeTracker[key]) {
+                    resultCodeTracker[key] = 0; // Start tracking this result code
+                } else {
+                    resultCodeTracker[key] += 1; // Increment for uniqueness
+                }
+        
+                return resultCodeTracker[key] === 0 ? baseCode : `${baseCode}${resultCodeTracker[key]}`;
             }
         
             displayData.forEach(workflow => {
@@ -109,7 +119,7 @@
                         const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
         
                         // Generate Result Code
-                        const resultCode = generateResultCode(result.result);
+                        const resultCode = generateResultCode(result.result, associatedStatus);
         
                         // For the first result, display full details
                         if (index === 0) {
@@ -172,6 +182,7 @@
                 container.appendChild(tableWrapper);
             });
         }
+
 
 
 
