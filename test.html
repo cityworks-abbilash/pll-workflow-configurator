@@ -94,18 +94,33 @@
             if (!selectedResult) return;
 
             const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
-            const insertSelection = insertsData[taskKey];
+            const insertSelection = insertsData[taskKey]; // Fetch insert mapping
 
             if (insertSelection) {
+                // Check if the insertSelection points to a subworkflow
                 const subWorkflowTasks = workflowState.workflows[insertSelection.toLowerCase()];
                 if (subWorkflowTasks) {
-                    const newTasks = subWorkflowTasks.map(taskId => workflowData.find(task => task.id === taskId));
-                    currentTasks.push(...newTasks);
+                    // Map subworkflow tasks to workflowData
+                    const newTasks = subWorkflowTasks
+                        .map(taskId => workflowData.find(t => t.id === taskId))
+                        .filter(t => t); // Ensure valid tasks only
+
+                    // Append new tasks while avoiding duplicates
+                    newTasks.forEach(newTask => {
+                        if (!currentTasks.some(t => t.id === newTask.id)) {
+                            currentTasks.push(newTask);
+                        }
+                    });
+
+                    // Sort tasks by milestone
                     currentTasks = currentTasks.sort((a, b) => {
                         const milestoneA = parseInt(milestoneData[a.id]?.milestone || 0);
                         const milestoneB = parseInt(milestoneData[b.id]?.milestone || 0);
                         return milestoneA - milestoneB;
                     });
+
+                    // Reset milestone to start with the subworkflow
+                    currentMilestone = parseInt(milestoneData[newTasks[0].id]?.milestone || currentMilestone);
                 }
             } else {
                 currentMilestone++;
