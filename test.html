@@ -54,15 +54,13 @@
         }
 
         function displayTasksForMilestone() {
-            workflowContainer.innerHTML = ''; // Clear container
-
             const tasksToShow = currentTasks.filter(task => {
                 const milestone = parseInt(milestoneData[task.id]?.milestone || 0);
                 return milestone === currentMilestone;
             });
 
-            if (tasksToShow.length === 0) {
-                workflowContainer.innerHTML = '<p class="text-center">Workflow complete! All tasks processed.</p>';
+            if (tasksToShow.length === 0 && currentMilestone > 1) {
+                workflowContainer.innerHTML += '<p class="text-center">Workflow complete! All tasks processed.</p>';
                 return;
             }
 
@@ -102,14 +100,16 @@
             if (insertSelection) {
                 const isSubWorkflow = workflowState.workflows[insertSelection.toLowerCase()];
                 if (isSubWorkflow) {
-                    currentTasks = isSubWorkflow.map(taskId => workflowData.find(task => task.id === taskId));
-                    currentMilestone = 1; // Reset milestone for subworkflow
+                    const subWorkflowTasks = workflowState.workflows[insertSelection.toLowerCase()];
+                    const newTasks = subWorkflowTasks.map(taskId => workflowData.find(task => task.id === taskId));
+                    currentTasks.push(...newTasks);
+                    currentMilestone = 1; // Reset milestone for the subworkflow
                 } else {
                     const nextTask = workflowData.find(t => t.name === insertSelection);
-                    if (nextTask) currentTasks = [nextTask];
+                    if (nextTask) currentTasks.push(nextTask);
                 }
             } else {
-                currentMilestone++; // Move to next milestone
+                currentMilestone++; // Move to the next milestone
             }
 
             displayTasksForMilestone();
