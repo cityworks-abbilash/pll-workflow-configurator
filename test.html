@@ -32,6 +32,7 @@
         const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
         const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
         const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {};
+        const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
 
         const workflowContainer = document.getElementById('workflowContainer');
 
@@ -47,14 +48,14 @@
         }
 
         function startTestWorkflow() {
-            const mainWorkflowTaskIds = workflowState.workflows.mainWorkflow || [];
-            currentTasks = mainWorkflowTaskIds.map(taskId => workflowData.find(task => task.id === taskId));
+            const mainWorkflow = displayData.find(wf => wf.workflowId === 'mainWorkflow');
+            currentTasks = mainWorkflow ? mainWorkflow.tasks : [];
             displayTasksForMilestone();
         }
 
         function displayTasksForMilestone() {
             const tasksToShow = currentTasks.filter(task => {
-                const milestone = parseInt(milestoneData[task.id]?.milestone || 0);
+                const milestone = parseInt(task.milestone || 0);
                 return milestone === currentMilestone;
             });
 
@@ -94,23 +95,26 @@
             if (!selectedResult) return;
 
             const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
-            const insertSelection = insertsData[taskKey];
+            const insertSelection = insertsData[taskKey]; // Fetch insert mapping
 
             console.log("Task Key:", taskKey);
             console.log("Insert Selection:", insertSelection);
 
             if (insertSelection) {
-                const subWorkflowTasks = workflowState.workflows[insertSelection.toLowerCase()];
-                if (subWorkflowTasks) {
-                    currentTasks = subWorkflowTasks
-                        .map(taskId => workflowData.find(t => t.id === taskId))
-                        .filter(t => t);
-                    currentMilestone = 1;
+                // Look up workflowId in displayData
+                const workflow = displayData.find(wf => wf.title === insertSelection);
+                if (workflow) {
+                    console.log("Workflow Found:", workflow);
+
+                    // Fetch tasks from displayData
+                    currentTasks = workflow.tasks;
+                    currentMilestone = 1; // Reset milestone for the new workflow
                     displayTasksForMilestone();
                     return;
                 }
             }
 
+            // If no inserts, proceed to the next milestone
             currentMilestone++;
             displayTasksForMilestone();
         }
