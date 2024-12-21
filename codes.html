@@ -15,7 +15,7 @@
 
         <div class="d-flex justify-content-between mt-4">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
-            <button class="btn btn-primary" onclick="restartConfigurator()">Restart</button>
+            <button class="btn btn-primary" onclick="goToTest()">Test Workflow</button>
         </div>
     </div>
 
@@ -28,6 +28,10 @@
 
         function goBack() {
             window.location.href = 'inserts.html'; // Navigate back to the Inserts page
+        }
+
+        function goToTest() {
+            window.location.href = 'test.html'; // Navigate to the test page
         }
 
         function restartConfigurator() {
