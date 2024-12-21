@@ -28,7 +28,6 @@
     </div>
 
     <script>
-        // Retrieve data from localStorage
         const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
         const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
         const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
@@ -37,7 +36,7 @@
         const workflowContainer = document.getElementById('workflowContainer');
 
         let currentTasks = [];
-        let currentMilestone = 1; // Start from the first milestone
+        let currentMilestone = 1;
 
         function goBack() {
             window.location.href = 'codes.html';
@@ -94,28 +93,27 @@
         function handleResultSelection(task, selectedResult) {
             if (!selectedResult) return;
 
-            const taskKey = `${task.id}-${selectedResult}`;
+            const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
             const insertSelection = insertsData[taskKey];
 
             if (insertSelection) {
-                const isSubWorkflow = workflowState.workflows[insertSelection.toLowerCase()];
-                if (isSubWorkflow) {
-                    const subWorkflowTasks = workflowState.workflows[insertSelection.toLowerCase()];
+                const subWorkflowTasks = workflowState.workflows[insertSelection.toLowerCase()];
+                if (subWorkflowTasks) {
                     const newTasks = subWorkflowTasks.map(taskId => workflowData.find(task => task.id === taskId));
                     currentTasks.push(...newTasks);
-                    currentMilestone = 1; // Reset milestone for the subworkflow
-                } else {
-                    const nextTask = workflowData.find(t => t.name === insertSelection);
-                    if (nextTask) currentTasks.push(nextTask);
+                    currentTasks = currentTasks.sort((a, b) => {
+                        const milestoneA = parseInt(milestoneData[a.id]?.milestone || 0);
+                        const milestoneB = parseInt(milestoneData[b.id]?.milestone || 0);
+                        return milestoneA - milestoneB;
+                    });
                 }
             } else {
-                currentMilestone++; // Move to the next milestone
+                currentMilestone++;
             }
 
             displayTasksForMilestone();
         }
 
-        // Initialize the test workflow
         startTestWorkflow();
     </script>
 </body>
