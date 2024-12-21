@@ -126,21 +126,21 @@
 
         function handleResultSelection(task, selectedResult) {
             if (!selectedResult) return;
-
+        
             const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
             const insertSelection = insertsData[taskKey]; // Fetch insert mapping
-
+        
             console.log("Task Key:", taskKey);
             console.log("Insert Selection:", insertSelection);
-
+        
             completedTasks.add(task.id); // Mark task as completed
-
+        
             if (insertSelection) {
                 // Look up workflowId in displayData
                 const workflow = displayData.find(wf => wf.title === insertSelection);
                 if (workflow) {
                     console.log("Workflow Found:", workflow);
-
+        
                     // Fetch tasks from displayData
                     currentTasks = workflow.tasks;
                     currentMilestone = 1; // Reset milestone for the new workflow
@@ -148,22 +148,34 @@
                     return;
                 }
             }
-
-            // Check if all tasks in the current milestone are completed
-            const remainingTasks = currentTasks.filter(t => {
-                const milestone = parseInt(t.milestone || 0);
-                return milestone === currentMilestone && !completedTasks.has(t.id);
-            });
-
-            if (remainingTasks.length > 0) {
-                // Enable the next dropdown within the same milestone
-                displayTasksForMilestone();
+        
+            // Find the next task in the sequence
+            const tasksInCurrentMilestone = currentTasks.filter(
+                t => parseInt(t.milestone || 0) === currentMilestone
+            );
+            const nextTask = tasksInCurrentMilestone.find(
+                t => parseInt(t.taskNumber) > parseInt(task.taskNumber) && !completedTasks.has(t.id)
+            );
+        
+            if (nextTask) {
+                const nextDropdown = document.querySelector(`[data-task-id="${nextTask.id}"]`);
+                if (nextDropdown) {
+                    nextDropdown.disabled = false; // Enable the dropdown for the next task
+                    nextDropdown.classList.remove("disabled-dropdown");
+                    console.log(`Dropdown for Task ${nextTask.name} is now enabled.`);
+                }
             } else {
-                // Move to the next milestone if all tasks in the current one are complete
-                currentMilestone++;
-                displayTasksForMilestone();
+                // Check if all tasks in the current milestone are completed
+                const remainingTasks = tasksInCurrentMilestone.filter(t => !completedTasks.has(t.id));
+        
+                if (remainingTasks.length === 0) {
+                    // Move to the next milestone if all tasks in the current one are complete
+                    currentMilestone++;
+                    displayTasksForMilestone();
+                }
             }
         }
+
 
         startTestWorkflow();
     </script>
