@@ -130,7 +130,8 @@
                     .find(task => task.id === taskId);
 
                 if (insertedTask) {
-                    insertTaskWithLogic(insertedTask, currentTaskIndex + 1, taskList);
+                    // Insert task without milestone/task number restrictions
+                    insertTaskDirectly(insertedTask, currentTaskIndex + 1, taskList);
                 } else {
                     console.log('Task not found for ID:', taskId);
                 }
@@ -174,6 +175,40 @@
                     dropdown.disabled = true;
 
                     const insertKey = `subWorkflow-${task.id}-${selectedValue}`;
+                    const nextInsertValue = insertsData[insertKey];
+                    console.log(`Insert key: ${insertKey}, Next insert value:`, nextInsertValue);
+                    if (nextInsertValue) {
+                        handleInsert(nextInsertValue, task);
+                    }
+                }
+            });
+
+            insertDiv.appendChild(dropdown);
+            taskList.insertBefore(insertDiv, taskList.children[insertIndex]);
+        }
+
+        // Helper function to insert a task directly without milestone/task number restrictions
+        function insertTaskDirectly(task, insertIndex, taskList) {
+            const insertDiv = document.createElement('div');
+            insertDiv.className = 'task-item';
+            insertDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
+
+            const dropdown = document.createElement('select');
+            dropdown.className = 'form-select dropdown';
+            dropdown.innerHTML = '<option value="">Select Result</option>';
+
+            task.results.forEach(result => {
+                dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
+            });
+
+            dropdown.addEventListener('change', () => {
+                const selectedValue = dropdown.value;
+                console.log(`Selected value for task "${task.name}":`, selectedValue);
+                if (selectedValue) {
+                    dropdown.classList.add('disabled');
+                    dropdown.disabled = true;
+
+                    const insertKey = `mainWorkflow-${task.id}-${selectedValue}`;
                     const nextInsertValue = insertsData[insertKey];
                     console.log(`Insert key: ${insertKey}, Next insert value:`, nextInsertValue);
                     if (nextInsertValue) {
