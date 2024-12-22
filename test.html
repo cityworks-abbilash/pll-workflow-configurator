@@ -88,12 +88,6 @@
                         dropdown.classList.add('disabled');
                         dropdown.disabled = true;
 
-                        // Enable the next dropdown if it exists
-                        if (previousDropdown) {
-                            previousDropdown.disabled = false;
-                            previousDropdown.classList.remove('disabled');
-                        }
-
                         const insertKey = `${mainWorkflow.workflowId}-${task.id}-${selectedValue}`;
                         const insertValue = insertsData[insertKey];
                         console.log(`Insert key: ${insertKey}, Insert value:`, insertValue);
