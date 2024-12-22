@@ -181,11 +181,17 @@
             currentTaskDiv.insertAdjacentElement('afterend', taskDiv);
             taskDiv.appendChild(dropdown); // Append dropdown to the task div
         }
+
+
+        
         // Insert sub-workflow tasks immediately after the current task
         function insertSubWorkflow(tasks, currentTaskDiv, workflowId) {
             const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
             const lowestMilestoneTasks = sortedTasks.filter(task => parseInt(task.milestone) === parseInt(sortedTasks[0].milestone));
             console.log(`Inserting tasks for lowest milestone in sub-workflow:`, lowestMilestoneTasks);
+        
+            let lowestTaskNumber = Math.min(...lowestMilestoneTasks.map(task => parseInt(task.taskNumber)));
+            console.log(`Lowest task number in milestone: ${lowestTaskNumber}`);
         
             lowestMilestoneTasks.forEach(task => {
                 console.log(`Inserting sub-workflow task: ${task.name} with results:`, task.results);
@@ -223,11 +229,19 @@
                     }
                 });
         
+                taskDiv.appendChild(dropdown);
                 currentTaskDiv.insertAdjacentElement('afterend', taskDiv);
-                taskDiv.appendChild(dropdown); // Append dropdown to the task div
                 currentTaskDiv = taskDiv; // Update the reference for subsequent inserts
+        
+                // Enable dropdowns for tasks with the lowest task number
+                if (parseInt(task.taskNumber) === lowestTaskNumber) {
+                    dropdown.disabled = false;
+                    dropdown.classList.remove('disabled');
+                    console.log(`Enabled dropdown for task: ${task.name}`);
+                }
             });
         }
+
 
         // Enable the next task in the same milestone
         function enableNextTask(currentTask, allTasks, container) {
