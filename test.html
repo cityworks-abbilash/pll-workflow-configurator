@@ -123,13 +123,9 @@
         function handleInsert(insertValue, currentTaskDiv, workflowId) {
             console.log(`Handling insert: ${insertValue}`);
 
-            const parts = insertValue.split('-');
-            const taskId = parts.slice(-2).join('-');
-            console.log(`Correctly extracted taskId: ${taskId}`);
-
             const insertedTask = displayData
                 .flatMap(workflow => workflow.tasks)
-                .find(task => task.id === taskId);
+                .find(task => insertValue.includes(task.id));
 
             if (insertedTask) {
                 console.log(`Inserting individual task: ${insertedTask.name}`);
@@ -185,7 +181,10 @@
         // Insert sub-workflow tasks immediately after the current task
         function insertSubWorkflow(tasks, currentTaskDiv, workflowId) {
             const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
-            sortedTasks.forEach(task => {
+            const lowestMilestoneTasks = sortedTasks.filter(task => parseInt(task.milestone) === parseInt(sortedTasks[0].milestone));
+            console.log(`Inserting tasks for lowest milestone in sub-workflow:`, lowestMilestoneTasks);
+
+            lowestMilestoneTasks.forEach(task => {
                 insertTaskDirectly(task, currentTaskDiv);
                 currentTaskDiv = currentTaskDiv.nextElementSibling; // Update reference for further inserts
             });
