@@ -94,26 +94,31 @@
             const currentTaskIndex = Array.from(taskList.children).findIndex(taskDiv =>
                 taskDiv.querySelector('h5').innerText.includes(currentTask.name)
             );
-        
+
             if (insertValue.includes('-')) {
-                const [taskName, taskId] = insertValue.split('-');
+                // Split only on the last hyphen to extract the taskId
+                const lastHyphenIndex = insertValue.lastIndexOf('-');
+                const taskName = insertValue.substring(0, lastHyphenIndex);
+                const taskId = insertValue.substring(lastHyphenIndex + 1);
+                console.log(`Extracted taskName: ${taskName}, taskId: ${taskId}`);
+
                 const insertedTask = displayData
                     .flatMap(workflow => workflow.tasks)
                     .find(task => task.id === taskId);
-        
+
                 if (insertedTask) {
                     const insertDiv = document.createElement('div');
                     insertDiv.className = 'task-item';
                     insertDiv.innerHTML = `<h5>Task: ${insertedTask.name}</h5>`;
-        
+
                     const dropdown = document.createElement('select');
                     dropdown.className = 'form-select dropdown';
                     dropdown.innerHTML = '<option value="">Select Result</option>';
-        
+
                     insertedTask.results.forEach(result => {
                         dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
                     });
-        
+
                     dropdown.addEventListener('change', () => {
                         const selectedValue = dropdown.value;
                         console.log(`Selected value for task "${insertedTask.name}":`, selectedValue);
@@ -126,7 +131,7 @@
                             }
                         }
                     });
-        
+
                     insertDiv.appendChild(dropdown);
                     taskList.insertBefore(insertDiv, taskList.children[currentTaskIndex + 1]);
                     console.log(`Inserted individual task with dropdown: ${insertedTask.name}`);
@@ -140,15 +145,15 @@
                         const insertDiv = document.createElement('div');
                         insertDiv.className = 'task-item';
                         insertDiv.innerHTML = `<h5>Task: ${subTask.name}</h5>`;
-        
+
                         const dropdown = document.createElement('select');
                         dropdown.className = 'form-select dropdown';
                         dropdown.innerHTML = '<option value="">Select Result</option>';
-        
+
                         subTask.results.forEach(result => {
                             dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
                         });
-        
+
                         dropdown.addEventListener('change', () => {
                             const selectedValue = dropdown.value;
                             console.log(`Selected value for task "${subTask.name}":`, selectedValue);
@@ -161,7 +166,7 @@
                                 }
                             }
                         });
-        
+
                         insertDiv.appendChild(dropdown);
                         taskList.insertBefore(insertDiv, taskList.children[currentTaskIndex + 1]);
                         console.log(`Inserted sub-workflow task with dropdown: ${subTask.name}`);
@@ -171,7 +176,6 @@
                 }
             }
         }
-
 
         // Initial rendering
         renderTasks();
