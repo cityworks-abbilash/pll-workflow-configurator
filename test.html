@@ -174,6 +174,40 @@
             }
         }
 
+        // Update visibility and accessibility for tasks in a specific workflow
+        function updateTaskVisibilityAndAccessibility(workflowId) {
+            const workflow = displayData.find(w => w.workflowId === workflowId);
+            if (!workflow) {
+                console.log(`Workflow with ID ${workflowId} not found.`);
+                return;
+            }
+
+            const sortedTasks = sortTasksByMilestoneAndTaskNumber(workflow.tasks);
+            const lowestMilestone = Math.min(...sortedTasks.map(task => task.milestone));
+            const visibleTasks = sortedTasks.filter(task => task.milestone === lowestMilestone);
+
+            // Update dropdown accessibility based on task number
+            let previousDropdown = null;
+            visibleTasks.forEach(task => {
+                const taskDiv = Array.from(document.querySelectorAll('.task-item')).find(div =>
+                    div.querySelector('h5').innerText.includes(task.name)
+                );
+
+                if (!taskDiv) return;
+
+                const dropdown = taskDiv.querySelector('select');
+                if (previousDropdown === null) {
+                    dropdown.disabled = false;
+                    dropdown.classList.remove('disabled');
+                } else {
+                    dropdown.disabled = true;
+                    dropdown.classList.add('disabled');
+                }
+
+                previousDropdown = dropdown;
+            });
+        }
+
         // Helper function to insert a task directly without milestone/task number restrictions
         function insertTaskDirectly(task, insertIndex, taskList) {
             const insertDiv = document.createElement('div');
@@ -244,40 +278,6 @@
 
             insertDiv.appendChild(dropdown);
             taskList.insertBefore(insertDiv, taskList.children[insertIndex]);
-        }
-
-        // Update visibility and accessibility for tasks in a specific workflow
-        function updateTaskVisibilityAndAccessibility(workflowId) {
-            const workflow = displayData.find(w => w.workflowId === workflowId);
-            if (!workflow) {
-                console.log(`Workflow with ID ${workflowId} not found.`);
-                return;
-            }
-
-            const sortedTasks = sortTasksByMilestoneAndTaskNumber(workflow.tasks);
-            const lowestMilestone = Math.min(...sortedTasks.map(task => task.milestone));
-            const visibleTasks = sortedTasks.filter(task => task.milestone === lowestMilestone);
-
-            // Update dropdown accessibility based on task number
-            let previousDropdown = null;
-            visibleTasks.forEach(task => {
-                const taskDiv = Array.from(document.querySelectorAll('.task-item')).find(div =>
-                    div.querySelector('h5').innerText.includes(task.name)
-                );
-
-                if (!taskDiv) return;
-
-                const dropdown = taskDiv.querySelector('select');
-                if (previousDropdown === null) {
-                    dropdown.disabled = false;
-                    dropdown.classList.remove('disabled');
-                } else {
-                    dropdown.disabled = true;
-                    dropdown.classList.add('disabled');
-                }
-
-                previousDropdown = dropdown;
-            });
         }
 
         // Initial rendering
