@@ -97,7 +97,8 @@
 
             if (insertValue.includes('-')) {
                 // Individual task insert
-                const taskId = insertValue.split('-').pop();
+                const firstDashIndex = insertValue.indexOf('-');
+                const taskId = insertValue.substring(firstDashIndex + 1);
                 console.log(`Extracted taskId: ${taskId}`);
 
                 const insertedTask = displayData
