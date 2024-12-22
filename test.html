@@ -96,11 +96,9 @@
             );
 
             if (insertValue.includes('-')) {
-                // Split only on the last hyphen to extract the taskId
-                const lastHyphenIndex = insertValue.lastIndexOf('-');
-                const taskName = insertValue.substring(0, lastHyphenIndex);
-                const taskId = insertValue.substring(lastHyphenIndex + 1);
-                console.log(`Extracted taskName: ${taskName}, taskId: ${taskId}`);
+                // Individual task insert
+                const taskId = insertValue.split('-').pop();
+                console.log(`Extracted taskId: ${taskId}`);
 
                 const insertedTask = displayData
                     .flatMap(workflow => workflow.tasks)
@@ -139,6 +137,7 @@
                     console.log('Task not found for ID:', taskId);
                 }
             } else {
+                // Sub-workflow insert
                 const subWorkflow = displayData.find(workflow => workflow.title === insertValue);
                 if (subWorkflow) {
                     subWorkflow.tasks.forEach(subTask => {
