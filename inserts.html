@@ -125,17 +125,19 @@
                         tasks: workflow.tasks.map(task => task.name)
                     });
                 }
-
-                // Add individual task names
+        
+                // Add individual task names and IDs
                 workflow.tasks.forEach(task => {
                     acc.tasks.push({
                         name: task.name,
+                        id: task.id, // Include the task ID
                         results: task.results
                     });
                 });
             }
             return acc;
         }, { tasks: [], groups: [] });
+
 
         // Render workflows and tasks with dropdowns
         displayData
@@ -218,6 +220,7 @@
                                 });
                                 dropdownMenu.appendChild(dropdownItem);
                             });
+
                             
                             tasksAndGroups.groups.forEach(groupOption => {
                                 const dropdownItem = document.createElement('div');
