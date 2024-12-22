@@ -54,15 +54,23 @@
                 return;
             }
 
-            const tasks = sortTasksByMilestoneAndTaskNumber(mainWorkflow.tasks);
-            console.log('Sorted tasks for main workflow:', tasks);
+            renderWorkflowTasks(mainWorkflow.tasks, "mainWorkflow");
+        }
 
-            let lowestMilestone = Math.min(...tasks.map(task => task.milestone));
-            let currentMilestoneTasks = tasks.filter(task => task.milestone == lowestMilestone);
-            console.log('Lowest milestone tasks:', currentMilestoneTasks);
+        // Render tasks for a specific workflow
+        function renderWorkflowTasks(tasks, workflowId) {
+            const taskList = document.getElementById('taskList');
+            const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
+            console.log(`Sorted tasks for workflow ${workflowId}:`, sortedTasks);
 
+            // Find the lowest milestone
+            const lowestMilestone = Math.min(...sortedTasks.map(task => task.milestone));
+            const visibleTasks = sortedTasks.filter(task => task.milestone === lowestMilestone);
+            console.log(`Lowest milestone tasks for workflow ${workflowId}:`, visibleTasks);
+
+            // Render visible tasks
             let previousDropdown = null;
-            currentMilestoneTasks.forEach(task => {
+            visibleTasks.forEach(task => {
                 const taskDiv = document.createElement('div');
                 taskDiv.className = 'task-item';
                 taskDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
@@ -75,42 +83,45 @@
                     dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
                 });
 
-                // Grey out dropdowns initially except the first task with the lowest task number
-                if (previousDropdown !== null) {
-                    dropdown.classList.add('disabled');
+                // Disable all dropdowns except the first task with the lowest task number
+                if (previousDropdown === null) {
+                    dropdown.disabled = false;
+                    dropdown.classList.remove('disabled');
+                } else {
                     dropdown.disabled = true;
+                    dropdown.classList.add('disabled');
                 }
 
                 dropdown.addEventListener('change', () => {
                     const selectedValue = dropdown.value;
                     console.log(`Selected value for task "${task.name}":`, selectedValue);
                     if (selectedValue) {
-                        dropdown.classList.add('disabled');
                         dropdown.disabled = true;
+                        dropdown.classList.add('disabled');
 
-                        const insertKey = `${mainWorkflow.workflowId}-${task.id}-${selectedValue}`;
+                        const insertKey = `${workflowId}-${task.id}-${selectedValue}`;
                         const insertValue = insertsData[insertKey];
                         console.log(`Insert key: ${insertKey}, Insert value:`, insertValue);
                         if (insertValue) {
-                            handleInsert(insertValue, task);
+                            handleInsert(insertValue, task, workflowId);
                         }
 
                         // Enable the next task in the same milestone
-                        enableNextTask(task, mainWorkflow.tasks);
+                        enableNextTask(task, sortedTasks);
                     }
                 });
 
                 taskDiv.appendChild(dropdown);
                 taskList.appendChild(taskDiv);
 
-                // Update the reference to the previous dropdown
                 previousDropdown = dropdown;
             });
         }
 
         // Handle inserts (individual tasks or sub-workflows)
-        function handleInsert(insertValue, currentTask) {
+        function handleInsert(insertValue, currentTask, currentWorkflowId) {
             console.log('Handling insert for:', insertValue);
+
             const taskList = document.getElementById('taskList');
             const currentTaskIndex = Array.from(taskList.children).findIndex(taskDiv =>
                 taskDiv.querySelector('h5').innerText.includes(currentTask.name)
@@ -118,8 +129,7 @@
 
             if (insertValue.includes('-')) {
                 // Individual task insert
-                const firstDashIndex = insertValue.indexOf('-');
-                const taskId = insertValue.substring(firstDashIndex + 1);
+                const taskId = insertValue.split('-').pop();
                 console.log(`Extracted taskId: ${taskId}`);
 
                 const insertedTask = displayData
@@ -135,15 +145,8 @@
                 // Sub-workflow insert
                 const subWorkflow = displayData.find(workflow => workflow.title === insertValue);
                 if (subWorkflow) {
-                    const sortedSubTasks = sortTasksByMilestoneAndTaskNumber(subWorkflow.tasks);
-
-                    // Insert sub-workflow tasks and apply milestone/task number logic
-                    sortedSubTasks.forEach((subTask, index) => {
-                        insertTaskWithLogic(subTask, currentTaskIndex + 1 + index, taskList);
-                    });
-
-                    // Apply milestone/task number logic for sub-workflow tasks
-                    updateTaskVisibilityAndAccessibility(subWorkflow.workflowId);
+                    console.log(`Inserting sub-workflow: ${subWorkflow.title}`);
+                    renderWorkflowTasks(subWorkflow.tasks, subWorkflow.workflowId);
                 } else {
                     console.log('Sub-workflow not found for:', insertValue);
                 }
@@ -174,11 +177,12 @@
             }
         }
 
-        // Helper function to insert a task directly without milestone/task number restrictions
+        // Insert a task directly
         function insertTaskDirectly(task, insertIndex, taskList) {
-            const insertDiv = document.createElement('div');
-            insertDiv.className = 'task-item';
-            insertDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
+            console.log(`Inserting individual task: ${task.name}`);
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'task-item';
+            taskDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
 
             const dropdown = document.createElement('select');
             dropdown.className = 'form-select dropdown';
@@ -188,96 +192,27 @@
                 dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
             });
 
+            dropdown.disabled = false;
+            dropdown.classList.remove('disabled');
+
             dropdown.addEventListener('change', () => {
                 const selectedValue = dropdown.value;
                 console.log(`Selected value for task "${task.name}":`, selectedValue);
                 if (selectedValue) {
-                    dropdown.classList.add('disabled');
                     dropdown.disabled = true;
+                    dropdown.classList.add('disabled');
 
                     const insertKey = `mainWorkflow-${task.id}-${selectedValue}`;
                     const nextInsertValue = insertsData[insertKey];
                     console.log(`Insert key: ${insertKey}, Next insert value:`, nextInsertValue);
                     if (nextInsertValue) {
-                        handleInsert(nextInsertValue, task);
+                        handleInsert(nextInsertValue, task, "mainWorkflow");
                     }
                 }
             });
 
-            insertDiv.appendChild(dropdown);
-            taskList.insertBefore(insertDiv, taskList.children[insertIndex]);
-        }
-
-        // Helper function to insert a task with milestone and task number logic
-        function insertTaskWithLogic(task, insertIndex, taskList) {
-            const insertDiv = document.createElement('div');
-            insertDiv.className = 'task-item';
-            insertDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
-
-            const dropdown = document.createElement('select');
-            dropdown.className = 'form-select dropdown';
-            dropdown.innerHTML = '<option value="">Select Result</option>';
-
-            task.results.forEach(result => {
-                dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
-            });
-
-            // Initially disable dropdowns until task number and milestone rules are applied
-            dropdown.classList.add('disabled');
-            dropdown.disabled = true;
-
-            dropdown.addEventListener('change', () => {
-                const selectedValue = dropdown.value;
-                console.log(`Selected value for task "${task.name}":`, selectedValue);
-                if (selectedValue) {
-                    dropdown.classList.add('disabled');
-                    dropdown.disabled = true;
-
-                    const insertKey = `subWorkflow-${task.id}-${selectedValue}`;
-                    const nextInsertValue = insertsData[insertKey];
-                    console.log(`Insert key: ${insertKey}, Next insert value:`, nextInsertValue);
-                    if (nextInsertValue) {
-                        handleInsert(nextInsertValue, task);
-                    }
-                }
-            });
-
-            insertDiv.appendChild(dropdown);
-            taskList.insertBefore(insertDiv, taskList.children[insertIndex]);
-        }
-
-        // Update visibility and accessibility for tasks in a specific workflow
-        function updateTaskVisibilityAndAccessibility(workflowId) {
-            const workflow = displayData.find(w => w.workflowId === workflowId);
-            if (!workflow) {
-                console.log(`Workflow with ID ${workflowId} not found.`);
-                return;
-            }
-
-            const sortedTasks = sortTasksByMilestoneAndTaskNumber(workflow.tasks);
-            const lowestMilestone = Math.min(...sortedTasks.map(task => task.milestone));
-            const visibleTasks = sortedTasks.filter(task => task.milestone === lowestMilestone);
-
-            // Update dropdown accessibility based on task number
-            let previousDropdown = null;
-            visibleTasks.forEach(task => {
-                const taskDiv = Array.from(document.querySelectorAll('.task-item')).find(div =>
-                    div.querySelector('h5').innerText.includes(task.name)
-                );
-
-                if (!taskDiv) return;
-
-                const dropdown = taskDiv.querySelector('select');
-                if (previousDropdown === null) {
-                    dropdown.disabled = false;
-                    dropdown.classList.remove('disabled');
-                } else {
-                    dropdown.disabled = true;
-                    dropdown.classList.add('disabled');
-                }
-
-                previousDropdown = dropdown;
-            });
+            taskDiv.appendChild(dropdown);
+            taskList.insertBefore(taskDiv, taskList.children[insertIndex]);
         }
 
         // Initial rendering
