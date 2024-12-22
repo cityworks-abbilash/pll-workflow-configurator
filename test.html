@@ -12,6 +12,11 @@
         .dropdown {
             width: 200px;
         }
+        .dropdown.disabled {
+            background-color: #e9ecef;
+            pointer-events: none;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -73,6 +78,10 @@
                     const selectedValue = dropdown.value;
                     console.log(`Selected value for task "${task.name}":`, selectedValue);
                     if (selectedValue) {
+                        // Grey out the dropdown
+                        dropdown.classList.add('disabled');
+                        dropdown.disabled = true;
+
                         const insertKey = `${mainWorkflow.workflowId}-${task.id}-${selectedValue}`;
                         const insertValue = insertsData[insertKey];
                         console.log(`Insert key: ${insertKey}, Insert value:`, insertValue);
@@ -122,6 +131,10 @@
                         const selectedValue = dropdown.value;
                         console.log(`Selected value for task "${insertedTask.name}":`, selectedValue);
                         if (selectedValue) {
+                            // Grey out the dropdown
+                            dropdown.classList.add('disabled');
+                            dropdown.disabled = true;
+
                             const insertKey = `mainWorkflow-${taskId}-${selectedValue}`;
                             const nextInsertValue = insertsData[insertKey];
                             console.log(`Insert key: ${insertKey}, Next insert value:`, nextInsertValue);
@@ -158,6 +171,10 @@
                             const selectedValue = dropdown.value;
                             console.log(`Selected value for task "${subTask.name}":`, selectedValue);
                             if (selectedValue) {
+                                // Grey out the dropdown
+                                dropdown.classList.add('disabled');
+                                dropdown.disabled = true;
+
                                 const insertKey = `${subWorkflow.workflowId}-${subTask.id}-${selectedValue}`;
                                 const nextInsertValue = insertsData[insertKey];
                                 console.log(`Insert key: ${insertKey}, Next insert value:`, nextInsertValue);
