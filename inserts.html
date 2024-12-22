@@ -165,7 +165,14 @@
                             // Check for saved selection and set the dropdown text
                             const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`;
                             const savedValue = insertsData[taskKey];
-                            dropdownButton.textContent = savedValue ? savedValue.split('-')[0] : 'Select an option';
+                            if (savedValue) {
+                                const parts = savedValue.split('-');
+                                const taskName = parts.slice(0, -2).join('-'); // Use all parts except the last two
+                                dropdownButton.textContent = taskName; // Display the task name
+                            } else {
+                                dropdownButton.textContent = 'Select an option';
+                            }
+
         
                             dropdownButton.addEventListener('click', () => {
                                 dropdownMenu.classList.toggle('visible');
