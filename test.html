@@ -12,108 +12,110 @@
         .dropdown {
             width: 200px;
         }
-        .hidden {
-            display: none;
-        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Test Workflow Simulation</h1>
-
         <div id="taskList" class="mt-4"></div>
     </div>
 
     <script>
-        const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
-        const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
+        const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
+        console.log('Loaded displayData:', displayData);
+        console.log('Loaded insertsData:', insertsData);
 
-        // Helper to sort tasks
+        // Helper to sort tasks by milestone and task number
         function sortTasksByMilestone(tasks) {
+            console.log('Sorting tasks:', tasks);
             return tasks.sort((a, b) => {
-                const milestoneA = milestoneData[a.id]?.milestone || 0;
-                const milestoneB = milestoneData[b.id]?.milestone || 0;
-                const taskNumberA = milestoneData[a.id]?.taskNumber || 0;
-                const taskNumberB = milestoneData[b.id]?.taskNumber || 0;
-
-                if (milestoneA !== milestoneB) return milestoneA - milestoneB;
-                return taskNumberA - taskNumberB;
+                if (a.milestone !== b.milestone) {
+                    return a.milestone - b.milestone;
+                }
+                return a.taskNumber - b.taskNumber;
             });
         }
 
-        // Generate task rows
+        // Render the tasks based on displayData
         function renderTasks() {
+            console.log('Rendering tasks...');
             const taskList = document.getElementById('taskList');
             taskList.innerHTML = '';
 
-            const sortedTasks = sortTasksByMilestone(workflowData);
-
-            sortedTasks.forEach((task, index) => {
-                const milestone = milestoneData[task.id]?.milestone || 'Unassigned';
-                const taskNumber = milestoneData[task.id]?.taskNumber || 'Unassigned';
-
-                const taskDiv = document.createElement('div');
-                taskDiv.className = 'task-item';
-                taskDiv.innerHTML = `
-                    <h5>Task: ${task.name}</h5>
-                    <p>Milestone: ${milestone}, Task Number: ${taskNumber}</p>
-                `;
-
-                if (task.results.length > 0) {
-                    const dropdown = document.createElement('select');
-                    dropdown.className = 'form-select dropdown';
-
-                    dropdown.innerHTML = '<option value="">Select Result</option>';
-                    task.results.forEach(result => {
-                        dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
-                    });
-
-                    dropdown.addEventListener('change', () => {
-                        const selectedValue = dropdown.value;
-
-                        if (selectedValue) {
-                            // Handle inserts based on result
-                            const insertKey = `${task.id}-${selectedValue}`;
-                            const insertValue = insertsData[insertKey];
-
-                            if (insertValue) {
-                                handleInsert(insertValue, task);
-                            }
-                            enableNextDropdown(index);
-                        }
-                    });
-
-                    taskDiv.appendChild(dropdown);
-                }
-
-                taskList.appendChild(taskDiv);
-            });
-
-            // Initially enable only the first dropdown
-            enableNextDropdown(-1);
-        }
-
-        // Enable next dropdown based on current selection
-        function enableNextDropdown(currentIndex) {
-            const dropdowns = document.querySelectorAll('.dropdown');
-
-            dropdowns.forEach((dropdown, index) => {
-                dropdown.disabled = index > currentIndex + 1;
-            });
-        }
-
-        // Handle task or sub-workflow inserts
-        function handleInsert(insertValue, currentTask) {
-            if (Array.isArray(insertValue)) {
-                insertValue.forEach(subTask => {
-                    workflowData.push(subTask);
-                });
-            } else {
-                workflowData.push(insertValue);
+            const mainWorkflow = displayData.find(workflow => workflow.workflowId === 'mainWorkflow');
+            if (!mainWorkflow) {
+                console.log('No mainWorkflow found in displayData');
+                return;
             }
 
-            renderTasks();
+            const tasks = sortTasksByMilestone(mainWorkflow.tasks);
+            console.log('Sorted tasks:', tasks);
+
+            let lowestMilestone = Math.min(...tasks.map(task => task.milestone));
+            let currentMilestoneTasks = tasks.filter(task => task.milestone == lowestMilestone);
+            console.log('Lowest milestone tasks:', currentMilestoneTasks);
+
+            currentMilestoneTasks.forEach(task => {
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task-item';
+                taskDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
+
+                const dropdown = document.createElement('select');
+                dropdown.className = 'form-select dropdown';
+                dropdown.innerHTML = '<option value="">Select Result</option>';
+
+                task.results.forEach(result => {
+                    dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
+                });
+
+                dropdown.addEventListener('change', () => {
+                    const selectedValue = dropdown.value;
+                    console.log(`Selected value for task "${task.name}":`, selectedValue);
+                    if (selectedValue) {
+                        const insertKey = `${mainWorkflow.workflowId}-${task.id}-${selectedValue}`;
+                        const insertValue = insertsData[insertKey];
+                        console.log(`Insert key: ${insertKey}, Insert value:`, insertValue);
+                        if (insertValue) {
+                            handleInsert(insertValue, task);
+                        }
+                    }
+                });
+
+                taskDiv.appendChild(dropdown);
+                taskList.appendChild(taskDiv);
+            });
+        }
+
+        // Handle inserts (individual tasks or sub-workflows)
+        function handleInsert(insertValue, currentTask) {
+            console.log('Handling insert for:', insertValue);
+            const taskList = document.getElementById('taskList');
+            const currentTaskIndex = Array.from(taskList.children).findIndex(taskDiv =>
+                taskDiv.querySelector('h5').innerText.includes(currentTask.name)
+            );
+
+            if (insertValue.includes('-')) {
+                const [taskName, taskId] = insertValue.split('-');
+                const insertDiv = document.createElement('div');
+                insertDiv.className = 'task-item';
+                insertDiv.innerHTML = `<h5>Task: ${taskName}</h5>`;
+                taskList.insertBefore(insertDiv, taskList.children[currentTaskIndex + 1]);
+                console.log(`Inserted individual task: ${taskName}`);
+            } else {
+                const subWorkflow = displayData.find(workflow => workflow.title === insertValue);
+                if (subWorkflow) {
+                    subWorkflow.tasks.forEach(subTask => {
+                        const insertDiv = document.createElement('div');
+                        insertDiv.className = 'task-item';
+                        insertDiv.innerHTML = `<h5>Task: ${subTask.name}</h5>`;
+                        taskList.insertBefore(insertDiv, taskList.children[currentTaskIndex + 1]);
+                        console.log(`Inserted sub-workflow task: ${subTask.name}`);
+                    });
+                } else {
+                    console.log('Sub-workflow not found for:', insertValue);
+                }
+            }
         }
 
         // Initial rendering
