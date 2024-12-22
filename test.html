@@ -47,53 +47,60 @@
 
         function displayTasksForMilestone() {
             console.log("Current Milestone:", currentMilestone);
-
+        
             const tasksToShow = currentTasks.filter(task => {
                 const milestone = parseInt(task.milestone || 0);
                 return milestone === currentMilestone;
             });
-
+        
             if (tasksToShow.length === 0 && currentMilestone > 1) {
                 workflowContainer.innerHTML += '<p class="text-center">Workflow complete! All tasks processed.</p>';
                 return;
             }
-
+        
             tasksToShow.forEach(task => {
                 if (!task.workflowId) {
                     task.workflowId = currentTasks.workflowId || "mainWorkflow";
                 }
             });
-
+        
             tasksToShow.sort((a, b) => parseInt(a.taskNumber || 0) - parseInt(b.taskNumber || 0));
-
+        
             tasksToShow.forEach(task => {
-                const uniqueTaskId = `${task.workflowId}-${task.id}-${currentMilestone}-${task.taskNumber}`;
-                if (document.querySelector(`[data-unique-task-id="${uniqueTaskId}"]`)) {
+                // Generate a unique ID based on insertion count
+                const uniqueTaskId = `${task.workflowId}-${task.id}-${currentMilestone}-${task.taskNumber}-${Date.now()}`;
+                const existingTask = document.querySelector(`[data-task-id="${task.id}"]`);
+        
+                // Append new instance for reinserted workflows
+                if (existingTask && !completedTasks.has(task.id)) {
+                    console.log(`Task ${task.name} is being reinserted.`);
+                } else if (document.querySelector(`[data-unique-task-id="${uniqueTaskId}"]`)) {
                     console.log(`Task ${task.name} is already rendered for this instance.`);
                     return;
                 }
-
+        
                 const taskSection = document.createElement('div');
                 taskSection.className = 'task-section';
-                taskSection.dataset.uniqueTaskId = uniqueTaskId;
-
+                taskSection.dataset.uniqueTaskId = uniqueTaskId; // Add unique identifier
+                taskSection.dataset.taskId = task.id;
+        
                 const taskTitle = document.createElement('div');
                 taskTitle.className = 'task-title';
                 taskTitle.textContent = `Task: ${task.name}`;
                 taskSection.appendChild(taskTitle);
-
+        
                 const dropdown = document.createElement('select');
                 dropdown.className = 'form-select';
                 dropdown.dataset.taskId = task.id;
                 dropdown.innerHTML = '<option value="">Select a result</option>';
-
+        
                 task.results.forEach(result => {
                     const option = document.createElement('option');
                     option.value = result.result;
                     option.textContent = result.result;
                     dropdown.appendChild(option);
                 });
-
+        
                 if (completedTasks.has(task.id)) {
                     dropdown.disabled = false;
                     console.log(`Dropdown for Task ${task.name} is already completed and accessible.`);
@@ -108,13 +115,14 @@
                         console.log(`Dropdown for Task ${task.name} is disabled.`);
                     }
                 }
-
+        
                 dropdown.addEventListener('change', () => handleResultSelection(task, dropdown.value));
                 taskSection.appendChild(dropdown);
-
+        
                 workflowContainer.appendChild(taskSection);
             });
         }
+
 
         function handleResultSelection(task, selectedResult) {
             if (!selectedResult) return;
