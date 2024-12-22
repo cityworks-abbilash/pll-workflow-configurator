@@ -31,7 +31,7 @@
         console.log('Loaded displayData:', displayData);
         console.log('Loaded insertsData:', insertsData);
 
-        // Sort tasks by milestone and task number
+        // Helper to sort tasks by milestone and task number
         function sortTasksByMilestoneAndTaskNumber(tasks) {
             return tasks.sort((a, b) => {
                 if (a.milestone !== b.milestone) return a.milestone - b.milestone;
@@ -39,11 +39,11 @@
             });
         }
 
-        // Render the main workflow
+        // Render the main workflow and tasks
         function renderTasks() {
             console.log('Rendering main workflow tasks...');
             const taskList = document.getElementById('taskList');
-            taskList.innerHTML = ''; // Clear previous tasks
+            taskList.innerHTML = '';
 
             const mainWorkflow = displayData.find(wf => wf.workflowId === 'mainWorkflow');
             if (!mainWorkflow) {
@@ -54,15 +54,15 @@
             renderWorkflowTasks(mainWorkflow.tasks, 'mainWorkflow');
         }
 
-        // Render tasks for a workflow
+        // Render tasks for a specific workflow
         function renderWorkflowTasks(tasks, workflowId) {
             const taskList = document.getElementById('taskList');
             const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
 
-            // Find the lowest milestone tasks
+            // Identify the lowest milestone
             const lowestMilestone = Math.min(...sortedTasks.map(task => task.milestone));
             const visibleTasks = sortedTasks.filter(task => task.milestone === lowestMilestone);
-            console.log(`Workflow: ${workflowId}, Lowest milestone: ${lowestMilestone}`, visibleTasks);
+            console.log(`Workflow: ${workflowId} | Lowest milestone: ${lowestMilestone} | Visible tasks:`, visibleTasks);
 
             let previousDropdown = null;
 
@@ -79,7 +79,7 @@
                     dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
                 });
 
-                // Enable the first dropdown and disable others
+                // Enable only the first dropdown
                 if (!previousDropdown) {
                     dropdown.disabled = false;
                     dropdown.classList.remove('disabled');
@@ -97,7 +97,7 @@
 
                         const insertKey = `${workflowId}-${task.id}-${selectedValue}`;
                         const insertValue = insertsData[insertKey];
-                        console.log(`Insert key: ${insertKey}, Insert value:`, insertValue);
+                        console.log(`Insert key: ${insertKey} | Insert value:`, insertValue);
 
                         if (insertValue) {
                             handleInsert(insertValue, task, workflowId);
@@ -115,9 +115,9 @@
             });
         }
 
-        // Handle inserts (sub-workflows or individual tasks)
-        function handleInsert(insertValue, currentTask, currentWorkflowId) {
-            console.log('Handling insert for:', insertValue);
+        // Handle inserts (tasks or sub-workflows)
+        function handleInsert(insertValue, currentTask, workflowId) {
+            console.log(`Handling insert: ${insertValue} for task: ${currentTask.name}`);
 
             if (insertValue.includes('-')) {
                 // Individual task insertion
@@ -201,7 +201,7 @@
             taskList.appendChild(taskDiv);
         }
 
-        // Initial render
+        // Initial rendering
         renderTasks();
     </script>
 </body>
