@@ -88,8 +88,27 @@
                         const associatedStatus = result.status || '';
         
                         // Dynamically classify Insert Task/Group
-                        const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
-                        const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
+                        let insertTask = '';
+                        let insertGroup = '';
+                        
+                        if (insertSelection) {
+                            if (insertSelection.includes('-')) {
+                                // Split the value and extract task name (up to the second-to-last dash)
+                                const parts = insertSelection.split('-');
+                                const taskName = parts.slice(0, -2).join('-'); // Combine all parts except the last two
+                        
+                                // Check if the extracted task name exists in the task list
+                                if (tasks.includes(taskName)) {
+                                    insertTask = taskName;
+                                }
+                            }
+                        
+                            // Check if the value matches a subworkflow title
+                            if (groups.includes(insertSelection)) {
+                                insertGroup = insertSelection;
+                            }
+                        }
+
         
                         // For the first result, display full details
                         if (index === 0) {
