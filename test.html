@@ -6,183 +6,119 @@
     <title>Test Workflow</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        .task-section {
-            margin-bottom: 20px;
-        }
-        .task-title {
-            font-weight: bold;
-        }
         .disabled-dropdown {
+            background-color: #e9ecef;
             pointer-events: none;
-            opacity: 0.5;
         }
     </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Test Workflow</h1>
-        <p class="text-center">Simulate and validate your workflow based on previous configurations.</p>
-
         <div id="workflowContainer"></div>
-
-        <div class="text-center mt-4">
-            <button class="btn btn-secondary" onclick="goBack()">Back</button>
-            <button class="btn btn-primary" onclick="restartConfigurator()">Restart</button>
-        </div>
     </div>
-
     <script>
-        const workflowData = JSON.parse(localStorage.getItem('workflowData')) || [];
-        const milestoneData = JSON.parse(localStorage.getItem('milestoneData')) || {};
-        const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
-        const workflowState = JSON.parse(localStorage.getItem('workflowState')) || {};
+        // Retrieve data from local storage
         const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
-
-        const workflowContainer = document.getElementById('workflowContainer');
-
+        const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
         let currentTasks = [];
         let currentMilestone = 1;
-        const completedTasks = new Set();
-
-        function goBack() {
-            window.location.href = 'codes.html';
-        }
-
-        function restartConfigurator() {
-            window.location.href = 'index.html';
-        }
 
         function startTestWorkflow() {
             const mainWorkflow = displayData.find(wf => wf.workflowId === 'mainWorkflow');
-            currentTasks = mainWorkflow ? mainWorkflow.tasks : [];
-            displayTasksForMilestone();
+            if (mainWorkflow) {
+                currentTasks = [...mainWorkflow.tasks];
+                displayTasksForMilestone();
+            } else {
+                document.getElementById('workflowContainer').innerHTML = '<p class="text-center">No main workflow found.</p>';
+            }
         }
 
         function displayTasksForMilestone() {
-            console.log("Current Milestone:", currentMilestone);
-        
-            const tasksToShow = currentTasks.filter(task => {
-                const milestone = parseInt(task.milestone || 0);
-                return milestone === currentMilestone;
-            });
-        
-            if (tasksToShow.length === 0 && currentMilestone > 1) {
+            const workflowContainer = document.getElementById('workflowContainer');
+            const tasksToShow = currentTasks.filter(task => parseInt(task.milestone) === currentMilestone);
+            if (tasksToShow.length === 0) {
                 workflowContainer.innerHTML += '<p class="text-center">Workflow complete! All tasks processed.</p>';
                 return;
             }
-        
-            // Assign the current workflow ID to all tasks in the current workflow
+
+            // Sort tasks by task number
+            tasksToShow.sort((a, b) => parseInt(a.taskNumber) - parseInt(b.taskNumber));
+
             tasksToShow.forEach(task => {
-                if (!task.workflowId) {
-                    task.workflowId = workflowState.workflows[currentTasks.workflowId]?.includes(task.id)
-                        ? currentTasks.workflowId
-                        : "mainWorkflow";
-                }
-            });
-        
-            // Sort tasks by taskNumber
-            tasksToShow.sort((a, b) => parseInt(a.taskNumber || 0) - parseInt(b.taskNumber || 0));
-        
-            tasksToShow.forEach(task => {
-                if (document.querySelector(`[data-task-id="${task.id}"]`)) {
-                    console.log(`Task ${task.name} is already rendered.`);
-                    return; // Skip rendering if already present
-                }
-        
+                // Create task section
                 const taskSection = document.createElement('div');
-                taskSection.className = 'task-section';
-        
-                const taskTitle = document.createElement('div');
-                taskTitle.className = 'task-title';
-                taskTitle.textContent = `Task: ${task.name}`;
-                taskSection.appendChild(taskTitle);
-        
+                taskSection.className = 'task-section mb-4';
+                taskSection.innerHTML = `<h4>${task.name} (Milestone: ${task.milestone}, Task Number: ${task.taskNumber})</h4>`;
+
+                // Add dropdown for task results
                 const dropdown = document.createElement('select');
-                dropdown.className = 'form-select';
-                dropdown.dataset.taskId = task.id; // Add unique identifier for each task dropdown
+                dropdown.className = 'form-select mb-2';
                 dropdown.innerHTML = '<option value="">Select a result</option>';
-        
                 task.results.forEach(result => {
                     const option = document.createElement('option');
                     option.value = result.result;
-                    option.textContent = result.result;
+                    option.textContent = `${result.result} (${result.status || 'No Status'})`;
                     dropdown.appendChild(option);
                 });
-        
-                // Determine dropdown accessibility
-                if (completedTasks.has(task.id)) {
-                    dropdown.disabled = false; // Completed tasks remain accessible
-                    console.log(`Dropdown for Task ${task.name} is already completed and accessible.`);
-                } else {
-                    const lowestTaskNumber = Math.min(...tasksToShow.map(t => t.taskNumber));
-                    if (parseInt(task.taskNumber) === lowestTaskNumber) {
-                        dropdown.disabled = false; // Enable the lowest task number in the milestone
-                        console.log(`Dropdown for Task ${task.name} is accessible (lowest task number in milestone).`);
-                    } else {
-                        dropdown.disabled = true;
-                        dropdown.classList.add("disabled-dropdown");
-                        console.log(`Dropdown for Task ${task.name} is disabled.`);
-                    }
+
+                // Disable dropdowns except for the lowest task number
+                const lowestTaskNumber = Math.min(...tasksToShow.map(t => parseInt(t.taskNumber)));
+                if (parseInt(task.taskNumber) !== lowestTaskNumber) {
+                    dropdown.disabled = true;
+                    dropdown.classList.add('disabled-dropdown');
                 }
-        
+
+                // Handle dropdown selection
                 dropdown.addEventListener('change', () => handleResultSelection(task, dropdown.value));
+
                 taskSection.appendChild(dropdown);
-        
                 workflowContainer.appendChild(taskSection);
             });
         }
 
-
-
-
         function handleResultSelection(task, selectedResult) {
-            if (!selectedResult) return;
-        
             const taskKey = `${task.workflowId}-${task.id}-${selectedResult}`;
-            const insertSelection = insertsData[taskKey]; // Fetch insert mapping
-        
-            console.log("Task Key:", taskKey);
-            console.log("Insert Selection:", insertSelection);
-        
-            completedTasks.add(task.id); // Mark task as completed
-        
+            const insertSelection = insertsData[taskKey];
+
             if (insertSelection) {
-                // Look up workflowId in displayData
-                const workflow = displayData.find(wf => wf.title === insertSelection);
-                if (workflow) {
-                    console.log("Workflow Found:", workflow);
-        
-                    // Fetch tasks from displayData
-                    currentTasks = workflow.tasks;
-                    currentTasks.workflowId = workflow.workflowId; // Update current workflow ID
-                    currentMilestone = 1; // Reset milestone for the new workflow
-                    displayTasksForMilestone();
-                    return;
+                if (insertSelection.includes('Sub Workflow')) {
+                    const subWorkflow = displayData.find(wf => wf.title === insertSelection);
+                    if (subWorkflow) {
+                        currentTasks.push(...subWorkflow.tasks);
+                    }
+                } else {
+                    const taskId = insertSelection.split('-').pop();
+                    const insertedTask = displayData
+                        .flatMap(wf => wf.tasks)
+                        .find(t => t.id === taskId);
+                    if (insertedTask) {
+                        currentTasks.push(insertedTask);
+                    }
                 }
             }
-        
-            // Check if all tasks in the current milestone are completed
-            const tasksInCurrentMilestone = currentTasks.filter(
-                t => parseInt(t.milestone || 0) === currentMilestone
+
+            // Enable the next dropdown
+            const tasksInMilestone = currentTasks.filter(
+                t => parseInt(t.milestone) === currentMilestone
             );
-            const remainingTasks = tasksInCurrentMilestone.filter(t => !completedTasks.has(t.id));
-        
-            if (remainingTasks.length > 0) {
-                const nextTask = remainingTasks.sort((a, b) => a.taskNumber - b.taskNumber)[0];
-                const nextDropdown = document.querySelector(`[data-task-id="${nextTask.id}"]`);
-                if (nextDropdown) {
-                    nextDropdown.disabled = false;
-                    nextDropdown.classList.remove("disabled-dropdown");
-                    console.log(`Dropdown for Task ${nextTask.name} is now enabled.`);
-                }
-            } else {
+            tasksInMilestone
+                .sort((a, b) => parseInt(a.taskNumber) - parseInt(b.taskNumber))
+                .forEach((t, index) => {
+                    const dropdown = document.querySelector(
+                        `.task-section:nth-child(${index + 1}) select`
+                    );
+                    dropdown.disabled = false;
+                    dropdown.classList.remove('disabled-dropdown');
+                });
+
+            // Progress to the next milestone if all tasks in the current one are completed
+            const allCompleted = tasksInMilestone.every(t => t.results.some(r => r.result === selectedResult));
+            if (allCompleted) {
                 currentMilestone++;
                 displayTasksForMilestone();
             }
         }
-
-
-
 
         startTestWorkflow();
     </script>
