@@ -42,33 +42,32 @@
             });
         }
 
-        // Render the tasks based on displayData
+        // Render the main workflow and initial tasks
         function renderTasks() {
-            console.log('Rendering tasks...');
+            console.log('Rendering main workflow tasks...');
             const taskList = document.getElementById('taskList');
             taskList.innerHTML = '';
 
             const mainWorkflow = displayData.find(workflow => workflow.workflowId === 'mainWorkflow');
             if (!mainWorkflow) {
-                console.log('No mainWorkflow found in displayData');
+                console.error('Main workflow not found in displayData.');
                 return;
             }
 
-            renderWorkflowTasks(mainWorkflow.tasks, "mainWorkflow");
+            renderWorkflowTasks(mainWorkflow.tasks, 'mainWorkflow');
         }
 
-        // Render tasks for a specific workflow
+        // Render tasks for any workflow (main or sub-workflow)
         function renderWorkflowTasks(tasks, workflowId) {
             const taskList = document.getElementById('taskList');
             const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
-            console.log(`Sorted tasks for workflow ${workflowId}:`, sortedTasks);
 
-            // Find the lowest milestone
+            // Find tasks in the lowest milestone
             const lowestMilestone = Math.min(...sortedTasks.map(task => task.milestone));
             const visibleTasks = sortedTasks.filter(task => task.milestone === lowestMilestone);
-            console.log(`Lowest milestone tasks for workflow ${workflowId}:`, visibleTasks);
+            console.log(`Workflow: ${workflowId} | Lowest milestone: ${lowestMilestone} | Visible tasks:`, visibleTasks);
 
-            // Render visible tasks
+            // Render visible tasks and enable dropdown logic
             let previousDropdown = null;
             visibleTasks.forEach(task => {
                 const taskDiv = document.createElement('div');
@@ -83,7 +82,7 @@
                     dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
                 });
 
-                // Disable all dropdowns except the first task with the lowest task number
+                // Enable only the first dropdown
                 if (previousDropdown === null) {
                     dropdown.disabled = false;
                     dropdown.classList.remove('disabled');
@@ -94,14 +93,15 @@
 
                 dropdown.addEventListener('change', () => {
                     const selectedValue = dropdown.value;
-                    console.log(`Selected value for task "${task.name}":`, selectedValue);
+                    console.log(`Task "${task.name}" selected result:`, selectedValue);
                     if (selectedValue) {
                         dropdown.disabled = true;
                         dropdown.classList.add('disabled');
 
                         const insertKey = `${workflowId}-${task.id}-${selectedValue}`;
                         const insertValue = insertsData[insertKey];
-                        console.log(`Insert key: ${insertKey}, Insert value:`, insertValue);
+                        console.log(`Insert key: ${insertKey} | Insert value:`, insertValue);
+
                         if (insertValue) {
                             handleInsert(insertValue, task, workflowId);
                         }
@@ -118,9 +118,9 @@
             });
         }
 
-        // Handle inserts (individual tasks or sub-workflows)
+        // Handle task inserts (individual or sub-workflow)
         function handleInsert(insertValue, currentTask, currentWorkflowId) {
-            console.log('Handling insert for:', insertValue);
+            console.log(`Handling insert: ${insertValue} for task: ${currentTask.name}`);
 
             const taskList = document.getElementById('taskList');
             const currentTaskIndex = Array.from(taskList.children).findIndex(taskDiv =>
@@ -128,7 +128,7 @@
             );
 
             if (insertValue.includes('-')) {
-                // Individual task insert
+                // Handle individual task insert
                 const taskId = insertValue.split('-').pop();
                 console.log(`Extracted taskId: ${taskId}`);
 
@@ -137,18 +137,19 @@
                     .find(task => task.id === taskId);
 
                 if (insertedTask) {
+                    console.log(`Inserting individual task: ${insertedTask.name}`);
                     insertTaskDirectly(insertedTask, currentTaskIndex + 1, taskList);
                 } else {
-                    console.log('Task not found for ID:', taskId);
+                    console.error('Task not found for ID:', taskId);
                 }
             } else {
-                // Sub-workflow insert
+                // Handle sub-workflow insert
                 const subWorkflow = displayData.find(workflow => workflow.title === insertValue);
                 if (subWorkflow) {
                     console.log(`Inserting sub-workflow: ${subWorkflow.title}`);
                     renderWorkflowTasks(subWorkflow.tasks, subWorkflow.workflowId);
                 } else {
-                    console.log('Sub-workflow not found for:', insertValue);
+                    console.error('Sub-workflow not found for:', insertValue);
                 }
             }
         }
@@ -179,7 +180,6 @@
 
         // Insert a task directly
         function insertTaskDirectly(task, insertIndex, taskList) {
-            console.log(`Inserting individual task: ${task.name}`);
             const taskDiv = document.createElement('div');
             taskDiv.className = 'task-item';
             taskDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
@@ -197,16 +197,17 @@
 
             dropdown.addEventListener('change', () => {
                 const selectedValue = dropdown.value;
-                console.log(`Selected value for task "${task.name}":`, selectedValue);
+                console.log(`Task "${task.name}" selected result:`, selectedValue);
                 if (selectedValue) {
                     dropdown.disabled = true;
                     dropdown.classList.add('disabled');
 
                     const insertKey = `mainWorkflow-${task.id}-${selectedValue}`;
                     const nextInsertValue = insertsData[insertKey];
-                    console.log(`Insert key: ${insertKey}, Next insert value:`, nextInsertValue);
+                    console.log(`Insert key: ${insertKey} | Next insert value:`, nextInsertValue);
+
                     if (nextInsertValue) {
-                        handleInsert(nextInsertValue, task, "mainWorkflow");
+                        handleInsert(nextInsertValue, task, 'mainWorkflow');
                     }
                 }
             });
