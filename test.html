@@ -94,6 +94,9 @@
                         if (insertValue) {
                             handleInsert(insertValue, task);
                         }
+
+                        // Enable the next task in the same milestone
+                        enableNextTask(task, mainWorkflow.tasks);
                     }
                 });
 
@@ -143,6 +146,30 @@
                     updateTaskVisibilityAndAccessibility(subWorkflow.workflowId);
                 } else {
                     console.log('Sub-workflow not found for:', insertValue);
+                }
+            }
+        }
+
+        // Enable the next task in the same milestone
+        function enableNextTask(currentTask, allTasks) {
+            const currentMilestone = currentTask.milestone;
+            const currentTaskNumber = currentTask.taskNumber;
+
+            const nextTask = allTasks.find(task =>
+                task.milestone === currentMilestone &&
+                task.taskNumber > currentTaskNumber
+            );
+
+            if (nextTask) {
+                console.log(`Enabling next task: ${nextTask.name}`);
+                const taskDiv = Array.from(document.querySelectorAll('.task-item')).find(div =>
+                    div.querySelector('h5').innerText.includes(nextTask.name)
+                );
+
+                if (taskDiv) {
+                    const dropdown = taskDiv.querySelector('select');
+                    dropdown.disabled = false;
+                    dropdown.classList.remove('disabled');
                 }
             }
         }
