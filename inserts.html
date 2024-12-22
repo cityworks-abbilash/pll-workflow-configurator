@@ -72,17 +72,6 @@
         .search-input:focus {
             border-color: #007bff;
         }
-
-        .text-danger {
-            font-size: 1.2rem; /* Adjust size if needed */
-            margin-right: 8px; /* Space between "x" and dropdown */
-            cursor: pointer; /* Make it clickable */
-            vertical-align: middle; /* Align vertically */
-        }
-        
-        .dropdown-button {
-            flex-grow: 1; /* Allow the button to take up remaining space */
-        }
     </style>
 </head>
 <body>
@@ -92,7 +81,6 @@
             <button class="btn btn-primary" onclick="goToCodes()">Next</button>
         </div>
 
-
         <h1 class="text-center">Workflow Inserts</h1>
         <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
 
@@ -100,37 +88,33 @@
     </div>
 
     <script>
-        // Initialize or retrieve insertsData from localStorage
         const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
-
         const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         const workflowsContainer = document.getElementById('workflows');
 
         function goBack() {
-            window.location.href = 'milestone.html'; // Navigate back to the milestone page
+            window.location.href = 'milestone.html';
         }
-        
+
         function goToCodes() {
-            window.location.href = 'codes.html'; // Navigate to the Codes page
+            window.location.href = 'codes.html';
         }
 
-
-        // Prepare dropdown options
         const tasksAndGroups = displayData.reduce((acc, workflow) => {
             if (workflow.tasks.length > 0) {
-                // Add subworkflow name if applicable
+                // Add subworkflow groups
                 if (workflow.workflowId.startsWith('subWorkflow')) {
                     acc.groups.push({
                         name: workflow.title,
                         tasks: workflow.tasks.map(task => task.name)
                     });
                 }
-        
-                // Add individual task names and IDs
+
+                // Add individual tasks
                 workflow.tasks.forEach(task => {
                     acc.tasks.push({
                         name: task.name,
-                        id: task.id, // Include the task ID
+                        id: task.id, // Ensure the task ID is included
                         results: task.results
                     });
                 });
@@ -138,25 +122,23 @@
             return acc;
         }, { tasks: [], groups: [] });
 
-
-        // Render workflows and tasks with dropdowns
         displayData
-            .filter(workflow => workflow.tasks.length > 0) // Only include workflows with tasks
+            .filter(workflow => workflow.tasks.length > 0)
             .forEach(workflow => {
                 const workflowSection = document.createElement('div');
                 workflowSection.className = 'mb-5';
 
-                // Workflow Title
+                // Workflow title
                 const title = document.createElement('h3');
                 title.textContent = workflow.title;
                 workflowSection.appendChild(title);
 
-                // Task List
+                // Task list
                 const taskList = document.createElement('ul');
                 taskList.className = 'list-group';
 
                 workflow.tasks.forEach(task => {
-                    // Task Item
+                    // Task item
                     const taskItem = document.createElement('li');
                     taskItem.className = 'list-group-item';
                     taskItem.textContent = `Task: ${task.name} (Milestone: ${task.milestone}, Task Number: ${task.taskNumber})`;
@@ -164,7 +146,7 @@
                     // Append task to list
                     taskList.appendChild(taskItem);
 
-                    // Task Results and Dropdown
+                    // Task results and dropdown
                     if (task.results.length > 0) {
                         task.results.forEach(result => {
                             const resultItem = document.createElement('div');
@@ -201,7 +183,7 @@
 
                             dropdownMenu.appendChild(searchInput);
 
-                            // Populate dropdown with tasks and groups
+                            // Populate dropdown with tasks
                             tasksAndGroups.tasks.forEach(taskOption => {
                                 const dropdownItem = document.createElement('div');
                                 dropdownItem.className = 'dropdown-item';
@@ -210,18 +192,17 @@
                                     <span class="additional-info">Results: ${formatResults(taskOption.results)}</span>
                                 `;
                                 dropdownItem.addEventListener('click', () => {
-                                    const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
-                                    const insertValue = `${taskOption.name}-${taskOption.id}`; // Store "Task Name-Task ID"
-                            
-                                    insertsData[taskKey] = insertValue; // Save selection
-                                    localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Persist in localStorage
-                                    dropdownButton.textContent = taskOption.name; // Update button text
-                                    dropdownMenu.classList.remove('visible'); // Close the dropdown
+                                    const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`;
+                                    const insertValue = `${taskOption.name}-${taskOption.id}`;
+                                    insertsData[taskKey] = insertValue;
+                                    localStorage.setItem('insertsData', JSON.stringify(insertsData));
+                                    dropdownButton.textContent = taskOption.name;
+                                    dropdownMenu.classList.remove('visible');
                                 });
                                 dropdownMenu.appendChild(dropdownItem);
                             });
 
-                            
+                            // Populate dropdown with subworkflow groups
                             tasksAndGroups.groups.forEach(groupOption => {
                                 const dropdownItem = document.createElement('div');
                                 dropdownItem.className = 'dropdown-item';
@@ -230,63 +211,21 @@
                                     <span class="additional-info">Tasks: ${groupOption.tasks.join(', ')}</span>
                                 `;
                                 dropdownItem.addEventListener('click', () => {
-                                    const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
-                                    insertsData[taskKey] = groupOption.name; // Save selection to localStorage
-                                    localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Persist data
-                                    dropdownButton.textContent = groupOption.name; // Update button text
-                                    dropdownMenu.classList.remove('visible'); // Hide dropdown menu
+                                    const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`;
+                                    insertsData[taskKey] = groupOption.name;
+                                    localStorage.setItem('insertsData', JSON.stringify(insertsData));
+                                    dropdownButton.textContent = groupOption.name;
+                                    dropdownMenu.classList.remove('visible');
                                 });
                                 dropdownMenu.appendChild(dropdownItem);
                             });
 
-                            
-                            // Restore saved selection if it exists
-                            const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
-                            const savedValue = insertsData[taskKey]; // Retrieve saved value from localStorage
-                            if (savedValue) {
-                                dropdownButton.textContent = savedValue; // Prepopulate dropdown with saved value
-                            }
-                            
-                            // Add a small "x" icon for clearing the selection
-                            const clearIcon = document.createElement('span');
-                            clearIcon.className = 'text-danger ms-2'; // Styling for a small red icon
-                            clearIcon.innerHTML = '&times;'; // HTML entity for "x"
-                            clearIcon.style.cursor = 'pointer'; // Make it clickable
-                            clearIcon.style.marginRight = '8px'; // Add spacing between the "x" and dropdown
-                            
-                            clearIcon.addEventListener('click', () => {
-                                const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`; // Unique key for this dropdown
-                                delete insertsData[taskKey]; // Remove the saved selection
-                                localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Update localStorage
-                                dropdownButton.textContent = 'Select an option'; // Reset the dropdown text
-                            });
-                            
-                            // Create a wrapper for alignment
-                            const controlWrapper = document.createElement('div');
-                            controlWrapper.style.display = 'flex'; // Flexbox for horizontal alignment
-                            controlWrapper.style.alignItems = 'center'; // Center items vertically
-                            
-                            // Append "x" and dropdown button to the wrapper
-                            controlWrapper.appendChild(clearIcon);
-                            controlWrapper.appendChild(dropdownButton);
-                            
-                            // Append the wrapper and menu to the container
-                            dropdownContainer.appendChild(controlWrapper);
-                            dropdownContainer.appendChild(dropdownMenu);
-
-
-
-
-
                             resultItem.appendChild(dropdownLabel);
+                            dropdownContainer.appendChild(dropdownButton);
+                            dropdownContainer.appendChild(dropdownMenu);
                             resultItem.appendChild(dropdownContainer);
                             taskList.appendChild(resultItem);
                         });
-                    } else {
-                        const noResultItem = document.createElement('div');
-                        noResultItem.className = 'task-results';
-                        noResultItem.textContent = 'No results or statuses available.';
-                        taskList.appendChild(noResultItem);
                     }
                 });
 
@@ -294,7 +233,6 @@
                 workflowsContainer.appendChild(workflowSection);
             });
 
-        // Format task results for display
         function formatResults(results) {
             if (!results || results.length === 0) return 'None';
             return results.map(result => `${result.result} (${result.status || 'None'})`).join(', ');
