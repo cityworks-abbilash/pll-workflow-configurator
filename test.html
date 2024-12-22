@@ -138,7 +138,26 @@
 
             if (insertedTask) {
                 console.log(`Inserting individual task: ${insertedTask.name}`);
-                insertTaskDirectly(insertedTask, currentTaskDiv);
+                const insertedTaskDiv = insertTaskDirectly(insertedTask, currentTaskDiv);
+
+                // After inserting, check if this task's result triggers another insert
+                const dropdown = insertedTaskDiv.querySelector('select');
+                dropdown.addEventListener('change', () => {
+                    const selectedValue = dropdown.value;
+                    console.log(`Task "${insertedTask.name}" selected result:`, selectedValue);
+                    if (selectedValue) {
+                        const newInsertKey = `${workflowId}-${insertedTask.id}-${selectedValue}`;
+                        const newInsertValue = insertsData[newInsertKey];
+                        console.log(`Insert key: ${newInsertKey} | Insert value:`, newInsertValue);
+
+                        if (newInsertValue) {
+                            handleInsert(newInsertValue, insertedTaskDiv, workflowId);
+                        }
+                    }
+                });
+
+                // Trigger the dropdown's change event programmatically to check for further inserts
+                dropdown.dispatchEvent(new Event('change'));
             } else {
                 const subWorkflow = displayData.find(workflow => workflow.title === insertValue);
                 if (subWorkflow) {
@@ -173,19 +192,27 @@
                 if (selectedValue) {
                     dropdown.disabled = true;
                     dropdown.classList.add('disabled');
+
+                    const insertKey = `${workflowId}-${task.id}-${selectedValue}`;
+                    const insertValue = insertsData[insertKey];
+                    console.log(`Insert key: ${insertKey} | Insert value:`, insertValue);
+
+                    if (insertValue) {
+                        handleInsert(insertValue, taskDiv, workflowId);
+                    }
                 }
             });
 
-            taskDiv.appendChild(dropdown);
             currentTaskDiv.insertAdjacentElement('afterend', taskDiv);
+            return taskDiv; // Return the inserted task element for further operations
         }
 
         // Insert sub-workflow tasks immediately after the current task
         function insertSubWorkflow(tasks, currentTaskDiv, workflowId) {
             const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
             sortedTasks.forEach(task => {
-                insertTaskDirectly(task, currentTaskDiv);
-                currentTaskDiv = currentTaskDiv.nextElementSibling; // Update reference to insert next task
+                const insertedTaskDiv = insertTaskDirectly(task, currentTaskDiv);
+                currentTaskDiv = insertedTaskDiv; // Update reference to insert next task
             });
         }
 
