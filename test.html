@@ -143,50 +143,89 @@
 
         // Insert a single task directly after the current task
         function insertTaskDirectly(task, currentTaskDiv) {
+            console.log(`Inserting individual task: ${task.name} with results:`, task.results);
+        
             const taskDiv = document.createElement('div');
             taskDiv.className = 'task-item';
             taskDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
-
+        
             const dropdown = document.createElement('select');
             dropdown.className = 'form-select dropdown';
             dropdown.innerHTML = '<option value="">Select Result</option>';
-
+        
+            // Populate dropdown with task results
             task.results.forEach(result => {
                 dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
             });
-
-            dropdown.disabled = false;
+        
+            dropdown.disabled = false; // Enable the dropdown for inserted tasks
             dropdown.classList.remove('disabled');
-
+        
             dropdown.addEventListener('change', () => {
                 const selectedValue = dropdown.value;
                 console.log(`Task "${task.name}" selected result:`, selectedValue);
                 if (selectedValue) {
                     dropdown.disabled = true;
                     dropdown.classList.add('disabled');
-
+        
                     const insertKey = `${workflowId}-${task.id}-${selectedValue}`;
                     const insertValue = insertsData[insertKey];
                     console.log(`Insert key: ${insertKey} | Insert value:`, insertValue);
-
+        
                     if (insertValue) {
                         handleInsert(insertValue, taskDiv, workflowId);
                     }
                 }
             });
-
+        
             currentTaskDiv.insertAdjacentElement('afterend', taskDiv);
+            taskDiv.appendChild(dropdown); // Append dropdown to the task div
         }
-
         // Insert sub-workflow tasks immediately after the current task
         function insertSubWorkflow(tasks, currentTaskDiv, workflowId) {
             const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
             const lowestMilestoneTasks = sortedTasks.filter(task => parseInt(task.milestone) === parseInt(sortedTasks[0].milestone));
             console.log(`Inserting tasks for lowest milestone in sub-workflow:`, lowestMilestoneTasks);
-
+        
             lowestMilestoneTasks.forEach(task => {
-                insertTaskDirectly(task, currentTaskDiv);
-                currentTaskDiv = currentTaskDiv.nextElementSibling; // Update reference for further inserts
+                console.log(`Inserting sub-workflow task: ${task.name} with results:`, task.results);
+        
+                const taskDiv = document.createElement('div');
+                taskDiv.className = 'task-item';
+                taskDiv.innerHTML = `<h5>Task: ${task.name}</h5>`;
+        
+                const dropdown = document.createElement('select');
+                dropdown.className = 'form-select dropdown';
+                dropdown.innerHTML = '<option value="">Select Result</option>';
+        
+                // Populate dropdown with task results
+                task.results.forEach(result => {
+                    dropdown.innerHTML += `<option value="${result.result}">${result.result}</option>`;
+                });
+        
+                dropdown.disabled = true; // Disable initially
+                dropdown.classList.add('disabled');
+        
+                dropdown.addEventListener('change', () => {
+                    const selectedValue = dropdown.value;
+                    console.log(`Task "${task.name}" selected result:`, selectedValue);
+                    if (selectedValue) {
+                        dropdown.disabled = true;
+                        dropdown.classList.add('disabled');
+        
+                        const insertKey = `${workflowId}-${task.id}-${selectedValue}`;
+                        const insertValue = insertsData[insertKey];
+                        console.log(`Insert key: ${insertKey} | Insert value:`, insertValue);
+        
+                        if (insertValue) {
+                            handleInsert(insertValue, taskDiv, workflowId);
+                        }
+                    }
+                });
+        
+                currentTaskDiv.insertAdjacentElement('afterend', taskDiv);
+                taskDiv.appendChild(dropdown); // Append dropdown to the task div
+                currentTaskDiv = taskDiv; // Update the reference for subsequent inserts
             });
         }
 
