@@ -16,6 +16,7 @@
         <div class="d-flex justify-content-between mt-4">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
             <button class="btn btn-primary" onclick="restartConfigurator()">Restart</button>
+            <button class="btn btn-info" onclick="openTestPopup()">Open Test Workflow</button>
         </div>
     </div>
 
@@ -176,6 +177,18 @@
 
 
 
+        function openTestPopup() {
+            const popupWindow = window.open(
+                'test.html', // Path to test.html
+                'TestWorkflow', // Window name
+                'width=1000,height=700,scrollbars=yes,resizable=yes' // Window properties
+            );
+        
+            // Check if the popup blocked by the browser
+            if (!popupWindow || popupWindow.closed || typeof popupWindow.closed === 'undefined') {
+                alert('Popup blocked! Please allow popups for this website.');
+            }
+        }
 
 
 
