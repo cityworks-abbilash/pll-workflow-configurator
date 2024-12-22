@@ -136,8 +136,10 @@
 
             if (insertValue.includes('-')) {
                 // Individual task insertion
-                const taskId = insertValue.split('-').pop();
-                console.log(`Extracted taskId: ${taskId}`);
+                const parts = insertValue.split('-');
+                const taskId = parts.slice(-2).join('-'); // Extract the last two segments to form the task ID
+                console.log(`Correctly extracted taskId: ${taskId}`);
+
 
                 const insertedTask = displayData
                     .flatMap(workflow => workflow.tasks)
