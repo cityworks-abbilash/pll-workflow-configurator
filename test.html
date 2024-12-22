@@ -33,9 +33,12 @@
 
         // Helper to sort tasks by milestone and task number
         function sortTasksByMilestoneAndTaskNumber(tasks) {
+            console.log('Sorting tasks:', tasks);
             return tasks.sort((a, b) => {
-                if (a.milestone !== b.milestone) return a.milestone - b.milestone;
-                return a.taskNumber - b.taskNumber;
+                if (parseInt(a.milestone) !== parseInt(b.milestone)) {
+                    return parseInt(a.milestone) - parseInt(b.milestone);
+                }
+                return parseInt(a.taskNumber) - parseInt(b.taskNumber);
             });
         }
 
@@ -59,10 +62,22 @@
             const taskList = document.getElementById('taskList');
             const sortedTasks = sortTasksByMilestoneAndTaskNumber(tasks);
 
-            // Identify the lowest milestone
-            const lowestMilestone = Math.min(...sortedTasks.map(task => task.milestone));
-            const visibleTasks = sortedTasks.filter(task => task.milestone === lowestMilestone);
-            console.log(`Workflow: ${workflowId} | Lowest milestone: ${lowestMilestone} | Visible tasks:`, visibleTasks);
+            console.log(`Sorted tasks for workflow ${workflowId}:`, sortedTasks);
+
+            // Find the lowest milestone
+            const milestones = sortedTasks.map(task => parseInt(task.milestone));
+            console.log('All milestones in workflow:', milestones);
+
+            const lowestMilestone = Math.min(...milestones);
+            console.log(`Workflow: ${workflowId} | Lowest milestone: ${lowestMilestone}`);
+
+            const visibleTasks = sortedTasks.filter(task => parseInt(task.milestone) === lowestMilestone);
+            console.log(`Visible tasks for milestone ${lowestMilestone}:`, visibleTasks);
+
+            if (visibleTasks.length === 0) {
+                console.error('No tasks found for the lowest milestone. Check your displayData structure.');
+                return;
+            }
 
             let previousDropdown = null;
 
@@ -148,11 +163,12 @@
 
         // Enable the next task in the same milestone
         function enableNextTask(currentTask, allTasks) {
-            const currentMilestone = currentTask.milestone;
-            const currentTaskNumber = currentTask.taskNumber;
+            const currentMilestone = parseInt(currentTask.milestone);
+            const currentTaskNumber = parseInt(currentTask.taskNumber);
 
             const nextTask = allTasks.find(task =>
-                task.milestone === currentMilestone && task.taskNumber > currentTaskNumber
+                parseInt(task.milestone) === currentMilestone &&
+                parseInt(task.taskNumber) > currentTaskNumber
             );
 
             if (nextTask) {
