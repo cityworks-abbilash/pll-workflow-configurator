@@ -173,13 +173,15 @@
 
             function enableNextTaskOrMilestone(currentTask, workflowId) {
                 const nextTask = findNextLowestTaskNumber();
-
+            
                 if (nextTask) {
                     console.log(`Enabling next task: ${nextTask.name}`);
-                    const nextTaskRow = document.querySelector(`[data-id="${nextTask.id}"]`);
+                    const nextTaskRow = document.querySelector(`[data-id^="${nextTask.id}"]`);
                     if (nextTaskRow) {
                         const nextDropdown = nextTaskRow.querySelector("select");
                         nextDropdown.disabled = false;
+                    } else {
+                        console.error(`Next task row not found for task: ${nextTask.name}`);
                     }
                 } else {
                     console.log("No next task found. Checking next milestone.");
@@ -187,17 +189,34 @@
                 }
             }
 
+
             function findNextLowestTaskNumber() {
                 const displayedTaskRows = Array.from(document.querySelectorAll(".task-row"));
+            
+                // Map displayed rows to tasks in sortedTasks
                 const displayedTasks = displayedTaskRows.map(row =>
                     sortedTasks.find(task => task.id === row.dataset.id.split("-")[0])
                 ).filter(Boolean);
-
+            
+                console.log("Displayed tasks:", displayedTasks.map(task => task.name));
+            
+                // Filter out completed tasks
                 const availableTasks = displayedTasks.filter(task => !completedTaskIds.has(task.id));
+                console.log("Available tasks:", availableTasks.map(task => task.name));
+            
+                if (availableTasks.length === 0) {
+                    console.warn("No available tasks for the next lowest task number.");
+                    return null;
+                }
+            
+                // Find the next lowest task number
                 const nextTaskNumber = Math.min(...availableTasks.map(task => parseInt(task.taskNumber)));
-
-                return availableTasks.find(task => task.taskNumber == nextTaskNumber);
+                const nextTask = availableTasks.find(task => task.taskNumber == nextTaskNumber);
+            
+                console.log("Next task to enable:", nextTask ? nextTask.name : "None");
+                return nextTask;
             }
+
 
             function renderNextMilestoneTasks(currentMilestone, workflowId) {
                 const nextMilestone = parseInt(currentMilestone) + 1;
