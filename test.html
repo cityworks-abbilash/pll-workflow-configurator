@@ -86,13 +86,20 @@
         function handleDropdownChange(task, dropdown) {
             const selectedResult = dropdown.value;
             if (!selectedResult) return;
-
+        
             console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
             dropdown.disabled = true; // Ensure dropdown is permanently disabled
-
-            const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
+        
+            // Dynamically determine the workflow ID for the task
+            const workflow = displayData.find(wf => wf.tasks.some(t => t.id === task.id));
+            if (!workflow) {
+                console.warn(`Workflow not found for task: ${task.name}`);
+                return;
+            }
+        
+            const taskKey = `${workflow.workflowId}-${task.id}-${selectedResult}`;
             console.log(`Generated task key: ${taskKey}`);
-
+        
             if (insertsData[taskKey]) {
                 console.log(`Handling insert for key: ${taskKey}`);
                 const insertValue = insertsData[taskKey];
@@ -102,6 +109,7 @@
                 enableNextTaskInMilestone(task);
             }
         }
+
 
         function handleInsert(task, insertValue) {
             if (insertValue.includes("-")) {
@@ -200,12 +208,15 @@
 
         function enableNextTaskInMilestone(currentTask) {
             console.log(`Enabling next task in milestone for: ${currentTask.name}`);
-            const currentTaskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
+            // Locate all rows matching the current task ID
+            const taskRows = document.querySelectorAll(`[data-id^="${currentTask.id}"]`);
+            const currentTaskRow = taskRows[taskRows.length - 1]; // Use the last instance
+        
             if (!currentTaskRow) {
                 console.warn(`Current task row not found for: ${currentTask.name}`);
                 return;
             }
-
+        
             const nextTaskRow = currentTaskRow.nextElementSibling;
             if (nextTaskRow && nextTaskRow.querySelector("select")) {
                 const nextDropdown = nextTaskRow.querySelector("select");
@@ -213,13 +224,14 @@
                     console.log(`Next task already enabled: ${nextTaskRow.dataset.id}`);
                     return;
                 }
-
+        
                 nextDropdown.disabled = false;
                 console.log(`Enabled dropdown for next task: ${nextTaskRow.dataset.id}`);
             } else {
                 console.log("No more tasks in the current milestone. Checking for the next milestone...");
+                const workflow = displayData.find(wf => wf.tasks.some(t => t.id === currentTask.id));
                 const nextMilestone = parseInt(currentTask.milestone) + 1;
-                const nextMilestoneTasks = sortedTasks.filter(task => task.milestone == nextMilestone);
+                const nextMilestoneTasks = workflow.tasks.filter(task => task.milestone == nextMilestone);
                 if (nextMilestoneTasks.length > 0) {
                     renderMilestoneTasks(nextMilestone);
                 } else {
@@ -227,6 +239,7 @@
                 }
             }
         }
+
 
     });
     </script>
