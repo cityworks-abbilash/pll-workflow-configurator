@@ -91,6 +91,18 @@
                 const taskKey = `${mainWorkflow.workflowId}-${task.id}-${selectedResult}`;
                 console.log(`Generated task key: ${taskKey}`);
             
+                // Enable the next task in sequence if within the same milestone
+                const currentTaskRow = document.querySelector(`[data-id="${task.id}"]`);
+                const nextTaskRow = currentTaskRow?.nextElementSibling;
+            
+                if (nextTaskRow && nextTaskRow.querySelector("select")) {
+                    const nextDropdown = nextTaskRow.querySelector("select");
+                    if (nextDropdown.disabled) {
+                        console.log(`Enabling next task in milestone: ${nextTaskRow.dataset.id}`);
+                        nextDropdown.disabled = false;
+                    }
+                }
+            
                 // Handle insertsData if key exists
                 if (insertsData[taskKey]) {
                     const insertValue = insertsData[taskKey];
@@ -103,7 +115,7 @@
                         const insertedTask = displayData
                             .flatMap(wf => wf.tasks)
                             .find(task => task.id === taskId);
-                    
+            
                         if (insertedTask) {
                             console.log(`Inserting singular task: ${insertedTask.name}`);
                             if (insertedTask.id === task.id) {
@@ -128,6 +140,7 @@
                     console.log(`No insert value found for key ${taskKey}`);
                 }
             }
+
 
             function insertTaskBelow(currentTask, newTask) {
                 console.log(`Inserting task: ${newTask.name} below ${currentTask.name}`);
