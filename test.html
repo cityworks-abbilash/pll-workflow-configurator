@@ -64,7 +64,7 @@
                 // Create a new task row every time the function is called
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
-                taskRow.dataset.id = `${task.id}-${Date.now()}`; // Add a unique ID to handle multiple insertions
+                taskRow.dataset.id = `${task.id}-${Date.now()}`; // Unique ID to handle multiple insertions
             
                 const taskLabel = document.createElement("span");
                 taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
@@ -87,14 +87,11 @@
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(dropdown);
             
-                // Insert the new task row directly below the current task
-                const currentTaskRow = document.querySelector(`[data-id^="${task.id}"]`);
-                if (currentTaskRow) {
-                    currentTaskRow.after(taskRow);
-                    console.log(`Inserted task: "${task.name}" below "${currentTaskRow.dataset.id}".`);
+                // Insert task row in the DOM
+                if (workflowContainer.lastElementChild) {
+                    workflowContainer.lastElementChild.after(taskRow); // Insert after the last task
                 } else {
-                    workflowContainer.appendChild(taskRow);
-                    console.warn(`No reference row found for task "${task.name}". Appending to workflowContainer.`);
+                    workflowContainer.appendChild(taskRow); // Append to container if it's the first task
                 }
             
                 console.log(`Rendered task: ${task.name}, Enabled: ${enableDropdown}`);
@@ -176,14 +173,23 @@
 
             function findNextLowestTaskNumber() {
                 const displayedTaskRows = Array.from(document.querySelectorAll(".task-row"));
-                const displayedTasks = displayedTaskRows.map(row =>
-                    sortedTasks.find(task => task.id === row.dataset.id)
-                );
+                
+                // Safely map rows to tasks and filter out undefined values
+                const displayedTasks = displayedTaskRows
+                    .map(row => sortedTasks.find(task => task.id === row.dataset.id.split("-")[0]))
+                    .filter(Boolean);
+            
                 const availableTasks = displayedTasks.filter(task => !completedTaskIds.has(task.id));
-
+            
+                if (!availableTasks.length) {
+                    console.warn("No available tasks for the next lowest task number.");
+                    return null;
+                }
+            
                 const nextTaskNumber = Math.min(...availableTasks.map(task => parseInt(task.taskNumber)));
                 return availableTasks.find(task => task.taskNumber == nextTaskNumber);
             }
+
 
             function renderNextMilestoneTasks(currentMilestone, workflowId) {
                 const nextMilestone = parseInt(currentMilestone) + 1;
