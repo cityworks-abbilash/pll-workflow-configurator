@@ -131,7 +131,10 @@
         }
         
         function insertTaskBelow(currentTask, newTask) {
-            const taskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
+            // Get the last inserted instance of the current task
+            const taskRows = document.querySelectorAll(`[data-id^="${currentTask.id}"]`);
+            const taskRow = taskRows[taskRows.length - 1]; // Use the last instance
+        
             if (!taskRow) {
                 console.warn(`Task row for ${currentTask.name} not found`);
                 return;
@@ -140,7 +143,7 @@
             // Always create a new row for the task
             const newTaskRow = document.createElement("div");
             newTaskRow.className = "task-row";
-            newTaskRow.dataset.id = `${newTask.id}-${Date.now()}`; // Generate unique ID
+            newTaskRow.dataset.id = `${newTask.id}-${Date.now()}`; // Generate unique ID for each insertion
         
             const taskLabel = document.createElement("span");
             taskLabel.textContent = `${newTask.name} (Inserted Task)`;
@@ -162,11 +165,12 @@
             newTaskRow.appendChild(taskLabel);
             newTaskRow.appendChild(dropdown);
         
-            // Insert the task directly below the current task
+            // Insert the new task row directly below the last instance of the current task
             taskRow.after(newTaskRow);
         
             console.log(`Inserted task "${newTask.name}" below "${currentTask.name}" with options:`, newTask.results.map(r => r.result));
         }
+
         
         function enableNextTaskInMilestone(currentTask) {
             console.log(`Enabling next task in milestone for: ${currentTask.name}`);
