@@ -141,7 +141,7 @@
                     })
                     .filter(Boolean); // Remove undefined entries
             
-                console.log("Displayed main workflow tasks:", displayedTasks.map(task => task.name));
+                console.log("Displayed main workflow tasks:", displayedTasks.map(task => task.name || "Undefined"));
             
                 // Filter out completed tasks (dropdowns disabled)
                 const completedTasks = displayedTaskRows
@@ -155,8 +155,15 @@
                     })
                     .filter(Boolean);
             
+                console.log("Completed main workflow tasks:", completedTasks.map(task => task.name || "Undefined"));
+            
                 const completedTaskNumbers = completedTasks.map(task => parseInt(task.taskNumber));
                 console.log("Completed main workflow task numbers:", completedTaskNumbers);
+            
+                if (completedTaskNumbers.length === 0) {
+                    console.warn("No completed tasks found to determine the next task number.");
+                    return null;
+                }
             
                 // Find the next lowest task number
                 const nextTaskNumber = Math.min(...completedTaskNumbers) + 1;
