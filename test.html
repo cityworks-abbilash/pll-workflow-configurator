@@ -30,44 +30,44 @@
         const displayData = JSON.parse(localStorage.getItem("displayData")) || [];
         const insertsData = JSON.parse(localStorage.getItem("insertsData")) || {};
         const workflowContainer = document.getElementById("workflowContainer");
-    
+
         const mainWorkflow = displayData.find(wf => wf.workflowId === "mainWorkflow");
         if (!mainWorkflow || !mainWorkflow.tasks.length) return console.error("No tasks found in Main Workflow.");
-    
+
         const renderedTaskIds = new Set();
-    
+
         const sortedTasks = mainWorkflow.tasks.sort((a, b) =>
             a.milestone - b.milestone || a.taskNumber - b.taskNumber
         );
-    
+
         renderMilestoneTasks(getLowestMilestone(sortedTasks));
-    
+
         function getLowestMilestone(tasks) {
             return Math.min(...tasks.map(task => parseInt(task.milestone)));
         }
-    
+
         function renderMilestoneTasks(milestone) {
             const milestoneTasks = sortedTasks.filter(task => task.milestone == milestone);
             milestoneTasks.forEach((task, index) => createTaskRow(task, index === 0));
         }
-    
+
         function createTaskRow(task, enableDropdown) {
             if (renderedTaskIds.has(task.id)) return; // Prevent duplicate rendering
-    
+
             renderedTaskIds.add(task.id);
-    
+
             const taskRow = document.createElement("div");
             taskRow.className = "task-row";
             taskRow.dataset.id = task.id;
-    
+
             const taskLabel = document.createElement("span");
             taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
             taskLabel.className = "me-3";
-    
+
             const dropdown = document.createElement("select");
             dropdown.className = "form-select";
             dropdown.disabled = !enableDropdown;
-    
+
             dropdown.innerHTML = `<option value="">Select a result</option>`;
             task.results.forEach(result => {
                 const option = document.createElement("option");
@@ -75,24 +75,24 @@
                 option.textContent = result.result;
                 dropdown.appendChild(option);
             });
-    
+
             dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown));
-    
+
             taskRow.appendChild(taskLabel);
             taskRow.appendChild(dropdown);
             workflowContainer.appendChild(taskRow);
         }
-    
+
         function handleDropdownChange(task, dropdown) {
             const selectedResult = dropdown.value;
             if (!selectedResult) return;
-        
+
             console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
             dropdown.disabled = true; // Ensure dropdown is permanently disabled
-        
+
             const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
             console.log(`Generated task key: ${taskKey}`);
-        
+
             if (insertsData[taskKey]) {
                 console.log(`Handling insert for key: ${taskKey}`);
                 const insertValue = insertsData[taskKey];
@@ -102,7 +102,7 @@
                 enableNextTaskInMilestone(task);
             }
         }
-        
+
         function handleInsert(task, insertValue) {
             if (insertValue.includes("-")) {
                 // Singular task insertion
@@ -111,7 +111,7 @@
                 const insertedTask = displayData
                     .flatMap(wf => wf.tasks)
                     .find(t => t.id === taskId);
-        
+
                 if (insertedTask) {
                     console.log(`Inserting singular task: ${insertedTask.name}`);
                     insertTaskBelow(task, insertedTask);
@@ -119,17 +119,18 @@
                     console.warn(`Task with ID ${taskId} not found in displayData.`);
                 }
             } else {
+                // Subworkflow insertion
                 // Sub-workflow insertion
                 const subWorkflow = displayData.find(wf => wf.title === insertValue);
                 if (subWorkflow) {
                     console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
+                    renderMilestoneTasks(getLowestMilestone(subWorkflow.tasks));
                     renderSubWorkflow(subWorkflow, task); // Pass the sub-workflow and the current task
                 } else {
                     console.warn(`Sub Workflow "${insertValue}" not found.`);
                 }
             }
         }
-
         function renderSubWorkflow(subWorkflow, triggeringTask) {
             // Sort tasks in the sub-workflow by milestone and task number
             const sortedSubWorkflowTasks = subWorkflow.tasks.sort(
@@ -146,37 +147,33 @@
         
             // Insert each task below the triggering task
             milestoneTasks.forEach((task, index) => {
-                const enableDropdown = index === 0; // Only the first task in the milestone is enabled
-                insertTaskBelow(triggeringTask, task, enableDropdown); // Pass enableDropdown flag
+                insertTaskBelow(triggeringTask, task, index === 0); // Enable only the first task
                 triggeringTask = task; // Update the reference for subsequent tasks
             });
         }
 
-
-        
-        function insertTaskBelow(currentTask, newTask, enableDropdown = false) {
+        function insertTaskBelow(currentTask, newTask) {
             // Get the last inserted instance of the current task
             const taskRows = document.querySelectorAll(`[data-id^="${currentTask.id}"]`);
             const taskRow = taskRows[taskRows.length - 1]; // Use the last instance
-        
+
             if (!taskRow) {
                 console.warn(`Task row for ${currentTask.name} not found`);
                 return;
             }
-        
+
             // Always create a new row for the task
             const newTaskRow = document.createElement("div");
             newTaskRow.className = "task-row";
             newTaskRow.dataset.id = `${newTask.id}-${Date.now()}`; // Generate unique ID for each insertion
-        
+
             const taskLabel = document.createElement("span");
             taskLabel.textContent = `${newTask.name} (Inserted Task)`;
             taskLabel.className = "me-3";
-        
+
             const dropdown = document.createElement("select");
             dropdown.className = "form-select";
-            dropdown.disabled = !enableDropdown; // Enable only if flagged
-        
+
             dropdown.innerHTML = `<option value="">Select a result</option>`;
             newTask.results.forEach(result => {
                 const option = document.createElement("option");
@@ -184,20 +181,19 @@
                 option.textContent = result.result;
                 dropdown.appendChild(option);
             });
-        
+
             dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown));
-        
+
             newTaskRow.appendChild(taskLabel);
             newTaskRow.appendChild(dropdown);
-        
+
             // Insert the new task row directly below the last instance of the current task
             taskRow.after(newTaskRow);
-        
+
             console.log(`Inserted task "${newTask.name}" below "${currentTask.name}" with options:`, newTask.results.map(r => r.result));
         }
 
 
-        
         function enableNextTaskInMilestone(currentTask) {
             console.log(`Enabling next task in milestone for: ${currentTask.name}`);
             const currentTaskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
@@ -205,7 +201,7 @@
                 console.warn(`Current task row not found for: ${currentTask.name}`);
                 return;
             }
-        
+
             const nextTaskRow = currentTaskRow.nextElementSibling;
             if (nextTaskRow && nextTaskRow.querySelector("select")) {
                 const nextDropdown = nextTaskRow.querySelector("select");
@@ -213,7 +209,7 @@
                     console.log(`Next task already enabled: ${nextTaskRow.dataset.id}`);
                     return;
                 }
-        
+
                 nextDropdown.disabled = false;
                 console.log(`Enabled dropdown for next task: ${nextTaskRow.dataset.id}`);
             } else {
