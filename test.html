@@ -119,16 +119,38 @@
                     console.warn(`Task with ID ${taskId} not found in displayData.`);
                 }
             } else {
-                // Subworkflow insertion
+                // Sub-workflow insertion
                 const subWorkflow = displayData.find(wf => wf.title === insertValue);
                 if (subWorkflow) {
                     console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
-                    renderMilestoneTasks(getLowestMilestone(subWorkflow.tasks));
+                    renderSubWorkflow(subWorkflow, task); // Pass the sub-workflow and the current task
                 } else {
                     console.warn(`Sub Workflow "${insertValue}" not found.`);
                 }
             }
         }
+
+        function renderSubWorkflow(subWorkflow, triggeringTask) {
+            // Sort tasks in the sub-workflow by milestone and task number
+            const sortedSubWorkflowTasks = subWorkflow.tasks.sort(
+                (a, b) => a.milestone - b.milestone || a.taskNumber - b.taskNumber
+            );
+        
+            // Get the lowest milestone
+            const firstMilestone = Math.min(...sortedSubWorkflowTasks.map(task => parseInt(task.milestone)));
+        
+            // Filter tasks for the first milestone
+            const milestoneTasks = sortedSubWorkflowTasks.filter(task => task.milestone == firstMilestone);
+        
+            console.log(`Rendering tasks for Sub Workflow: ${subWorkflow.title}, Milestone: ${firstMilestone}`);
+        
+            // Insert each task below the triggering task
+            milestoneTasks.forEach((task, index) => {
+                insertTaskBelow(triggeringTask, task, index === 0); // Enable only the first task
+                triggeringTask = task; // Update the reference for subsequent tasks
+            });
+        }
+
         
         function insertTaskBelow(currentTask, newTask) {
             // Get the last inserted instance of the current task
