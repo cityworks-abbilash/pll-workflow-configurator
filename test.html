@@ -88,7 +88,15 @@
             
                 console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
                 dropdown.disabled = true; // Disable the current dropdown
-                const taskKey = `${mainWorkflow.workflowId}-${task.id}-${selectedResult}`;
+            
+                // Dynamically determine the workflow ID for the task
+                const workflow = displayData.find(wf => wf.tasks.some(t => t.id === task.id));
+                if (!workflow) {
+                    console.warn(`Workflow not found for task: ${task.name}`);
+                    return;
+                }
+            
+                const taskKey = `${workflow.workflowId}-${task.id}-${selectedResult}`;
                 console.log(`Generated task key: ${taskKey}`);
             
                 // Enable the next task in milestone if it exists
@@ -140,6 +148,7 @@
                     console.log(`No insert value found for key ${taskKey}`);
                 }
             }
+
 
 
 
