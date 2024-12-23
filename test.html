@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Workflow</title>
+    <title>Workflow Task Management</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         .task-row {
@@ -21,218 +21,121 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Test Workflow Simulation</h1>
+        <h1 class="text-center">Workflow Task Management</h1>
         <div id="workflowContainer" class="mt-4"></div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", () => {
             const displayData = JSON.parse(localStorage.getItem("displayData")) || [];
             const insertsData = JSON.parse(localStorage.getItem("insertsData")) || {};
-        
             const workflowContainer = document.getElementById("workflowContainer");
+
             const mainWorkflow = displayData.find(wf => wf.workflowId === "mainWorkflow");
-        
-            if (!mainWorkflow || !mainWorkflow.tasks.length) return console.log("No tasks in Main Workflow");
-        
+            if (!mainWorkflow || !mainWorkflow.tasks.length) return console.error("No tasks found in Main Workflow.");
+
             // Sort tasks by milestone and task number
-            const sortedTasks = mainWorkflow.tasks.sort((a, b) => {
-                return a.milestone - b.milestone || a.taskNumber - b.taskNumber;
-            });
-        
-            // Get unique milestones
-            const milestones = [...new Set(sortedTasks.map(task => task.milestone))];
-        
+            const sortedTasks = mainWorkflow.tasks.sort((a, b) =>
+                a.milestone - b.milestone || a.taskNumber - b.taskNumber
+            );
+
             // Render tasks for the first milestone
-            let currentMilestoneIndex = 0;
-            renderMilestoneTasks(milestones[currentMilestoneIndex]);
-        
+            renderMilestoneTasks(getLowestMilestone(sortedTasks));
+
+            function getLowestMilestone(tasks) {
+                return Math.min(...tasks.map(task => parseInt(task.milestone)));
+            }
+
             function renderMilestoneTasks(milestone) {
-                console.log(`Rendering tasks for milestone: ${milestone}`);
-                workflowContainer.innerHTML = ""; // Clear previous tasks
                 const milestoneTasks = sortedTasks.filter(task => task.milestone == milestone);
-        
-                milestoneTasks.forEach((task, index) => {
-                    console.log(`Rendering task: ${task.name} (Task ${task.taskNumber})`);
-                    const taskRow = document.createElement("div");
-                    taskRow.className = "task-row";
-                    taskRow.dataset.id = task.id;
-        
-                    const taskLabel = document.createElement("span");
-                    taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
-                    taskLabel.className = "me-3";
-        
-                    const dropdown = document.createElement("select");
-                    dropdown.className = "form-select";
-                    dropdown.disabled = index !== 0; // Enable only the first task in milestone
-        
-                    dropdown.innerHTML = `<option value="">Select a result</option>`;
-                    task.results.forEach(result => {
-                        const option = document.createElement("option");
-                        option.value = result.result;
-                        option.textContent = result.result;
-                        dropdown.appendChild(option);
-                    });
-        
-                    dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown));
-        
-                    taskRow.appendChild(taskLabel);
-                    taskRow.appendChild(dropdown);
-                    workflowContainer.appendChild(taskRow);
-                });
-            }
-        
-            function handleDropdownChange(task, dropdown) {
-                const selectedResult = dropdown.value;
-                if (!selectedResult) return;
-            
-                console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
-                dropdown.disabled = true; // Disable the current dropdown
-            
-                // Dynamically determine the workflow ID for the task
-                const workflow = displayData.find(wf => wf.tasks.some(t => t.id === task.id));
-                if (!workflow) {
-                    console.warn(`Workflow not found for task: ${task.name}`);
-                    return;
-                }
-            
-                const taskKey = `${workflow.workflowId}-${task.id}-${selectedResult}`;
-                console.log(`Generated task key: ${taskKey}`);
-            
-                // Enable the next task in milestone if it exists
-                const currentTaskRow = document.querySelector(`[data-id="${task.id}"]`);
-                const nextTaskRow = currentTaskRow?.nextElementSibling;
-            
-                if (nextTaskRow && nextTaskRow.querySelector("select") && !insertsData[taskKey]) {
-                    const nextDropdown = nextTaskRow.querySelector("select");
-                    console.log(`Enabling next task in milestone: ${nextTaskRow.dataset.id}`);
-                    nextDropdown.disabled = false;
-                }
-            
-                // Handle insertsData if key exists
-                if (insertsData[taskKey]) {
-                    const insertValue = insertsData[taskKey];
-                    console.log(`Insert value found for key ${taskKey}: ${insertValue}`);
-            
-                    if (insertValue.includes("-")) {
-                        // Singular task insertion
-                        const parts = insertValue.split("-");
-                        const taskId = parts.slice(-2).join("-"); // Extract task ID (last two parts)
-                        const insertedTask = displayData
-                            .flatMap(wf => wf.tasks)
-                            .find(task => task.id === taskId);
-            
-                        if (insertedTask) {
-                            console.log(`Inserting singular task: ${insertedTask.name}`);
-                            // Disable all existing dropdowns for the same task
-                            const existingRows = document.querySelectorAll(`[data-id="${insertedTask.id}"]`);
-                            existingRows.forEach(row => {
-                                const existingDropdown = row.querySelector("select");
-                                if (existingDropdown) existingDropdown.disabled = true;
-                            });
-            
-                            // Insert new task at the bottom
-                            insertTaskBelow(task, insertedTask);
-                        } else {
-                            console.warn(`Task with ID ${taskId} not found in displayData`);
-                        }
-                    } else {
-                        // Subworkflow insertion
-                        const subWorkflow = displayData.find(wf => wf.title === insertValue);
-                        if (subWorkflow) {
-                            console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
-                            renderSubWorkflow(subWorkflow);
-                        }
-                    }
-                } else {
-                    console.log(`No insert value found for key ${taskKey}`);
-                }
+                milestoneTasks.forEach((task, index) => createTaskRow(task, index === 0));
             }
 
+            function createTaskRow(task, enableDropdown) {
+                const taskRow = document.createElement("div");
+                taskRow.className = "task-row";
+                taskRow.dataset.id = task.id;
 
-
-
-            function insertTaskBelow(currentTask, newTask) {
-                console.log(`Inserting task: ${newTask.name} below ${currentTask.name}`);
-                
-                // Find the current task row
-                const taskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
-                if (!taskRow) {
-                    console.warn(`Task row for ${currentTask.name} not found`);
-                    return;
-                }
-            
-                // Create a new task row
-                const newTaskRow = document.createElement("div");
-                newTaskRow.className = "task-row";
-                newTaskRow.dataset.id = newTask.id;
-            
                 const taskLabel = document.createElement("span");
-                taskLabel.textContent = `${newTask.name} (Inserted Task)`;
+                taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
                 taskLabel.className = "me-3";
-            
+
                 const dropdown = document.createElement("select");
                 dropdown.className = "form-select";
-            
+                dropdown.disabled = !enableDropdown;
+
                 dropdown.innerHTML = `<option value="">Select a result</option>`;
-                newTask.results.forEach(result => {
+                task.results.forEach(result => {
                     const option = document.createElement("option");
                     option.value = result.result;
                     option.textContent = result.result;
                     dropdown.appendChild(option);
                 });
-            
-                dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown));
-            
-                newTaskRow.appendChild(taskLabel);
-                newTaskRow.appendChild(dropdown);
-            
-                // Insert the new task row directly below the current task row
-                taskRow.after(newTaskRow);
-            
-                // Ensure other tasks in the same milestone remain enabled
-                console.log(`Inserted task ${newTask.name} with options:`, newTask.results.map(r => r.result));
+
+                dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown));
+
+                taskRow.appendChild(taskLabel);
+                taskRow.appendChild(dropdown);
+                workflowContainer.appendChild(taskRow);
             }
 
+            function handleDropdownChange(task, dropdown) {
+                const selectedResult = dropdown.value;
+                if (!selectedResult) return;
 
+                console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
+                dropdown.disabled = true;
 
-            function renderSubWorkflow(subWorkflow) {
-                console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
-                const subWorkflowTasks = subWorkflow.tasks.sort((a, b) => {
-                    return a.milestone - b.milestone || a.taskNumber - b.taskNumber;
-                });
-        
-                const firstMilestone = [...new Set(subWorkflowTasks.map(task => task.milestone))][0];
-                const milestoneTasks = subWorkflowTasks.filter(task => task.milestone == firstMilestone);
-        
-                milestoneTasks.forEach((task, index) => {
-                    console.log(`Rendering Sub Workflow task: ${task.name} (Task ${task.taskNumber})`);
-                    const taskRow = document.createElement("div");
-                    taskRow.className = "task-row";
-                    taskRow.dataset.id = task.id;
-        
-                    const taskLabel = document.createElement("span");
-                    taskLabel.textContent = `${task.name} (Sub Workflow Task)`;
-                    taskLabel.className = "me-3";
-        
-                    const dropdown = document.createElement("select");
-                    dropdown.className = "form-select";
-                    dropdown.disabled = index !== 0; // Enable only the first task in milestone
-        
-                    dropdown.innerHTML = `<option value="">Select a result</option>`;
-                    task.results.forEach(result => {
-                        const option = document.createElement("option");
-                        option.value = result.result;
-                        option.textContent = result.result;
-                        dropdown.appendChild(option);
-                    });
-        
-                    dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown));
-        
-                    taskRow.appendChild(taskLabel);
-                    taskRow.appendChild(dropdown);
-                    workflowContainer.appendChild(taskRow);
-                });
+                const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
+                console.log(`Generated task key: ${taskKey}`);
+
+                if (insertsData[taskKey]) {
+                    const insertValue = insertsData[taskKey];
+                    handleInsert(task, insertValue);
+                } else {
+                    enableNextTaskInMilestone(task);
+                }
+            }
+
+            function handleInsert(task, insertValue) {
+                if (insertValue.includes("-")) {
+                    const parts = insertValue.split("-");
+                    const taskId = parts.slice(-2).join("-");
+                    const insertedTask = displayData.flatMap(wf => wf.tasks).find(t => t.id === taskId);
+
+                    if (insertedTask) {
+                        console.log(`Inserting singular task: ${insertedTask.name}`);
+                        createTaskRow(insertedTask, true);
+                    } else {
+                        console.warn(`Task with ID ${taskId} not found in displayData.`);
+                    }
+                } else {
+                    const subWorkflow = displayData.find(wf => wf.title === insertValue);
+                    if (subWorkflow) {
+                        console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
+                        renderMilestoneTasks(getLowestMilestone(subWorkflow.tasks));
+                    } else {
+                        console.warn(`Sub Workflow "${insertValue}" not found.`);
+                    }
+                }
+            }
+
+            function enableNextTaskInMilestone(currentTask) {
+                const currentTaskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
+                const nextTaskRow = currentTaskRow?.nextElementSibling;
+
+                if (nextTaskRow) {
+                    const nextDropdown = nextTaskRow.querySelector("select");
+                    if (nextDropdown) nextDropdown.disabled = false;
+                } else {
+                    console.log("No more tasks in the current milestone. Checking for the next milestone...");
+                    const nextMilestone = parseInt(currentTask.milestone) + 1;
+                    if (sortedTasks.some(task => task.milestone == nextMilestone)) {
+                        renderMilestoneTasks(nextMilestone);
+                    } else {
+                        console.log("All tasks completed.");
+                    }
+                }
             }
         });
     </script>
