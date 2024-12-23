@@ -114,20 +114,22 @@
                     const insertValue = insertsData[taskKey];
                     console.log(`Insert value found for key ${taskKey}: ${insertValue}`);
             
-                    if (insertValue.includes("-")) {
-                        // Singular task insertion
-                        const parts = insertValue.split("-");
-                        const taskId = parts.slice(-2).join("-"); // Extract task ID (last two parts)
-                        const insertedTask = displayData
-                            .flatMap(wf => wf.tasks)
-                            .find(task => task.id === taskId);
-                    
-                        if (insertedTask) {
-                            console.log(`Inserting singular task: ${insertedTask.name}`);
-                            insertTaskBelow(task, insertedTask); // Insert task dynamically
-                        } else {
-                            console.warn(`Task with ID ${taskId} not found in displayData`);
+                        if (insertValue.includes("-")) {
+                            // Singular task insertion
+                            const parts = insertValue.split("-");
+                            const taskId = parts.slice(-2).join("-"); // Extract task ID (last two parts)
+                            const insertedTask = displayData
+                                .flatMap(wf => wf.tasks)
+                                .find(task => task.id === taskId);
+                        
+                            if (insertedTask) {
+                                console.log(`Inserting singular task: ${insertedTask.name}`);
+                                insertTaskBelow(task, insertedTask, milestoneTasks); // Pass milestoneTasks explicitly
+                            } else {
+                                console.warn(`Task with ID ${taskId} not found in displayData`);
+                            }
                         }
+
 
                     } else {
                         // Subworkflow insertion
@@ -143,7 +145,7 @@
             }
 
             
-            function insertTaskBelow(currentTask, newTask) {
+            function insertTaskBelow(currentTask, newTask, milestoneTasks) {
                 console.log(`Inserting task: ${newTask.name} below ${currentTask.name}`);
                 
                 // Find the current task row
@@ -181,11 +183,12 @@
             
                 // Update milestoneTasks array to include the new task
                 const currentIndex = milestoneTasks.findIndex(task => task.id === currentTask.id);
-                milestoneTasks.splice(currentIndex + 1, 0, newTask);
+                milestoneTasks.splice(currentIndex + 1, 0, newTask); // Add the new task after the current task
                 console.log(`Updated milestoneTasks:`, milestoneTasks.map(t => t.name));
             
                 console.log(`Inserted task ${newTask.name} with options:`, newTask.results.map(r => r.result));
             }
+
 
 
         
