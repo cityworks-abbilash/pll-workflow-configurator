@@ -112,8 +112,8 @@
                     console.log(`Enabling next task: ${nextTask.name}`);
                     const nextTaskRow = document.querySelector(`[data-id="${nextTask.id}"]`);
                     if (nextTaskRow) {
-                        const nextDropdown = nextTaskRow.querySelector("select");
-                        nextDropdown.disabled = false;
+                        const dropdown = nextTaskRow.querySelector("select");
+                        dropdown.disabled = false;
                     }
                 } else {
                     console.log("No next task number found. Checking for next milestone.");
@@ -127,17 +127,18 @@
                 // Extract task objects corresponding to displayed rows
                 const displayedTasks = displayedTaskRows.map(row =>
                     sortedTasks.find(task => task.id === row.dataset.id)
-                ).filter(Boolean);
+                );
             
-                const availableTasks = displayedTasks.filter(task => !displayedTaskIds.has(task.id));
-
-                if (!availableTasks.length) {
-                    console.warn("No available tasks for the next lowest task number.");
-                    return null;
-                }
-
-                const nextTaskNumber = Math.min(...availableTasks.map(task => parseInt(task.taskNumber)));
-                return availableTasks.find(task => task.taskNumber == nextTaskNumber);
+                // Find completed tasks (dropdowns disabled)
+                const completedTasks = displayedTaskRows.filter(row => {
+                    const dropdown = row.querySelector("select");
+                    return dropdown && dropdown.disabled;
+                }).map(row => sortedTasks.find(task => task.id === row.dataset.id));
+            
+                const completedTaskNumbers = completedTasks.map(task => parseInt(task.taskNumber));
+                const nextTaskNumber = Math.min(...completedTaskNumbers) + 1;
+            
+                return displayedTasks.find(task => task.taskNumber == nextTaskNumber);
             }
 
             function renderNextMilestoneTasks(currentMilestone) {
