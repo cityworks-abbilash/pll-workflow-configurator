@@ -103,17 +103,21 @@
     
         function handleInsert(task, insertValue) {
             if (insertValue.includes("-")) {
+                // Singular task insertion
                 const parts = insertValue.split("-");
-                const taskId = parts.slice(-2).join("-");
-                const insertedTask = displayData.flatMap(wf => wf.tasks).find(t => t.id === taskId);
-    
+                const taskId = parts.slice(-2).join("-"); // Extract task ID (last two parts)
+                const insertedTask = displayData
+                    .flatMap(wf => wf.tasks)
+                    .find(t => t.id === taskId);
+        
                 if (insertedTask) {
                     console.log(`Inserting singular task: ${insertedTask.name}`);
-                    createTaskRow(insertedTask, true);
+                    insertTaskBelow(task, insertedTask);
                 } else {
                     console.warn(`Task with ID ${taskId} not found in displayData.`);
                 }
             } else {
+                // Subworkflow insertion
                 const subWorkflow = displayData.find(wf => wf.title === insertValue);
                 if (subWorkflow) {
                     console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
@@ -122,6 +126,48 @@
                     console.warn(`Sub Workflow "${insertValue}" not found.`);
                 }
             }
+        }
+
+        function insertTaskBelow(currentTask, newTask) {
+            const taskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
+            if (!taskRow) {
+                console.warn(`Task row for ${currentTask.name} not found`);
+                return;
+            }
+        
+            // Prevent duplicate insertion
+            if (document.querySelector(`[data-id="${newTask.id}"]`)) {
+                console.log(`Task ${newTask.name} is already rendered.`);
+                return;
+            }
+        
+            const newTaskRow = document.createElement("div");
+            newTaskRow.className = "task-row";
+            newTaskRow.dataset.id = newTask.id;
+        
+            const taskLabel = document.createElement("span");
+            taskLabel.textContent = `${newTask.name} (Inserted Task)`;
+            taskLabel.className = "me-3";
+        
+            const dropdown = document.createElement("select");
+            dropdown.className = "form-select";
+        
+            dropdown.innerHTML = `<option value="">Select a result</option>`;
+            newTask.results.forEach(result => {
+                const option = document.createElement("option");
+                option.value = result.result;
+                option.textContent = result.result;
+                dropdown.appendChild(option);
+            });
+        
+            dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown));
+        
+            newTaskRow.appendChild(taskLabel);
+            newTaskRow.appendChild(dropdown);
+        
+            taskRow.after(newTaskRow);
+        
+            console.log(`Inserted task "${newTask.name}" with options:`, newTask.results.map(r => r.result));
         }
     
         function enableNextTaskInMilestone(currentTask) {
