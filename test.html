@@ -146,13 +146,15 @@
         
             // Insert each task below the triggering task
             milestoneTasks.forEach((task, index) => {
-                insertTaskBelow(triggeringTask, task, index === 0); // Enable only the first task
+                const enableDropdown = index === 0; // Only the first task in the milestone is enabled
+                insertTaskBelow(triggeringTask, task, enableDropdown); // Pass enableDropdown flag
                 triggeringTask = task; // Update the reference for subsequent tasks
             });
         }
 
+
         
-        function insertTaskBelow(currentTask, newTask) {
+        function insertTaskBelow(currentTask, newTask, enableDropdown = false) {
             // Get the last inserted instance of the current task
             const taskRows = document.querySelectorAll(`[data-id^="${currentTask.id}"]`);
             const taskRow = taskRows[taskRows.length - 1]; // Use the last instance
@@ -173,6 +175,7 @@
         
             const dropdown = document.createElement("select");
             dropdown.className = "form-select";
+            dropdown.disabled = !enableDropdown; // Enable only if flagged
         
             dropdown.innerHTML = `<option value="">Select a result</option>`;
             newTask.results.forEach(result => {
@@ -192,6 +195,7 @@
         
             console.log(`Inserted task "${newTask.name}" below "${currentTask.name}" with options:`, newTask.results.map(r => r.result));
         }
+
 
         
         function enableNextTaskInMilestone(currentTask) {
