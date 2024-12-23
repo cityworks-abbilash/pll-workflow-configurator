@@ -147,33 +147,36 @@
         
             // Insert each task below the triggering task
             milestoneTasks.forEach((task, index) => {
-                insertTaskBelow(triggeringTask, task, index === 0); // Enable only the first task
-                triggeringTask = task; // Update the reference for subsequent tasks
+                const enableDropdown = index === 0; // Enable only the first task in the milestone
+                insertTaskBelow(triggeringTask, task, enableDropdown); // Pass enableDropdown flag
+                if (index === 0) triggeringTask = task; // Update the reference only for the first task
             });
         }
 
-        function insertTaskBelow(currentTask, newTask) {
+
+        function insertTaskBelow(currentTask, newTask, enableDropdown = false) {
             // Get the last inserted instance of the current task
             const taskRows = document.querySelectorAll(`[data-id^="${currentTask.id}"]`);
             const taskRow = taskRows[taskRows.length - 1]; // Use the last instance
-
+        
             if (!taskRow) {
                 console.warn(`Task row for ${currentTask.name} not found`);
                 return;
             }
-
+        
             // Always create a new row for the task
             const newTaskRow = document.createElement("div");
             newTaskRow.className = "task-row";
             newTaskRow.dataset.id = `${newTask.id}-${Date.now()}`; // Generate unique ID for each insertion
-
+        
             const taskLabel = document.createElement("span");
             taskLabel.textContent = `${newTask.name} (Inserted Task)`;
             taskLabel.className = "me-3";
-
+        
             const dropdown = document.createElement("select");
             dropdown.className = "form-select";
-
+            dropdown.disabled = !enableDropdown; // Enable only if flagged
+        
             dropdown.innerHTML = `<option value="">Select a result</option>`;
             newTask.results.forEach(result => {
                 const option = document.createElement("option");
@@ -181,17 +184,18 @@
                 option.textContent = result.result;
                 dropdown.appendChild(option);
             });
-
+        
             dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown));
-
+        
             newTaskRow.appendChild(taskLabel);
             newTaskRow.appendChild(dropdown);
-
+        
             // Insert the new task row directly below the last instance of the current task
             taskRow.after(newTaskRow);
-
+        
             console.log(`Inserted task "${newTask.name}" below "${currentTask.name}" with options:`, newTask.results.map(r => r.result));
         }
+
 
 
         function enableNextTaskInMilestone(currentTask) {
