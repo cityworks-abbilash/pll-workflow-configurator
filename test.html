@@ -145,7 +145,15 @@
             
             function insertTaskBelow(currentTask, newTask) {
                 console.log(`Inserting task: ${newTask.name} below ${currentTask.name}`);
+                
+                // Find the current task row
                 const taskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
+                if (!taskRow) {
+                    console.warn(`Task row for ${currentTask.name} not found`);
+                    return;
+                }
+                
+                // Create a new task row
                 const newTaskRow = document.createElement("div");
                 newTaskRow.className = "task-row";
                 newTaskRow.dataset.id = newTask.id;
@@ -165,14 +173,20 @@
                     dropdown.appendChild(option);
                 });
             
-                dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown, [newTask], 0));
+                dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown, milestoneTasks, milestoneTasks.indexOf(newTask)));
             
                 newTaskRow.appendChild(taskLabel);
                 newTaskRow.appendChild(dropdown);
                 taskRow.after(newTaskRow);
             
+                // Update milestoneTasks array to include the new task
+                const currentIndex = milestoneTasks.findIndex(task => task.id === currentTask.id);
+                milestoneTasks.splice(currentIndex + 1, 0, newTask);
+                console.log(`Updated milestoneTasks:`, milestoneTasks.map(t => t.name));
+            
                 console.log(`Inserted task ${newTask.name} with options:`, newTask.results.map(r => r.result));
             }
+
 
         
             function renderSubWorkflow(subWorkflow) {
