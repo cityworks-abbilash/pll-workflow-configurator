@@ -87,21 +87,9 @@
                 if (!selectedResult) return;
             
                 console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
-                dropdown.disabled = true; // Disable current dropdown
+                dropdown.disabled = true; // Disable the current dropdown
                 const taskKey = `${mainWorkflow.workflowId}-${task.id}-${selectedResult}`;
                 console.log(`Generated task key: ${taskKey}`);
-            
-                // Enable the next task in sequence if within the same milestone
-                const currentTaskRow = document.querySelector(`[data-id="${task.id}"]`);
-                const nextTaskRow = currentTaskRow?.nextElementSibling;
-            
-                if (nextTaskRow && nextTaskRow.querySelector("select")) {
-                    const nextDropdown = nextTaskRow.querySelector("select");
-                    if (nextDropdown.disabled) {
-                        console.log(`Enabling next task in milestone: ${nextTaskRow.dataset.id}`);
-                        nextDropdown.disabled = false;
-                    }
-                }
             
                 // Handle insertsData if key exists
                 if (insertsData[taskKey]) {
@@ -118,13 +106,15 @@
             
                         if (insertedTask) {
                             console.log(`Inserting singular task: ${insertedTask.name}`);
-                            if (insertedTask.id === task.id) {
-                                // Insert with same milestone and task number
-                                insertTaskBelow(task, insertedTask);
-                            } else {
-                                // Insert without considering milestones
-                                insertTaskBelow(task, insertedTask);
-                            }
+                            // Disable all existing dropdowns for the same task
+                            const existingRows = document.querySelectorAll(`[data-id="${insertedTask.id}"]`);
+                            existingRows.forEach(row => {
+                                const existingDropdown = row.querySelector("select");
+                                if (existingDropdown) existingDropdown.disabled = true;
+                            });
+            
+                            // Insert new task at the bottom
+                            insertTaskBelow(task, insertedTask);
                         } else {
                             console.warn(`Task with ID ${taskId} not found in displayData`);
                         }
@@ -140,6 +130,7 @@
                     console.log(`No insert value found for key ${taskKey}`);
                 }
             }
+
 
 
             function insertTaskBelow(currentTask, newTask) {
@@ -176,10 +167,11 @@
             
                 newTaskRow.appendChild(taskLabel);
                 newTaskRow.appendChild(dropdown);
-                taskRow.after(newTaskRow);
+                workflowContainer.appendChild(newTaskRow); // Append to the end of the container
             
                 console.log(`Inserted task ${newTask.name} with options:`, newTask.results.map(r => r.result));
             }
+
 
             function renderSubWorkflow(subWorkflow) {
                 console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
