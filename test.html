@@ -92,7 +92,7 @@
                 console.log(`Generated task key: ${taskKey}`);
             
                 if (index < milestoneTasks.length - 1) {
-                    // Enable the next task in the milestone from the `milestoneTasks` array
+                    // Enable the next task in the milestone
                     const nextTask = milestoneTasks[index + 1];
                     console.log(`Enabling next task in milestone: ${nextTask.name}`);
                     const nextTaskRow = workflowContainer.querySelector(`[data-id="${nextTask.id}"]`);
@@ -116,14 +116,16 @@
             
                     if (insertValue.includes("-")) {
                         // Singular task insertion
-                        const taskId = insertValue.split("-").pop();
+                        const [taskName, taskId] = insertValue.split("-");
                         const insertedTask = displayData
                             .flatMap(wf => wf.tasks)
                             .find(task => task.id === taskId);
+            
                         if (insertedTask) {
                             console.log(`Inserting singular task: ${insertedTask.name}`);
-                            milestoneTasks.splice(index + 1, 0, insertedTask); // Add task to milestoneTasks array
-                            insertTaskBelow(task, insertedTask);
+                            insertTaskBelow(task, insertedTask); // Insert task dynamically
+                        } else {
+                            console.warn(`Task with ID ${taskId} not found in displayData`);
                         }
                     } else {
                         // Subworkflow insertion
@@ -137,6 +139,7 @@
                     console.log(`No insert value found for key ${taskKey}`);
                 }
             }
+
             
             function insertTaskBelow(currentTask, newTask) {
                 console.log(`Inserting task: ${newTask.name} below ${currentTask.name}`);
