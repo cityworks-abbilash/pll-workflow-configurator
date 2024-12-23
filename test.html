@@ -161,7 +161,7 @@
                     console.warn(`Task row for ${currentTask.name} not found`);
                     return;
                 }
-                
+            
                 // Create a new task row
                 const newTaskRow = document.createElement("div");
                 newTaskRow.className = "task-row";
@@ -186,10 +186,14 @@
             
                 newTaskRow.appendChild(taskLabel);
                 newTaskRow.appendChild(dropdown);
-                workflowContainer.appendChild(newTaskRow); // Append to the end of the container
             
+                // Insert the new task row directly below the current task row
+                taskRow.after(newTaskRow);
+            
+                // Ensure other tasks in the same milestone remain enabled
                 console.log(`Inserted task ${newTask.name} with options:`, newTask.results.map(r => r.result));
             }
+
 
 
             function renderSubWorkflow(subWorkflow) {
