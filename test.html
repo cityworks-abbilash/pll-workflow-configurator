@@ -30,7 +30,8 @@
             const displayData = JSON.parse(localStorage.getItem("displayData")) || [];
             const workflowContainer = document.getElementById("workflowContainer");
     
-            // Find main workflow
+            const insertsData = JSON.parse(localStorage.getItem("insertsData")) || [];
+    
             const mainWorkflow = displayData.find(wf => wf.workflowId === "mainWorkflow");
             if (!mainWorkflow || !mainWorkflow.tasks.length) {
                 console.error("No tasks found in Main Workflow.");
@@ -92,7 +93,12 @@
                 if (!selectedResult) return;
     
                 // Generate task key for the selected result
-                generateTaskKey("mainWorkflow", task.id, selectedResult);
+                const taskKey = generateTaskKey("mainWorkflow", task.id, selectedResult);
+    
+                // Check if the task key exists in insertsData
+                if (taskKey in insertsData) {
+                    mainWorkflowInserts(insertsData[taskKey]);
+                }
     
                 dropdown.disabled = true;
     
@@ -140,14 +146,20 @@
                 }
             }
     
-            // Independent function to generate task key
+            // Function to generate task key
             function generateTaskKey(workflowId, taskId, selectedResult) {
                 const taskKey = `${workflowId}-${taskId}-${selectedResult}`;
                 console.log(`Generated Task Key: ${taskKey}`);
-                // Logic to store or use the task key can be added here
+                return taskKey;
+            }
+    
+            // New function to handle matching insertsData key
+            function mainWorkflowInserts(value) {
+                console.log(`Matching Value from insertsData: ${value}`);
             }
         });
     </script>
+
 
 </body>
 </html>
