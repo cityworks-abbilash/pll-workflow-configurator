@@ -37,25 +37,39 @@
                 return;
             }
 
-            // Filter tasks by lowest milestone
-            const tasks = mainWorkflow.tasks;
-            const lowestMilestone = Math.min(...tasks.map(task => parseInt(task.milestone)));
-            const milestoneTasks = tasks.filter(task => task.milestone == lowestMilestone);
+            // Store displayed task IDs
+            const displayedTaskIds = new Set();
 
-            // Find the lowest task number among the milestone tasks
-            const lowestTaskNumber = Math.min(...milestoneTasks.map(task => parseInt(task.taskNumber)));
-            const tasksToEnable = milestoneTasks.filter(task => task.taskNumber == lowestTaskNumber);
+            // Sort tasks for consistent ordering
+            const sortedTasks = mainWorkflow.tasks.sort((a, b) =>
+                a.milestone - b.milestone || a.taskNumber - b.taskNumber
+            );
 
-            console.log("Lowest milestone tasks:", milestoneTasks);
-            console.log("Tasks to enable:", tasksToEnable);
+            // Render tasks with the lowest milestone
+            renderLowestMilestoneTasks();
 
-            // Render tasks
-            milestoneTasks.forEach(task => {
-                const enableDropdown = tasksToEnable.includes(task);
-                createTaskRow(task, enableDropdown);
-            });
+            function renderLowestMilestoneTasks() {
+                const lowestMilestone = Math.min(...sortedTasks.map(task => parseInt(task.milestone)));
+                const milestoneTasks = sortedTasks.filter(task => task.milestone == lowestMilestone);
 
-            function createTaskRow(task, enableDropdown) {
+                // Find tasks with the lowest task number in the milestone
+                const lowestTaskNumber = Math.min(...milestoneTasks.map(task => parseInt(task.taskNumber)));
+                const tasksToEnable = milestoneTasks.filter(task => task.taskNumber == lowestTaskNumber);
+
+                console.log("Rendering milestone tasks:", milestoneTasks);
+                console.log("Tasks to enable:", tasksToEnable);
+
+                milestoneTasks.forEach(task => {
+                    const enableDropdown = tasksToEnable.includes(task);
+                    renderTaskRow(task, enableDropdown);
+                });
+            }
+
+            function renderTaskRow(task, enableDropdown) {
+                if (displayedTaskIds.has(task.id)) return; // Prevent duplicate rendering
+
+                displayedTaskIds.add(task.id);
+
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
                 taskRow.dataset.id = task.id;
@@ -76,11 +90,66 @@
                     dropdown.appendChild(option);
                 });
 
+                dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown));
+
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(dropdown);
                 workflowContainer.appendChild(taskRow);
 
                 console.log(`Rendered task: ${task.name}, Enabled: ${enableDropdown}`);
+            }
+
+            function handleDropdownChange(task, dropdown) {
+                const selectedResult = dropdown.value;
+                if (!selectedResult) return;
+
+                console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
+                dropdown.disabled = true;
+
+                // Find and enable the next lowest task number
+                const nextTask = findNextLowestTaskNumber();
+                if (nextTask) {
+                    console.log(`Enabling next task: ${nextTask.name}`);
+                    const nextTaskRow = document.querySelector(`[data-id="${nextTask.id}"]`);
+                    if (nextTaskRow) {
+                        const dropdown = nextTaskRow.querySelector("select");
+                        dropdown.disabled = false;
+                    }
+                } else {
+                    console.log("No next task number found. Checking for next milestone.");
+                    renderNextMilestoneTasks(task.milestone);
+                }
+            }
+
+            function findNextLowestTaskNumber() {
+                const displayedTasks = Array.from(document.querySelectorAll(".task-row"))
+                    .map(row => sortedTasks.find(task => task.id === row.dataset.id))
+                    .filter(Boolean);
+
+                const completedTaskNumbers = displayedTasks
+                    .filter(row => row.querySelector("select").disabled)
+                    .map(task => task.taskNumber);
+
+                const nextTaskNumber = Math.min(...completedTaskNumbers.map(num => parseInt(num)) + 1);
+                return displayedTasks.find(task => task.taskNumber == nextTaskNumber);
+            }
+
+            function renderNextMilestoneTasks(currentMilestone) {
+                const nextMilestone = parseInt(currentMilestone) + 1;
+                const milestoneTasks = sortedTasks.filter(task => task.milestone == nextMilestone);
+
+                if (milestoneTasks.length > 0) {
+                    console.log(`Rendering next milestone tasks: Milestone ${nextMilestone}`);
+                    const lowestTaskNumber = Math.min(...milestoneTasks.map(task => parseInt(task.taskNumber)));
+                    const tasksToEnable = milestoneTasks.filter(task => task.taskNumber == lowestTaskNumber);
+
+                    milestoneTasks.forEach(task => {
+                        const enableDropdown = tasksToEnable.includes(task);
+                        renderTaskRow(task, enableDropdown);
+                    });
+                } else {
+                    console.log("No more tasks in subsequent milestones.");
+                }
             }
         });
     </script>
