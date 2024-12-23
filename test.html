@@ -122,17 +122,25 @@
             }
 
             function findNextLowestTaskNumber() {
-                const displayedTasks = Array.from(document.querySelectorAll(".task-row"))
-                    .map(row => sortedTasks.find(task => task.id === row.dataset.id))
-                    .filter(Boolean);
-
-                const completedTaskNumbers = displayedTasks
-                    .filter(row => row.querySelector("select").disabled)
-                    .map(task => task.taskNumber);
-
-                const nextTaskNumber = Math.min(...completedTaskNumbers.map(num => parseInt(num)) + 1);
+                const displayedTaskRows = Array.from(document.querySelectorAll(".task-row"));
+            
+                // Extract task objects corresponding to displayed rows
+                const displayedTasks = displayedTaskRows.map(row =>
+                    sortedTasks.find(task => task.id === row.dataset.id)
+                );
+            
+                // Find completed tasks (dropdowns disabled)
+                const completedTasks = displayedTaskRows.filter(row => {
+                    const dropdown = row.querySelector("select");
+                    return dropdown && dropdown.disabled;
+                }).map(row => sortedTasks.find(task => task.id === row.dataset.id));
+            
+                const completedTaskNumbers = completedTasks.map(task => parseInt(task.taskNumber));
+                const nextTaskNumber = Math.min(...completedTaskNumbers) + 1;
+            
                 return displayedTasks.find(task => task.taskNumber == nextTaskNumber);
             }
+
 
             function renderNextMilestoneTasks(currentMilestone) {
                 const nextMilestone = parseInt(currentMilestone) + 1;
