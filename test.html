@@ -37,8 +37,9 @@
                 return;
             }
         
-            // Store displayed task IDs
+            // Store displayed task IDs and completed tasks
             const displayedTaskIds = new Set();
+            const completedTaskIds = new Set(); // Track completed tasks
         
             // Sort tasks for consistent ordering
             const sortedTasks = mainWorkflow.tasks.sort((a, b) =>
@@ -106,6 +107,9 @@
                 console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
                 dropdown.disabled = true;
         
+                // Add the task to the completed set
+                completedTaskIds.add(task.id);
+        
                 // Check if there are other tasks displayed with the next lowest task number
                 const nextTask = findNextLowestTaskNumber();
                 if (nextTask) {
@@ -129,16 +133,14 @@
                     sortedTasks.find(task => task.id === row.dataset.id)
                 );
         
-                // Find completed tasks (dropdowns disabled)
-                const completedTasks = displayedTaskRows.filter(row => {
-                    const dropdown = row.querySelector("select");
-                    return dropdown && dropdown.disabled;
-                }).map(row => sortedTasks.find(task => task.id === row.dataset.id));
+                // Filter out completed tasks
+                const availableTasks = displayedTasks.filter(task => !completedTaskIds.has(task.id));
         
-                const completedTaskNumbers = completedTasks.map(task => parseInt(task.taskNumber));
-                const nextTaskNumber = Math.min(...completedTaskNumbers) + 1;
+                // Find the next lowest task number
+                const availableTaskNumbers = availableTasks.map(task => parseInt(task.taskNumber));
+                const nextTaskNumber = Math.min(...availableTaskNumbers);
         
-                return displayedTasks.find(task => task.taskNumber == nextTaskNumber);
+                return availableTasks.find(task => task.taskNumber == nextTaskNumber);
             }
         
             function renderNextMilestoneTasks(currentMilestone) {
