@@ -125,16 +125,21 @@
             }
 
             function handleTaskInsert(taskIdValue, currentTask) {
+                // Extract the task ID from the insert value
                 const taskId = taskIdValue.split("-").slice(-2).join("-");
+                console.log(`Extracted task ID: ${taskId}`);
+            
+                // Find the task in displayData
                 const insertedTask = displayData.flatMap(wf => wf.tasks).find(t => t.id === taskId);
-
+            
                 if (insertedTask) {
                     console.log(`Inserting task: ${insertedTask.name}`);
-                    renderTaskRow(insertedTask, true, insertedTask.workflowId);
+                    renderTaskRow(insertedTask, true, insertedTask.workflowId); // Enable dropdown for inserted task
                 } else {
-                    console.warn(`Task with ID ${taskId} not found.`);
+                    console.warn(`Task with ID ${taskId} not found in displayData.`);
                 }
             }
+
 
             function handleSubWorkflowInsert(subWorkflowName, currentTask) {
                 const subWorkflow = displayData.find(wf => wf.title === subWorkflowName);
