@@ -135,15 +135,10 @@
                 return;
             }
         
-            // Prevent duplicate insertion
-            if (document.querySelector(`[data-id="${newTask.id}"]`)) {
-                console.log(`Task ${newTask.name} is already rendered.`);
-                return;
-            }
-        
+            // Create a new task row
             const newTaskRow = document.createElement("div");
             newTaskRow.className = "task-row";
-            newTaskRow.dataset.id = newTask.id;
+            newTaskRow.dataset.id = newTask.id; // Keep the same ID for consistency
         
             const taskLabel = document.createElement("span");
             taskLabel.textContent = `${newTask.name} (Inserted Task)`;
@@ -165,10 +160,12 @@
             newTaskRow.appendChild(taskLabel);
             newTaskRow.appendChild(dropdown);
         
+            // Always insert the task below the current task, regardless of duplicates
             taskRow.after(newTaskRow);
         
-            console.log(`Inserted task "${newTask.name}" with options:`, newTask.results.map(r => r.result));
+            console.log(`Inserted task "${newTask.name}" below "${currentTask.name}" with options:`, newTask.results.map(r => r.result));
         }
+
     
         function enableNextTaskInMilestone(currentTask) {
             const currentTaskRow = document.querySelector(`[data-id="${currentTask.id}"]`);
