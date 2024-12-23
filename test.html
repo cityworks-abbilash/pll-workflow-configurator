@@ -116,17 +116,19 @@
             
                     if (insertValue.includes("-")) {
                         // Singular task insertion
-                        const [taskName, taskId] = insertValue.split("-");
+                        const parts = insertValue.split("-");
+                        const taskId = parts.slice(-2).join("-"); // Extract task ID (last two parts)
                         const insertedTask = displayData
                             .flatMap(wf => wf.tasks)
                             .find(task => task.id === taskId);
-            
+                    
                         if (insertedTask) {
                             console.log(`Inserting singular task: ${insertedTask.name}`);
                             insertTaskBelow(task, insertedTask); // Insert task dynamically
                         } else {
                             console.warn(`Task with ID ${taskId} not found in displayData`);
                         }
+
                     } else {
                         // Subworkflow insertion
                         const subWorkflow = displayData.find(wf => wf.title === insertValue);
