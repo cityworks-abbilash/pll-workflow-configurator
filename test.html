@@ -74,7 +74,7 @@
                         dropdown.appendChild(option);
                     });
         
-                    dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown, milestoneTasks, index));
+                    dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown));
         
                     taskRow.appendChild(taskLabel);
                     taskRow.appendChild(dropdown);
@@ -82,7 +82,7 @@
                 });
             }
         
-            function handleDropdownChange(task, dropdown, milestoneTasks, index) {
+            function handleDropdownChange(task, dropdown) {
                 const selectedResult = dropdown.value;
                 if (!selectedResult) return;
             
@@ -91,44 +91,31 @@
                 const taskKey = `${mainWorkflow.workflowId}-${task.id}-${selectedResult}`;
                 console.log(`Generated task key: ${taskKey}`);
             
-                if (index < milestoneTasks.length - 1) {
-                    // Enable the next task in the milestone
-                    const nextTask = milestoneTasks[index + 1];
-                    console.log(`Enabling next task in milestone: ${nextTask.name}`);
-                    const nextTaskRow = workflowContainer.querySelector(`[data-id="${nextTask.id}"]`);
-                    if (nextTaskRow) {
-                        const nextDropdown = nextTaskRow.querySelector("select");
-                        nextDropdown.disabled = false;
-                    }
-                } else {
-                    // If all tasks in the milestone are completed, move to the next milestone
-                    console.log(`All tasks in milestone ${milestones[currentMilestoneIndex]} completed`);
-                    currentMilestoneIndex++;
-                    if (currentMilestoneIndex < milestones.length) {
-                        renderMilestoneTasks(milestones[currentMilestoneIndex]);
-                    }
-                }
-            
                 // Handle insertsData if key exists
                 if (insertsData[taskKey]) {
                     const insertValue = insertsData[taskKey];
                     console.log(`Insert value found for key ${taskKey}: ${insertValue}`);
             
-                        if (insertValue.includes("-")) {
-                            // Singular task insertion
-                            const parts = insertValue.split("-");
-                            const taskId = parts.slice(-2).join("-"); // Extract task ID (last two parts)
-                            const insertedTask = displayData
-                                .flatMap(wf => wf.tasks)
-                                .find(task => task.id === taskId);
-                        
-                            if (insertedTask) {
-                                console.log(`Inserting singular task: ${insertedTask.name}`);
-                                insertTaskBelow(task, insertedTask, milestoneTasks); // Pass milestoneTasks explicitly
+                    if (insertValue.includes("-")) {
+                        // Singular task insertion
+                        const parts = insertValue.split("-");
+                        const taskId = parts.slice(-2).join("-"); // Extract task ID (last two parts)
+                        const insertedTask = displayData
+                            .flatMap(wf => wf.tasks)
+                            .find(task => task.id === taskId);
+                    
+                        if (insertedTask) {
+                            console.log(`Inserting singular task: ${insertedTask.name}`);
+                            if (insertedTask.id === task.id) {
+                                // Insert with same milestone and task number
+                                insertTaskBelow(task, insertedTask);
                             } else {
-                                console.warn(`Task with ID ${taskId} not found in displayData`);
+                                // Insert without considering milestones
+                                insertTaskBelow(task, insertedTask);
                             }
-
+                        } else {
+                            console.warn(`Task with ID ${taskId} not found in displayData`);
+                        }
                     } else {
                         // Subworkflow insertion
                         const subWorkflow = displayData.find(wf => wf.title === insertValue);
@@ -142,8 +129,7 @@
                 }
             }
 
-            
-            function insertTaskBelow(currentTask, newTask, milestoneTasks) {
+            function insertTaskBelow(currentTask, newTask) {
                 console.log(`Inserting task: ${newTask.name} below ${currentTask.name}`);
                 
                 // Find the current task row
@@ -173,23 +159,15 @@
                     dropdown.appendChild(option);
                 });
             
-                dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown, milestoneTasks, milestoneTasks.indexOf(newTask)));
+                dropdown.addEventListener("change", () => handleDropdownChange(newTask, dropdown));
             
                 newTaskRow.appendChild(taskLabel);
                 newTaskRow.appendChild(dropdown);
                 taskRow.after(newTaskRow);
             
-                // Update milestoneTasks array to include the new task
-                const currentIndex = milestoneTasks.findIndex(task => task.id === currentTask.id);
-                milestoneTasks.splice(currentIndex + 1, 0, newTask); // Add the new task after the current task
-                console.log(`Updated milestoneTasks:`, milestoneTasks.map(t => t.name));
-            
                 console.log(`Inserted task ${newTask.name} with options:`, newTask.results.map(r => r.result));
             }
 
-
-
-        
             function renderSubWorkflow(subWorkflow) {
                 console.log(`Rendering Sub Workflow: ${subWorkflow.title}`);
                 const subWorkflowTasks = subWorkflow.tasks.sort((a, b) => {
@@ -221,7 +199,7 @@
                         dropdown.appendChild(option);
                     });
         
-                    dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown, milestoneTasks, index));
+                    dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown));
         
                     taskRow.appendChild(taskLabel);
                     taskRow.appendChild(dropdown);
