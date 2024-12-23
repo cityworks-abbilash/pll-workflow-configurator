@@ -88,18 +88,19 @@
             if (!selectedResult) return;
         
             console.log(`Task selected: ${task.name}, Result: ${selectedResult}`);
-            dropdown.disabled = true; // Disable the dropdown after selection
+            dropdown.disabled = true; // Disable the current dropdown after selection
         
             const taskKey = `mainWorkflow-${task.id}-${selectedResult}`;
             console.log(`Generated task key: ${taskKey}`);
         
             if (insertsData[taskKey]) {
                 const insertValue = insertsData[taskKey];
-                handleInsert(task, insertValue); // Handles both singular tasks and subworkflows
+                handleInsert(task, insertValue);
             } else {
                 enableNextTaskInMilestone(task);
             }
         }
+
     
         function handleInsert(task, insertValue) {
             if (insertValue.includes("-")) {
@@ -135,10 +136,10 @@
                 return;
             }
         
-            // Always create a new instance of the task row for insertion
+            // Always create a new row for the task
             const newTaskRow = document.createElement("div");
             newTaskRow.className = "task-row";
-            newTaskRow.dataset.id = `${newTask.id}-${Date.now()}`; // Unique ID for each insertion
+            newTaskRow.dataset.id = `${newTask.id}-${Date.now()}`; // Generate unique ID
         
             const taskLabel = document.createElement("span");
             taskLabel.textContent = `${newTask.name} (Inserted Task)`;
@@ -160,11 +161,12 @@
             newTaskRow.appendChild(taskLabel);
             newTaskRow.appendChild(dropdown);
         
-            // Insert the new task row directly below the current task
+            // Insert the task directly below the current task
             taskRow.after(newTaskRow);
         
             console.log(`Inserted task "${newTask.name}" below "${currentTask.name}" with options:`, newTask.results.map(r => r.result));
         }
+
 
     
         function enableNextTaskInMilestone(currentTask) {
