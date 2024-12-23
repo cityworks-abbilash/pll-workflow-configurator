@@ -63,23 +63,26 @@
                 });
             }
     
-            function renderMainWorkflowTaskRow(task, enableDropdown) {
-                if (mainWorkflowDisplayedTaskIds.has(task.id)) return; // Prevent duplicate rendering
-    
-                mainWorkflowDisplayedTaskIds.add(task.id);
-    
+            function renderMainWorkflowTaskRow(task, enableDropdown, isInsert = false) {
+                // Allow duplicate rendering for inserts by skipping the displayedTaskIds check
+                if (!isInsert && mainWorkflowDisplayedTaskIds.has(task.id)) return;
+            
+                if (!isInsert) {
+                    mainWorkflowDisplayedTaskIds.add(task.id);
+                }
+            
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
-                taskRow.dataset.id = task.id;
-    
+                taskRow.dataset.id = `${task.id}-${Date.now()}`; // Use a unique ID for each insertion
+            
                 const taskLabel = document.createElement("span");
                 taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
                 taskLabel.className = "me-3";
-    
+            
                 const dropdown = document.createElement("select");
                 dropdown.className = "form-select";
                 dropdown.disabled = !enableDropdown;
-    
+            
                 dropdown.innerHTML = `<option value="">Select a result</option>`;
                 task.results.forEach(result => {
                     const option = document.createElement("option");
@@ -87,16 +90,26 @@
                     option.textContent = result.result;
                     dropdown.appendChild(option);
                 });
-    
+            
                 dropdown.addEventListener("change", () => {
                     handleMainWorkflowDropdownChange(task, dropdown);
                     handleInsertTask(task, dropdown.value); // Process inserts alongside
                 });
-    
+            
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(dropdown);
-                workflowContainer.appendChild(taskRow);
+            
+                // Append to workflowContainer
+                const currentTaskRow = document.querySelector(`[data-id^="${task.id}"]`);
+                if (currentTaskRow) {
+                    currentTaskRow.after(taskRow);
+                    console.log(`Inserted duplicate task: "${task.name}" below "${currentTaskRow.dataset.id}".`);
+                } else {
+                    workflowContainer.appendChild(taskRow);
+                    console.log(`Inserted new task: "${task.name}" in the workflowContainer.`);
+                }
             }
+
     
             function handleMainWorkflowDropdownChange(task, dropdown) {
                 const selectedResult = dropdown.value;
@@ -166,14 +179,15 @@
             function handleInsertTaskLogic(taskInsertValue, currentTask) {
                 const taskId = taskInsertValue.split("-").slice(-2).join("-");
                 const insertedTask = displayData.flatMap(wf => wf.tasks).find(t => t.id === taskId);
-    
+            
                 if (insertedTask) {
                     console.log(`Inserting task: ${insertedTask.name}`);
-                    renderMainWorkflowTaskRow(insertedTask, true);
+                    renderMainWorkflowTaskRow(insertedTask, true, true); // Pass isInsert = true
                 } else {
                     console.warn(`Task with ID ${taskId} not found in displayData.`);
                 }
             }
+
     
             function getWorkflowId(taskId) {
                 const workflow = displayData.find(wf => wf.tasks.some(task => task.id === taskId));
