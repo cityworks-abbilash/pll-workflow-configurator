@@ -61,22 +61,19 @@
             }
 
             function renderTaskRow(task, enableDropdown, workflowId) {
-                if (displayedTaskIds.has(task.id)) return;
-
-                displayedTaskIds.add(task.id);
-
+                // Create a new task row every time the function is called
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
-                taskRow.dataset.id = task.id;
-
+                taskRow.dataset.id = `${task.id}-${Date.now()}`; // Add a unique ID to handle multiple insertions
+            
                 const taskLabel = document.createElement("span");
                 taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
                 taskLabel.className = "me-3";
-
+            
                 const dropdown = document.createElement("select");
                 dropdown.className = "form-select";
                 dropdown.disabled = !enableDropdown;
-
+            
                 dropdown.innerHTML = `<option value="">Select a result</option>`;
                 task.results.forEach(result => {
                     const option = document.createElement("option");
@@ -84,15 +81,25 @@
                     option.textContent = result.result;
                     dropdown.appendChild(option);
                 });
-
+            
                 dropdown.addEventListener("change", () => handleDropdownChange(task, dropdown, workflowId));
-
+            
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(dropdown);
-                workflowContainer.appendChild(taskRow);
-
+            
+                // Insert the new task row directly below the current task
+                const currentTaskRow = document.querySelector(`[data-id^="${task.id}"]`);
+                if (currentTaskRow) {
+                    currentTaskRow.after(taskRow);
+                    console.log(`Inserted task: "${task.name}" below "${currentTaskRow.dataset.id}".`);
+                } else {
+                    workflowContainer.appendChild(taskRow);
+                    console.warn(`No reference row found for task "${task.name}". Appending to workflowContainer.`);
+                }
+            
                 console.log(`Rendered task: ${task.name}, Enabled: ${enableDropdown}`);
             }
+
 
             function handleDropdownChange(task, dropdown, workflowId) {
                 const selectedResult = dropdown.value;
