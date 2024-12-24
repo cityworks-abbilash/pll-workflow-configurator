@@ -28,39 +28,28 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const displayData = JSON.parse(localStorage.getItem("displayData")) || [];
-            const insertsData = JSON.parse(localStorage.getItem("insertsData")) || {};
             const workflowContainer = document.getElementById("workflowContainer");
     
-            // Find main workflow
+            // Get `mainWorkflow` data
             const mainWorkflow = displayData.find(wf => wf.workflowId === "mainWorkflow");
             if (!mainWorkflow || !mainWorkflow.tasks.length) {
                 console.error("No tasks found in Main Workflow.");
                 return;
             }
     
-            // Store displayed task IDs
+            const workflowId = mainWorkflow.workflowId; // Dynamically use mainWorkflow's workflowId
+            const mainWorkflowTasks = mainWorkflow.tasks;
             const mainWorkflowDisplayedTaskIds = new Set();
     
-            // Sort tasks for consistent ordering
-            const mainWorkflowSortedTasks = mainWorkflow.tasks.sort((a, b) =>
-                a.milestone - b.milestone || a.taskNumber - b.taskNumber
-            );
-    
-            console.log("Sorted main workflow tasks:", mainWorkflowSortedTasks.map(task => task.name));
-    
-            // Render tasks with the lowest milestone for main workflow
+            // Render tasks for `mainWorkflow`
             renderMainWorkflowLowestMilestoneTasks();
     
             function renderMainWorkflowLowestMilestoneTasks() {
-                const lowestMilestone = Math.min(...mainWorkflowSortedTasks.map(task => parseInt(task.milestone)));
-                const milestoneTasks = mainWorkflowSortedTasks.filter(task => task.milestone == lowestMilestone);
+                const lowestMilestone = Math.min(...mainWorkflowTasks.map(task => parseInt(task.milestone)));
+                const milestoneTasks = mainWorkflowTasks.filter(task => task.milestone == lowestMilestone);
     
-                // Find tasks with the lowest task number in the milestone
                 const lowestTaskNumber = Math.min(...milestoneTasks.map(task => parseInt(task.taskNumber)));
                 const tasksToEnable = milestoneTasks.filter(task => task.taskNumber == lowestTaskNumber);
-    
-                console.log("Rendering main workflow milestone tasks:", milestoneTasks.map(task => task.name));
-                console.log("Tasks to enable in main workflow:", tasksToEnable.map(task => task.name));
     
                 milestoneTasks.forEach(task => {
                     const enableDropdown = tasksToEnable.includes(task);
@@ -69,18 +58,14 @@
             }
     
             function renderMainWorkflowTaskRow(task, enableDropdown) {
-                // Prevent duplicate rendering based on original task ID
-                if (mainWorkflowDisplayedTaskIds.has(task.id)) {
-                    console.warn(`Task "${task.name}" is already displayed.`);
-                    return;
-                }
+                // Ensure this function processes only `mainWorkflow` tasks
+                if (task.workflowId !== workflowId) return;
     
-                // Add task to displayed list
                 mainWorkflowDisplayedTaskIds.add(task.id);
     
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
-                taskRow.dataset.id = task.id; // Use task.id directly for matching
+                taskRow.dataset.id = task.id;
     
                 const taskLabel = document.createElement("span");
                 taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
@@ -98,88 +83,65 @@
                     dropdown.appendChild(option);
                 });
     
-                dropdown.addEventListener("change", () => {
-                    handleMainWorkflowDropdownChange(task, dropdown);
-                    handleInsertTask(task, dropdown.value); // Process inserts alongside
-                });
+                dropdown.addEventListener("change", () => handleMainWorkflowDropdownChange(task, dropdown));
     
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(dropdown);
                 workflowContainer.appendChild(taskRow);
-    
-                console.log(`Rendered main workflow task: "${task.name}", Enabled: ${enableDropdown}`);
             }
     
             function handleMainWorkflowDropdownChange(task, dropdown) {
+                // Ensure this function processes only `mainWorkflow` tasks
+                if (task.workflowId !== workflowId) return;
+    
                 const selectedResult = dropdown.value;
                 if (!selectedResult) return;
     
-                console.log(`Main workflow task selected: ${task.name}, Result: ${selectedResult}`);
+                // Generate task key for the selected result
+                const taskKey = generateTaskKeyMainWorkflow(task, selectedResult);
+    
+                // Check if the task key exists in `insertsData`
+                const insertsData = JSON.parse(localStorage.getItem("insertsData")) || {};
+                if (taskKey in insertsData) {
+                    mainWorkflowInserts(insertsData[taskKey]);
+                }
+    
                 dropdown.disabled = true;
     
-                // Find and enable the next lowest task number
                 const nextTask = findMainWorkflowNextLowestTaskNumber();
                 if (nextTask) {
-                    console.log(`Enabling next task in main workflow: ${nextTask.name}`);
                     const nextTaskRow = document.querySelector(`[data-id="${nextTask.id}"]`);
                     if (nextTaskRow) {
                         const nextDropdown = nextTaskRow.querySelector("select");
                         nextDropdown.disabled = false;
                     }
                 } else {
-                    console.log("No next task number found in main workflow. Checking for next milestone.");
                     renderMainWorkflowNextMilestoneTasks(task.milestone);
                 }
             }
     
             function findMainWorkflowNextLowestTaskNumber() {
                 const displayedTaskRows = Array.from(document.querySelectorAll(".task-row"));
-    
-                // Extract task objects corresponding to displayed rows
                 const displayedTasks = displayedTaskRows
-                    .map(row => {
-                        const originalTaskId = row.dataset.id; // Use raw data-id
-                        return mainWorkflowSortedTasks.find(task => task.id === originalTaskId);
-                    })
+                    .map(row => mainWorkflowTasks.find(task => task.id === row.dataset.id))
                     .filter(Boolean);
     
-                console.log("Displayed main workflow tasks:", displayedTasks.map(task => task.name));
-    
-                // Filter out completed tasks (dropdowns disabled)
-                const completedTasks = displayedTaskRows
-                    .filter(row => {
-                        const dropdown = row.querySelector("select");
-                        return dropdown && dropdown.disabled;
-                    })
-                    .map(row => {
-                        const originalTaskId = row.dataset.id;
-                        return mainWorkflowSortedTasks.find(task => task.id === originalTaskId);
-                    })
-                    .filter(Boolean);
-    
-                console.log("Completed main workflow tasks:", completedTasks.map(task => task.name));
+                const completedTasks = displayedTaskRows.filter(row => {
+                    const dropdown = row.querySelector("select");
+                    return dropdown && dropdown.disabled;
+                }).map(row => mainWorkflowTasks.find(task => task.id === row.dataset.id));
     
                 const completedTaskNumbers = completedTasks.map(task => parseInt(task.taskNumber));
-                console.log("Completed main workflow task numbers:", completedTaskNumbers);
-    
-                if (completedTaskNumbers.length === 0) {
-                    console.warn("No completed tasks found to determine the next task number.");
-                    return null;
-                }
-    
-                // Find the next lowest task number
                 const nextTaskNumber = Math.min(...completedTaskNumbers) + 1;
-                console.log("Next task number to enable:", nextTaskNumber);
     
                 return displayedTasks.find(task => task.taskNumber == nextTaskNumber);
             }
     
             function renderMainWorkflowNextMilestoneTasks(currentMilestone) {
                 const nextMilestone = parseInt(currentMilestone) + 1;
-                const milestoneTasks = mainWorkflowSortedTasks.filter(task => task.milestone == nextMilestone);
+                const milestoneTasks = mainWorkflowTasks.filter(task => task.milestone == nextMilestone);
     
                 if (milestoneTasks.length > 0) {
-                    console.log(`Rendering next milestone tasks in main workflow: Milestone ${nextMilestone}`);
                     const lowestTaskNumber = Math.min(...milestoneTasks.map(task => parseInt(task.taskNumber)));
                     const tasksToEnable = milestoneTasks.filter(task => task.taskNumber == lowestTaskNumber);
     
@@ -187,18 +149,27 @@
                         const enableDropdown = tasksToEnable.includes(task);
                         renderMainWorkflowTaskRow(task, enableDropdown);
                     });
-                } else {
-                    console.log("No more tasks in subsequent milestones for main workflow.");
                 }
             }
     
-            // INSERT FUNCTIONS BELOW
-            function handleInsertTask(task, selectedResult) {
-                // Placeholder for insert logic
-                console.log(`Handling inserts for task "${task.name}" with result "${selectedResult}"`);
+            // Updated function to generate task key for `mainWorkflow` tasks
+            function generateTaskKeyMainWorkflow(task, selectedResult) {
+                if (task.workflowId !== workflowId) {
+                    console.error(`Task does not belong to ${workflowId}:`, task);
+                    return null;
+                }
+                const taskKey = `${task.workflowId}-${task.id}-${selectedResult}`;
+                console.log(`Generated Task Key: ${taskKey}`);
+                return taskKey;
+            }
+    
+            // New function to handle matching insertsData key
+            function mainWorkflowInserts(value) {
+                console.log(`Matching Value from insertsData: ${value}`);
             }
         });
     </script>
+
 
 
 
