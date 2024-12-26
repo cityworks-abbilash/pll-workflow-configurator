@@ -84,6 +84,7 @@
             function renderTaskRow(workflowId, task, enableDropdown) {
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
+                taskRow.setAttribute("data-id", task.id); // Add data-id for easier targeting
 
                 const taskLabel = document.createElement("span");
                 taskLabel.textContent = `${task.name} (Task ${task.taskNumber})`;
