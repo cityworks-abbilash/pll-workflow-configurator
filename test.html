@@ -28,6 +28,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const displayData = JSON.parse(localStorage.getItem("displayData")) || [];
+            const insertsData = JSON.parse(localStorage.getItem("insertsData")) || {};
             const workflowContainer = document.getElementById("workflowContainer");
 
             // Find main workflow
@@ -42,33 +43,42 @@
                 a.milestone - b.milestone || a.taskNumber - b.taskNumber
             );
 
+            let displayedTasks = []; // Keep track of displayed tasks
+
             console.log("Sorted main workflow tasks:", mainWorkflowSortedTasks.map(task => task.name));
 
             // Render tasks for the lowest milestone in the main workflow
             renderLowestMilestoneTasks();
 
-            function renderLowestMilestoneTasks() {
-                // Find the lowest milestone value
-                const lowestMilestone = Math.min(...mainWorkflowSortedTasks.map(task => parseInt(task.milestone)));
-                const milestoneTasks = mainWorkflowSortedTasks.filter(task => task.milestone == lowestMilestone);
+            function renderLowestMilestoneTasks(currentMilestone = null) {
+                const milestone = currentMilestone ?? Math.min(...mainWorkflowSortedTasks.map(task => parseInt(task.milestone)));
+                const milestoneTasks = mainWorkflowSortedTasks.filter(task => task.milestone == milestone);
+
+                // If no more milestones, stop rendering
+                if (!milestoneTasks.length) {
+                    console.log("No more milestones to render.");
+                    return;
+                }
 
                 // Find the lowest task number within this milestone
                 const lowestTaskNumber = Math.min(...milestoneTasks.map(task => parseInt(task.taskNumber)));
                 const tasksWithLowestTaskNumber = milestoneTasks.filter(task => task.taskNumber == lowestTaskNumber);
 
                 // Add milestone header
-                const milestoneHeader = document.createElement("h3");
-                milestoneHeader.textContent = `Milestone ${lowestMilestone}`;
-                workflowContainer.appendChild(milestoneHeader);
+                if (!displayedTasks.includes(milestone)) {
+                    const milestoneHeader = document.createElement("h3");
+                    milestoneHeader.textContent = `Milestone ${milestone}`;
+                    workflowContainer.appendChild(milestoneHeader);
+                    displayedTasks.push(milestone);
+                }
 
-                // Render tasks from the lowest milestone
+                // Render tasks from the milestone
                 milestoneTasks.forEach(task => {
                     const enableDropdown = tasksWithLowestTaskNumber.includes(task);
                     renderTaskRow(mainWorkflow.workflowId, task, enableDropdown);
                 });
 
-                console.log("Displayed tasks from the lowest milestone:", milestoneTasks.map(task => task.name));
-                console.log("Dropdown enabled for tasks:", tasksWithLowestTaskNumber.map(task => task.name));
+                console.log(`Displayed tasks for Milestone ${milestone}:`, milestoneTasks.map(task => task.name));
             }
 
             function renderTaskRow(workflowId, task, enableDropdown) {
@@ -99,6 +109,22 @@
                         if (selectedResult) {
                             const taskKey = generateTaskKey(workflowId, task.id, selectedResult);
                             console.log(`Task key generated: ${taskKey}`);
+
+                            // Check if task key matches with insertsData
+                            if (taskKey in insertsData) {
+                                console.log(`Match found in insertsData: ${insertsData[taskKey]}`);
+                            } else {
+                                console.log("No match in insertsData. Proceeding to next task or milestone.");
+
+                                // Open the next task number dropdown in the same milestone
+                                const nextTask = findNextTaskNumber(task, mainWorkflowSortedTasks);
+                                if (nextTask) {
+                                    enableNextTask(nextTask.id);
+                                } else {
+                                    // If no more tasks in the current milestone, render next milestone
+                                    renderLowestMilestoneTasks(parseInt(task.milestone) + 1);
+                                }
+                            }
                         }
                     });
                 }
@@ -109,6 +135,27 @@
                 workflowContainer.appendChild(taskRow);
 
                 console.log(`Rendered task: "${task.name}" with dropdown ${enableDropdown ? "enabled" : "disabled"}.`);
+            }
+
+            function findNextTaskNumber(currentTask, tasks) {
+                const currentMilestone = parseInt(currentTask.milestone);
+                const currentTaskNumber = parseInt(currentTask.taskNumber);
+
+                return tasks.find(task =>
+                    parseInt(task.milestone) === currentMilestone &&
+                    parseInt(task.taskNumber) === currentTaskNumber + 1
+                );
+            }
+
+            function enableNextTask(taskId) {
+                const nextTaskRow = document.querySelector(`[data-id="${taskId}"]`);
+                if (nextTaskRow) {
+                    const nextDropdown = nextTaskRow.querySelector("select");
+                    if (nextDropdown) {
+                        nextDropdown.disabled = false;
+                        console.log(`Enabled dropdown for task ID: ${taskId}`);
+                    }
+                }
             }
 
             function generateTaskKey(workflowId, taskId, result) {
