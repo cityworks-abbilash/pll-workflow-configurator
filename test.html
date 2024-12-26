@@ -41,24 +41,28 @@
             const mainWorkflowSortedTasks = mainWorkflow.tasks.sort((a, b) =>
                 a.milestone - b.milestone || a.taskNumber - b.taskNumber
             );
-    
+
             console.log("Sorted main workflow tasks:", mainWorkflowSortedTasks.map(task => task.name));
     
-            // Render tasks for the main workflow
-            renderMainWorkflowTasks();
+            // Render tasks for the lowest milestone in the main workflow
+            renderLowestMilestoneTasks();
 
-            function renderMainWorkflowTasks() {
-                const groupedByMilestone = groupTasksByMilestone(mainWorkflowSortedTasks);
-                
-                for (const [milestone, tasks] of Object.entries(groupedByMilestone)) {
-                    const milestoneHeader = document.createElement("h3");
-                    milestoneHeader.textContent = `Milestone ${milestone}`;
-                    workflowContainer.appendChild(milestoneHeader);
+            function renderLowestMilestoneTasks() {
+                // Find the lowest milestone value
+                const lowestMilestone = Math.min(...mainWorkflowSortedTasks.map(task => parseInt(task.milestone)));
+                const milestoneTasks = mainWorkflowSortedTasks.filter(task => task.milestone == lowestMilestone);
 
-                    tasks.forEach(task => {
-                        renderTaskRow(task);
-                    });
-                }
+                // Add milestone header
+                const milestoneHeader = document.createElement("h3");
+                milestoneHeader.textContent = `Milestone ${lowestMilestone}`;
+                workflowContainer.appendChild(milestoneHeader);
+
+                // Render tasks from the lowest milestone
+                milestoneTasks.forEach(task => {
+                    renderTaskRow(task);
+                });
+
+                console.log("Displayed tasks from the lowest milestone:", milestoneTasks.map(task => task.name));
             }
 
             function renderTaskRow(task) {
@@ -87,14 +91,6 @@
                 workflowContainer.appendChild(taskRow);
 
                 console.log(`Rendered task: "${task.name}" with dropdown.`);
-            }
-
-            function groupTasksByMilestone(tasks) {
-                return tasks.reduce((acc, task) => {
-                    acc[task.milestone] = acc[task.milestone] || [];
-                    acc[task.milestone].push(task);
-                    return acc;
-                }, {});
             }
         });
     </script>
