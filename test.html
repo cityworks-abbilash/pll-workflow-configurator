@@ -52,6 +52,10 @@
                 const lowestMilestone = Math.min(...mainWorkflowSortedTasks.map(task => parseInt(task.milestone)));
                 const milestoneTasks = mainWorkflowSortedTasks.filter(task => task.milestone == lowestMilestone);
 
+                // Find the lowest task number within this milestone
+                const lowestTaskNumber = Math.min(...milestoneTasks.map(task => parseInt(task.taskNumber)));
+                const tasksWithLowestTaskNumber = milestoneTasks.filter(task => task.taskNumber == lowestTaskNumber);
+
                 // Add milestone header
                 const milestoneHeader = document.createElement("h3");
                 milestoneHeader.textContent = `Milestone ${lowestMilestone}`;
@@ -59,13 +63,15 @@
 
                 // Render tasks from the lowest milestone
                 milestoneTasks.forEach(task => {
-                    renderTaskRow(mainWorkflow.workflowId, task);
+                    const enableDropdown = tasksWithLowestTaskNumber.includes(task);
+                    renderTaskRow(mainWorkflow.workflowId, task, enableDropdown);
                 });
 
                 console.log("Displayed tasks from the lowest milestone:", milestoneTasks.map(task => task.name));
+                console.log("Dropdown enabled for tasks:", tasksWithLowestTaskNumber.map(task => task.name));
             }
 
-            function renderTaskRow(workflowId, task) {
+            function renderTaskRow(workflowId, task, enableDropdown) {
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
 
@@ -75,6 +81,7 @@
 
                 const dropdown = document.createElement("select");
                 dropdown.className = "form-select";
+                dropdown.disabled = !enableDropdown;
 
                 // Add a default option and task results as options
                 dropdown.innerHTML = `<option value="">Select a result</option>`;
@@ -86,20 +93,22 @@
                 });
 
                 // Add event listener for dropdown selection
-                dropdown.addEventListener("change", () => {
-                    const selectedResult = dropdown.value;
-                    if (selectedResult) {
-                        const taskKey = generateTaskKey(workflowId, task.id, selectedResult);
-                        console.log(`Task key generated: ${taskKey}`);
-                    }
-                });
+                if (enableDropdown) {
+                    dropdown.addEventListener("change", () => {
+                        const selectedResult = dropdown.value;
+                        if (selectedResult) {
+                            const taskKey = generateTaskKey(workflowId, task.id, selectedResult);
+                            console.log(`Task key generated: ${taskKey}`);
+                        }
+                    });
+                }
 
                 // Append elements to the row
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(dropdown);
                 workflowContainer.appendChild(taskRow);
 
-                console.log(`Rendered task: "${task.name}" with dropdown.`);
+                console.log(`Rendered task: "${task.name}" with dropdown ${enableDropdown ? "enabled" : "disabled"}.`);
             }
 
             function generateTaskKey(workflowId, taskId, result) {
