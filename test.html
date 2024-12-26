@@ -29,21 +29,21 @@
         document.addEventListener("DOMContentLoaded", () => {
             const displayData = JSON.parse(localStorage.getItem("displayData")) || [];
             const workflowContainer = document.getElementById("workflowContainer");
-    
+
             // Find main workflow
             const mainWorkflow = displayData.find(wf => wf.workflowId === "mainWorkflow");
             if (!mainWorkflow || !mainWorkflow.tasks.length) {
                 console.error("No tasks found in Main Workflow.");
                 return;
             }
-    
+
             // Sort tasks for consistent ordering
             const mainWorkflowSortedTasks = mainWorkflow.tasks.sort((a, b) =>
                 a.milestone - b.milestone || a.taskNumber - b.taskNumber
             );
 
             console.log("Sorted main workflow tasks:", mainWorkflowSortedTasks.map(task => task.name));
-    
+
             // Render tasks for the lowest milestone in the main workflow
             renderLowestMilestoneTasks();
 
@@ -59,13 +59,13 @@
 
                 // Render tasks from the lowest milestone
                 milestoneTasks.forEach(task => {
-                    renderTaskRow(task);
+                    renderTaskRow(mainWorkflow.workflowId, task);
                 });
 
                 console.log("Displayed tasks from the lowest milestone:", milestoneTasks.map(task => task.name));
             }
 
-            function renderTaskRow(task) {
+            function renderTaskRow(workflowId, task) {
                 const taskRow = document.createElement("div");
                 taskRow.className = "task-row";
 
@@ -85,12 +85,25 @@
                     dropdown.appendChild(option);
                 });
 
+                // Add event listener for dropdown selection
+                dropdown.addEventListener("change", () => {
+                    const selectedResult = dropdown.value;
+                    if (selectedResult) {
+                        const taskKey = generateTaskKey(workflowId, task.id, selectedResult);
+                        console.log(`Task key generated: ${taskKey}`);
+                    }
+                });
+
                 // Append elements to the row
                 taskRow.appendChild(taskLabel);
                 taskRow.appendChild(dropdown);
                 workflowContainer.appendChild(taskRow);
 
                 console.log(`Rendered task: "${task.name}" with dropdown.`);
+            }
+
+            function generateTaskKey(workflowId, taskId, result) {
+                return `${workflowId}-${taskId}-${result}`;
             }
         });
     </script>
