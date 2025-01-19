@@ -67,7 +67,8 @@
         
                 // Create table header
                 const headerRow = document.createElement('tr');
-                ['Milestone', 'Task Number', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task', 'Insert Group', 'Associated Status'].forEach(header => {
+                ['Milestone', 'Task Number', 'Task Code', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task Code', 'Insert Task', 'Insert Group Code', 'Insert Group', 'Associated Status']
+.forEach(header => {
                     const th = document.createElement('th');
                     th.textContent = header;
                     headerRow.appendChild(th);
@@ -120,10 +121,13 @@
                             [
                                 milestone || '',
                                 taskNumber || '',
+                                taskCode || '',           // Add Task Code here
                                 name,
                                 taskResultSet || '',
                                 result.result,
+                                insertTaskCode || '',     // Add Insert Task Code here
                                 insertTask || '',
+                                insertGroupCode || '',    // Add Insert Group Code here
                                 insertGroup || '',
                                 associatedStatus
                             ].forEach(value => {
@@ -131,6 +135,7 @@
                                 td.textContent = value;
                                 row.appendChild(td);
                             });
+
                         } else {
                             // For subsequent results, leave specific columns blank
                             ['', '', '', '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
