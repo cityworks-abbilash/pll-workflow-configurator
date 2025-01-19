@@ -100,17 +100,20 @@
                     const { id, name, milestone, taskNumber, results = [] } = task;
         
                     // Generate Task Code
-                    const baseCode = `${workflowPrefix}-${name.toUpperCase()}`;
-                    let taskCode = baseCode;
-        
-                    // If the code exceeds 10 characters, shorten by removing consonants
+                    let taskCode = `${workflowPrefix}-${name.toUpperCase()}`;
                     if (taskCode.length > 10) {
-                        const consonants = name.replace(/[^bcdfghjklmnpqrstvwxyz]/gi, ''); // Extract consonants
-                        const shortenedName = name
-                            .split('')
-                            .filter(char => !consonants.includes(char.toLowerCase()) || taskCode.length <= 10)
-                            .join('');
-                        taskCode = `${workflowPrefix}-${shortenedName.toUpperCase()}`.slice(0, 10);
+                        const maxLength = 10 - workflowPrefix.length - 1; // Length available for task name
+                        let namePart = name.toUpperCase();
+                        while (taskCode.length > 10 && namePart.length > maxLength) {
+                            const consonants = namePart.match(/[BCDFGHJKLMNPQRSTVWXYZ]$/);
+                            if (consonants) {
+                                namePart = namePart.slice(0, -1); // Remove last consonant
+                            } else {
+                                break; // Stop if no consonants are left at the end
+                            }
+                            taskCode = `${workflowPrefix}-${namePart}`;
+                        }
+                        taskCode = taskCode.slice(0, 10); // Ensure it fits 10 characters
                     }
         
                     // Generate Task Result Set content
