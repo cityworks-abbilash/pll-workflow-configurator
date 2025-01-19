@@ -188,8 +188,9 @@
         
                             const dropdownMenu = document.createElement('div');
                             dropdownMenu.className = 'dropdown-menu';
-        
-                            // Add search input
+
+                            
+                            // Populate dropdown with tasks and clear option
                             const searchInput = document.createElement('input');
                             searchInput.className = 'search-input';
                             searchInput.setAttribute('placeholder', 'Search...');
@@ -200,8 +201,20 @@
                                     item.style.display = text.includes(query) ? 'block' : 'none';
                                 });
                             });
-        
                             dropdownMenu.appendChild(searchInput);
+                            
+                            // Add "Clear Selection" option
+                            const clearOption = document.createElement('div');
+                            clearOption.className = 'dropdown-item';
+                            clearOption.textContent = 'Clear Selection';
+                            clearOption.addEventListener('click', () => {
+                                delete insertsData[taskKey]; // Remove the selection from insertsData
+                                localStorage.setItem('insertsData', JSON.stringify(insertsData)); // Save the updated state
+                                dropdownButton.textContent = 'Select an option'; // Reset the button text
+                                dropdownMenu.classList.remove('visible'); // Close the dropdown menu
+                            });
+                            dropdownMenu.appendChild(clearOption);
+
         
                             // Populate dropdown with tasks
                             tasksAndGroups.tasks.forEach(taskOption => {
