@@ -55,6 +55,27 @@
         
             const workflowPrefix = document.getElementById('workflowPrefix').value || ''; // Get the workflow prefix value
         
+            // Helper function to sanitize and shorten the task name
+            function generateTaskCode(prefix, name) {
+                // Remove non-letter characters and convert to uppercase
+                let sanitizedName = name.replace(/[^a-zA-Z]/g, '').toUpperCase();
+        
+                // Shorten to a maximum of 10 characters
+                let taskCode = `${prefix}-${sanitizedName}`;
+                if (taskCode.length > 10) {
+                    const vowels = ['A', 'E', 'I', 'O', 'U'];
+                    // Remove consonants from the end if taskCode is too long
+                    let reducedName = sanitizedName.split('').reverse();
+                    reducedName = reducedName.filter((char, index) => {
+                        return index >= 10 || vowels.includes(char); // Prioritize vowels
+                    });
+                    sanitizedName = reducedName.reverse().join('');
+                    taskCode = `${prefix}-${sanitizedName}`;
+                }
+        
+                return taskCode.slice(0, 10); // Ensure exactly 10 characters
+            }
+        
             // Retrieve tasks and groups for classification
             const tasks = displayData.flatMap(workflow => workflow.tasks.map(task => task.name));
             const groups = displayData.filter(workflow => workflow.workflowId.startsWith('subWorkflow')).map(workflow => workflow.title);
@@ -123,7 +144,7 @@
                         }
         
                         // Generate the Task Code for the first result
-                        const taskCode = index === 0 ? `${workflowPrefix}-${name}` : '';
+                        const taskCode = index === 0 ? generateTaskCode(workflowPrefix, name) : '';
         
                         // For the first result, display full details
                         if (index === 0) {
@@ -162,7 +183,7 @@
                         const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
                         const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
         
-                        const taskCode = `${workflowPrefix}-${name}`;
+                        const taskCode = generateTaskCode(workflowPrefix, name);
         
                         [
                             milestone || '',
@@ -193,12 +214,10 @@
         document.getElementById('workflowPrefix').addEventListener('input', () => {
             renderTables(); // Re-render tables when the prefix changes
         });
-
-
-
         
         // Render tables on page load
         renderTables();
+
 
 
 
