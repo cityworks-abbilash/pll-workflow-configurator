@@ -81,6 +81,11 @@
                 const tbody = document.createElement('tbody');
                 workflow.tasks.forEach(task => {
                     const { id, name, milestone, taskNumber, results = [] } = task;
+
+                    // Define placeholders for the new columns
+                    const taskCode = 'Placeholder';           // Placeholder for Task Code
+                    const insertTaskCode = 'Placeholder';     // Placeholder for Insert Task Code
+                    const insertGroupCode = 'Placeholder';    // Placeholder for Insert Group Code
         
                     // Generate Task Result Set content
                     const taskResultSet = results
