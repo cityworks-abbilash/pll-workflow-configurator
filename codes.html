@@ -59,6 +59,7 @@
                 .filter(workflow => workflow.workflowId.startsWith('subWorkflow'))
                 .map(workflow => workflow.title);
         
+            // Iterate over workflows and tasks to assign task codes
             displayData.forEach(workflow => {
                 if (workflow.tasks.length === 0) return; // Skip workflows without tasks
         
@@ -115,6 +116,9 @@
                         }
                         taskCode = taskCode.slice(0, 10); // Ensure it fits 10 characters
                     }
+        
+                    // Save the generated Task Code in displayData
+                    task.taskCode = taskCode;
         
                     // Generate Task Result Set content
                     const taskResultSet = results
@@ -204,6 +208,9 @@
         
                 container.appendChild(tableWrapper);
             });
+        
+            // Save updated displayData back to localStorage
+            localStorage.setItem('displayData', JSON.stringify(displayData));
         }
 
         // Re-render tables when workflow prefix is updated
