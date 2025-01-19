@@ -62,6 +62,7 @@
             displayData.forEach(workflow => {
                 if (workflow.tasks.length === 0) return; // Skip workflows without tasks
         
+                // Create a table for each workflow
                 const tableWrapper = document.createElement('div');
                 tableWrapper.className = 'mb-5';
         
@@ -72,6 +73,7 @@
                 const table = document.createElement('table');
                 table.className = 'table table-bordered';
         
+                // Create table header
                 const headerRow = document.createElement('tr');
                 [
                     'Milestone',
@@ -92,28 +94,29 @@
                 thead.appendChild(headerRow);
                 table.appendChild(thead);
         
+                // Create table body
                 const tbody = document.createElement('tbody');
                 workflow.tasks.forEach(task => {
                     const { id, name, milestone, taskNumber, results = [] } = task;
         
+                    // Generate Task Code
                     let taskCode = `${workflowPrefix}-${name.toUpperCase()}`;
                     if (taskCode.length > 10) {
-                        const maxLength = 10 - workflowPrefix.length - 1;
+                        const maxLength = 10 - workflowPrefix.length - 1; // Length available for task name
                         let namePart = name.toUpperCase();
                         while (taskCode.length > 10 && namePart.length > maxLength) {
                             const consonants = namePart.match(/[BCDFGHJKLMNPQRSTVWXYZ]$/);
                             if (consonants) {
-                                namePart = namePart.slice(0, -1);
+                                namePart = namePart.slice(0, -1); // Remove last consonant
                             } else {
-                                break;
+                                break; // Stop if no consonants are left at the end
                             }
                             taskCode = `${workflowPrefix}-${namePart}`;
                         }
-                        taskCode = taskCode.slice(0, 10);
+                        taskCode = taskCode.slice(0, 10); // Ensure it fits 10 characters
                     }
         
-                    task.taskCode = taskCode;
-        
+                    // Generate Task Result Set content
                     const taskResultSet = results
                         .map(result => `${result.result}${result.status ? ` (${result.status})` : ''}`)
                         .join(', ');
@@ -129,13 +132,19 @@
                         let insertGroup = '';
         
                         if (insertSelection) {
-                            if (tasks.includes(insertSelection)) {
-                                insertTask = insertSelection; // Matches a task name
-                            } else if (groups.includes(insertSelection)) {
-                                insertGroup = insertSelection; // Matches a subworkflow title
+                            if (insertSelection.includes('-')) {
+                                const parts = insertSelection.split('-');
+                                const taskName = parts.slice(0, -2).join('-');
+                                if (tasks.includes(taskName)) {
+                                    insertTask = taskName;
+                                }
+                            }
+                            if (groups.includes(insertSelection)) {
+                                insertGroup = insertSelection;
                             }
                         }
         
+                        // For the first result, display full details
                         if (index === 0) {
                             [
                                 milestone || '',
@@ -153,6 +162,7 @@
                                 row.appendChild(td);
                             });
                         } else {
+                            // For subsequent results, leave specific columns blank
                             ['', '', '', '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
@@ -162,24 +172,25 @@
                         tbody.appendChild(row);
                     });
         
+                    // Handle tasks with no results
                     if (results.length === 0) {
                         const row = document.createElement('tr');
                         const taskKey = `${workflow.workflowId}-${id}`;
                         const insertSelection = insertsData[taskKey] || '';
         
-                        let insertTask = tasks.includes(insertSelection) ? insertSelection : '';
-                        let insertGroup = groups.includes(insertSelection) ? insertSelection : '';
+                        const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
+                        const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
         
                         [
                             milestone || '',
                             taskNumber || '',
-                            taskCode,
+                            taskCode, // Task Code
                             name,
-                            '',
-                            '',
+                            '', // Task Result Set
+                            '', // Task Result Name
                             insertTask || '',
                             insertGroup || '',
-                            ''
+                            '' // Associated Status
                         ].forEach(value => {
                             const td = document.createElement('td');
                             td.textContent = value;
@@ -193,8 +204,6 @@
         
                 container.appendChild(tableWrapper);
             });
-        
-            localStorage.setItem('displayData', JSON.stringify(displayData));
         }
 
         // Re-render tables when workflow prefix is updated
