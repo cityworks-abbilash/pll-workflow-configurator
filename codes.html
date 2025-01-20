@@ -243,6 +243,11 @@
                             ].forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
+
+                                if (value === associatedStatus) {
+                                    td.style.color = 'red'; // Set the text color to red
+                                }
+                                
                                 row.appendChild(td);
                             });
                         } else {
