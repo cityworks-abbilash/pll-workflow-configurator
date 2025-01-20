@@ -199,7 +199,9 @@
                             if (insertSelection.includes('-')) {
                                 const parts = insertSelection.split('-');
                                 const taskName = parts.slice(0, -2).join('-');
-                                const taskId = insertSelection.substring(insertSelection.indexOf('-') + 1);
+                                const lastDashIndex = insertSelection.lastIndexOf('-');
+                                const secondLastDashIndex = insertSelection.lastIndexOf('-', lastDashIndex - 1);
+                                const taskId = insertSelection.substring(secondLastDashIndex + 1);
                                 insertTask = taskName;
                                 insertTaskCode = taskId;
                             }
