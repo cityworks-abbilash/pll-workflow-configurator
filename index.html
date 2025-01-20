@@ -27,6 +27,18 @@
         #nextButton {
             float: right;
         }
+        .task-bubble {
+            display: inline-block;
+            background-color: #007bff; /* Blue background */
+            color: white; /* White text */
+            padding: 10px 15px; /* Padding for bubble size */
+            border-radius: 25px; /* Rounded corners for bubble */
+            margin: 5px; /* Space between bubbles */
+            cursor: default; /* Static cursor since dragging is not needed */
+        }
+        .task-bubble:hover {
+            background-color: #0056b3; /* Darker blue when hovered */
+        }
     </style>
 
 </head>
@@ -195,10 +207,11 @@
                 const taskRow = document.createElement('div');
                 taskRow.className = 'task-row mb-3';
 
-                const taskLabel = document.createElement('label');
-                taskLabel.className = 'form-label';
-                taskLabel.innerText = `Task: ${task.name} (ID: ${task.id})`;
-                taskRow.appendChild(taskLabel);
+                const taskBubble = document.createElement('div');
+                taskBubble.className = 'task-bubble'; // Add the task-bubble class
+                taskBubble.innerText = task.name; // Set the task name as the bubble text
+                taskRow.appendChild(taskBubble); // Append the bubble to the task row
+
 
                 const taskResults = [];
 
