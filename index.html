@@ -16,17 +16,18 @@
         }
 
         .fixed-footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: #f8f9fa;
-            padding: 10px 20px;
-            border-top: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
+            position: fixed; /* Keeps the footer fixed to the bottom */
+            bottom: 0;       /* Aligns the footer to the bottom of the viewport */
+            width: 100%;     /* Ensures the footer spans the full width of the page */
+            background-color: #f8f9fa; /* Light background color for the footer */
+            padding: 10px 20px; /* Adds padding for aesthetics */
+            border-top: 1px solid #ddd; /* Optional: Border for visual separation */
+            display: flex;    /* Flexbox for aligning buttons */
+            justify-content: space-between; /* Positions buttons on opposite sides */
+            align-items: center; /* Aligns buttons vertically */
+            z-index: 1000;    /* Ensures the footer stays above other content */
         }
+
     
         .fixed-footer button {
             min-width: 100px; /* Optional: Ensures buttons have a consistent size */
@@ -277,9 +278,10 @@
     </script>
 
     <footer id="fixedFooter" class="fixed-footer">
-        <button id="restartButton" class="btn btn-danger d-none">Restart</button>
-        <button id="nextButton" class="btn btn-primary d-none">Next</button>
+        <button id="restartButton" class="btn btn-danger">Restart</button>
+        <button id="nextButton" class="btn btn-primary">Next</button>
     </footer>
+
 
 </body>
 </html>
