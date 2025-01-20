@@ -286,14 +286,14 @@
         
                 container.appendChild(tableWrapper);
             });
+
+            localStorage.setItem('displayData', JSON.stringify(displayData));
         }
         
         // Attach event listener to workflow prefix input box
         document.getElementById('workflowPrefix').addEventListener('input', () => {
             renderTables(); // Re-render tables when the prefix changes
         });
-
-        localStorage.setItem('displayData', JSON.stringify(displayData));
 
         
         // Render tables on page load
