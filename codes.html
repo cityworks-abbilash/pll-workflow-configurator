@@ -164,11 +164,13 @@
         
                 // Create table header
                 const headerRow = document.createElement('tr');
-                ['Milestone', 'Task Number', 'Task Code', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task', 'Insert Group', 'Associated Status'].forEach(header => {
+                ['Milestone', 'Task Number', 'Task Code', 'Task Name', 'Task Result Set', 'Task Result Name', 'Insert Task Code', 'Insert Task', 'Insert Group', 'Associated Status']
+                .forEach(header => {
                     const th = document.createElement('th');
                     th.textContent = header;
                     headerRow.appendChild(th);
                 });
+
                 const thead = document.createElement('thead');
                 thead.appendChild(headerRow);
                 table.appendChild(thead);
@@ -188,33 +190,26 @@
                         const taskKey = `${workflow.workflowId}-${id}-${result.result}`;
                         const insertSelection = insertsData[taskKey] || '';
                         const associatedStatus = result.status || '';
-        
-                        // Dynamically classify Insert Task/Group
+                    
                         let insertTask = '';
+                        let insertTaskCode = '';
                         let insertGroup = '';
-        
+                    
                         if (insertSelection) {
                             if (insertSelection.includes('-')) {
-                                // Split the value and extract task name (up to the second-to-last dash)
                                 const parts = insertSelection.split('-');
-                                const taskName = parts.slice(0, -2).join('-'); // Combine all parts except the last two
-        
-                                // Check if the extracted task name exists in the task list
-                                if (tasks.includes(taskName)) {
-                                    insertTask = taskName;
-                                }
+                                const taskName = parts.slice(0, -2).join('-');
+                                const taskId = parts.slice(-1)[0]; // Extract task ID
+                                insertTask = taskName;
+                                insertTaskCode = taskId;
                             }
-        
-                            // Check if the value matches a subworkflow title
                             if (groups.includes(insertSelection)) {
                                 insertGroup = insertSelection;
                             }
                         }
-        
-                        // Generate the Task Code for the first result
+                    
                         const taskCode = index === 0 ? generateTaskCode(workflowPrefix, name) : '';
-        
-                        // For the first result, display full details
+                    
                         if (index === 0) {
                             [
                                 milestone || '',
@@ -223,7 +218,8 @@
                                 name,
                                 taskResultSet || '',
                                 result.result,
-                                insertTask || '',
+                                insertTaskCode || '', // Insert Task Code column
+                                insertTask || '',     // Insert Task column
                                 insertGroup || '',
                                 associatedStatus
                             ].forEach(value => {
@@ -232,8 +228,8 @@
                                 row.appendChild(td);
                             });
                         } else {
-                            // For subsequent results, leave specific columns blank
-                            ['', '', '', '', '', result.result, insertTask || '', insertGroup || '', associatedStatus].forEach(value => {
+                            ['', '', '', '', '', result.result, insertTaskCode || '', insertTask || '', insertGroup || '', associatedStatus]
+                            .forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
                                 row.appendChild(td);
@@ -241,6 +237,7 @@
                         }
                         tbody.appendChild(row);
                     });
+
         
                     // Handle tasks with no results
                     if (results.length === 0) {
