@@ -232,7 +232,27 @@
                             [
                                 milestone || '',
                                 taskNumber || '',
-                                taskCode || '',
+                                (() => {
+                                    const taskCodeInput = document.createElement('input');
+                                    taskCodeInput.type = 'text';
+                                    taskCodeInput.value = taskCode; // Set the initial Task Code value
+                                    taskCodeInput.className = 'form-control form-control-sm'; // Optional styling
+                                    taskCodeInput.addEventListener('change', () => {
+                                        // Update Task Code in displayData
+                                        const taskInDisplayData = displayData
+                                            .find(wf => wf.workflowId === workflow.workflowId)
+                                            ?.tasks.find(t => t.id === id);
+                        
+                                        if (taskInDisplayData) {
+                                            taskInDisplayData.taskCode = taskCodeInput.value; // Update the taskCode
+                                            localStorage.setItem('displayData', JSON.stringify(displayData)); // Save to localStorage
+                                        }
+                                    });
+                        
+                                    const tdTaskCode = document.createElement('td');
+                                    tdTaskCode.appendChild(taskCodeInput);
+                                    return tdTaskCode;
+                                })(), // Task Code column as editable input
                                 name,
                                 taskResultSet || '',
                                 result.result,
@@ -241,23 +261,19 @@
                                 insertGroup || '',
                                 associatedStatus
                             ].forEach(value => {
-                                const td = document.createElement('td');
-                                td.textContent = value;
-
+                                const td = value instanceof HTMLElement ? value : document.createElement('td');
+                                if (!(value instanceof HTMLElement)) {
+                                    td.textContent = value;
+                                }
+                        
                                 if (value === associatedStatus) {
                                     td.style.color = 'red'; // Set the text color to red
                                 }
-                                
-                                row.appendChild(td);
-                            });
-                        } else {
-                            ['', '', '', '', '', result.result, insertTaskCode || '', insertTask || '', insertGroup || '', associatedStatus]
-                            .forEach(value => {
-                                const td = document.createElement('td');
-                                td.textContent = value;
+                        
                                 row.appendChild(td);
                             });
                         }
+
                         tbody.appendChild(row);
                     });
 
