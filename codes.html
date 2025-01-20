@@ -179,6 +179,17 @@
                 const tbody = document.createElement('tbody');
                 workflow.tasks.forEach(task => {
                     const { id, name, milestone, taskNumber, results = [] } = task;
+
+                    const taskCode = generateTaskCode(workflowPrefix, name); // Task code generation
+
+                    // Update the task in displayData
+                    const taskInDisplayData = displayData
+                        .find(wf => wf.workflowId === workflow.workflowId)
+                        ?.tasks.find(t => t.id === id);
+                    
+                    if (taskInDisplayData) {
+                        taskInDisplayData.taskCode = taskCode; // Add/update the taskCode field
+                    }
         
                     // Generate Task Result Set content
                     const taskResultSet = results
@@ -281,6 +292,9 @@
         document.getElementById('workflowPrefix').addEventListener('input', () => {
             renderTables(); // Re-render tables when the prefix changes
         });
+
+        localStorage.setItem('displayData', JSON.stringify(displayData));
+
         
         // Render tables on page load
         renderTables();
