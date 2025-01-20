@@ -68,7 +68,6 @@
                     "Review": "Rev"
                 };
             
-                console.log("Original Task Name:", name);
             
                 // Step 1: Replace words in the task name based on the dictionary
                 let words = name
@@ -81,28 +80,22 @@
                         key => key.toLowerCase() === normalizedWord
                     );
                     if (replacement) {
-                        console.log(`Word "${word}" replaced with "${wordReplacements[replacement]}"`);
                         return wordReplacements[replacement].toUpperCase(); // Return shortened word in uppercase
                     } else {
-                        console.log(`Word "${word}" not found in dictionary`);
                         return word.toUpperCase(); // Return original word in uppercase
                     }
                 });
             
-                console.log("Modified Words:", modifiedWords);
             
                 // Step 2: Remove non-letter characters and ensure all caps
                 let sanitizedName = modifiedWords.join('').replace(/[^a-zA-Z]/g, '').toUpperCase();
-                console.log("Sanitized Task Name:", sanitizedName);
             
                 // Combine prefix and sanitized name
                 let taskCode = `${prefix.toUpperCase()}-${sanitizedName}`;
             
-                console.log("Initial Task Code:", taskCode);
             
                 // Step 3: Only shorten if task code length exceeds 10 characters
                 if (taskCode.length > 10) {
-                    console.log("Task code exceeds 10 characters, applying truncation rules.");
                     // Preserve dictionary-shortened words, apply truncation only to the remaining part
                     const preservedWords = modifiedWords.map(word => {
                         // Preserve dictionary-shortened words
@@ -112,7 +105,6 @@
                         return replacement ? { word: word.toUpperCase(), preserved: true } : { word: word.toUpperCase(), preserved: false };
                     });
             
-                    console.log("Preserved Words Info:", preservedWords);
             
                     // Rebuild the task code with truncation applied only if necessary
                     taskCode = `${prefix.toUpperCase()}-`;
@@ -141,7 +133,6 @@
                     });
                 }
             
-                console.log("Final Task Code:", taskCode.toUpperCase());
                 return taskCode.toUpperCase(); // Ensure final task code is in uppercase
             }
 
