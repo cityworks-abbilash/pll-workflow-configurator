@@ -214,7 +214,12 @@
                                 const secondLastDashIndex = insertSelection.lastIndexOf('-', lastDashIndex - 1);
                                 const taskId = insertSelection.substring(secondLastDashIndex + 1);
                                 insertTask = taskName;
-                                insertTaskCode = taskId;
+                                // Search for the task in displayData and get its Task Code
+                                const taskFromDisplayData = displayData
+                                    .flatMap(workflow => workflow.tasks)
+                                    .find(task => task.id === taskId);
+                        
+                                insertTaskCode = taskFromDisplayData ? taskFromDisplayData.taskCode : taskId; // Use Task Code if found, otherwise fallback to Task ID
                             }
                             if (groups.includes(insertSelection)) {
                                 insertGroup = insertSelection;
