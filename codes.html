@@ -70,8 +70,14 @@
                 // Step 1: Replace words in the task name based on the dictionary
                 let modifiedName = name
                     .replace(/[^\w\s]/g, '') // Remove punctuation and special characters
-                    .split(' ') // Split into individual words
-                    .map(word => wordReplacements[word] || word) // Replace words based on the dictionary
+                    .split(/\s+/) // Split into individual words
+                    .map(word => {
+                        const normalizedWord = word.toLowerCase(); // Normalize word for matching
+                        const replacement = Object.keys(wordReplacements).find(
+                            key => key.toLowerCase() === normalizedWord
+                        );
+                        return replacement ? wordReplacements[replacement] : word; // Replace or keep original
+                    })
                     .join(' ');
             
                 // Step 2: Remove non-letter characters and convert to uppercase
@@ -101,6 +107,7 @@
                 // Ensure the final task code is exactly 10 characters
                 return taskCode.slice(0, 10);
             }
+
 
 
 
