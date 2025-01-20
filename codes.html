@@ -67,24 +67,37 @@
                     "Engineer": "Eng"
                 };
             
+                console.log("Original Task Name:", name);
+            
                 // Step 1: Replace words in the task name based on the dictionary
                 let modifiedName = name
                     .replace(/[^\w\s]/g, '') // Remove punctuation and special characters
                     .split(/\s+/) // Split into individual words
                     .map(word => {
+                        console.log("Processing word:", word); // Log each word before processing
                         const normalizedWord = word.toLowerCase(); // Normalize word for matching
+                        console.log("Normalized word:", normalizedWord); // Log the normalized word
                         const replacement = Object.keys(wordReplacements).find(
                             key => key.toLowerCase() === normalizedWord
                         );
+                        if (replacement) {
+                            console.log(`Word "${word}" replaced with "${wordReplacements[replacement]}"`);
+                        } else {
+                            console.log(`Word "${word}" not found in dictionary`);
+                        }
                         return replacement ? wordReplacements[replacement] : word; // Replace or keep original
                     })
                     .join(' ');
             
+                console.log("Modified Task Name:", modifiedName);
+            
                 // Step 2: Remove non-letter characters and convert to uppercase
                 let sanitizedName = modifiedName.replace(/[^a-zA-Z]/g, '').toUpperCase();
+                console.log("Sanitized Task Name:", sanitizedName);
             
                 // Combine prefix and sanitized name
                 let taskCode = `${prefix}-${sanitizedName}`;
+                console.log("Initial Task Code:", taskCode);
             
                 // Step 3: Shorten the task code while preserving full words
                 if (taskCode.length > 10) {
@@ -93,11 +106,13 @@
             
                     // Remove vowels first
                     taskCode = `${prefix}-${nameWithoutVowels}`;
+                    console.log("Task Code After Removing Vowels:", taskCode);
             
                     // If still longer than 10 characters, remove consonants from the end
                     if (taskCode.length > 10) {
                         let reducedName = nameWithoutVowels.split('');
                         while (`${prefix}-${reducedName.join('')}`.length > 10) {
+                            console.log("Removing last consonant:", reducedName[reducedName.length - 1]);
                             reducedName.pop(); // Remove last character
                         }
                         taskCode = `${prefix}-${reducedName.join('')}`;
@@ -105,8 +120,12 @@
                 }
             
                 // Ensure the final task code is exactly 10 characters
-                return taskCode.slice(0, 10);
+                taskCode = taskCode.slice(0, 10);
+                console.log("Final Task Code:", taskCode);
+            
+                return taskCode;
             }
+
 
 
 
