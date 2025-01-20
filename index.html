@@ -14,6 +14,19 @@
             padding: 10px 0; /* Optional: Add some spacing */
             border-bottom: 1px solid #ddd; /* Optional: Add a subtle border for clarity */
         }
+        .button-container {
+            position: absolute;
+            top: 10px; /* Adjust as needed */
+            left: 0;
+            right: 0;
+            padding: 0 20px; /* Optional: Add spacing from edges */
+        }
+        #restartButton {
+            float: left;
+        }
+        #nextButton {
+            float: right;
+        }
     </style>
 
 </head>
@@ -22,8 +35,11 @@
     <div id="fixedHeader" class="sticky-header">
         <h1 class="text-center">Cityworks Workflow Configurator</h1>
         <p class="text-center">Upload your Draw.io (.drawio) file to configure your workflow.</p>
-        <button id="restartButton" class="btn btn-danger d-none">Restart</button>
-        <button id="nextButton" class="btn btn-primary mt-3">Next</button>
+        <div class="button-container d-flex justify-content-between">
+            <button id="restartButton" class="btn btn-danger d-none">Restart</button>
+            <button id="nextButton" class="btn btn-primary">Next</button>
+        </div>
+
     </div>    
     
     <div class="container mt-5">
