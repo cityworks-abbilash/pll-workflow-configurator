@@ -14,6 +14,19 @@
             padding: 10px 0; /* Optional: Add some spacing */
             border-bottom: 1px solid #ddd; /* Optional: Add a subtle border for clarity */
         }
+        .fixed-footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
     </style>
 
 </head>
@@ -32,16 +45,10 @@
             <input type="file" id="drawioUpload" class="form-control" accept=".drawio">
         </div>
 
-        <!-- Restart Button -->
-        <div class="mb-4 text-center">
-            <button id="restartButton" class="btn btn-danger d-none">Restart</button>
-        </div>
-
         <!-- Task and Results Section -->
         <div id="taskContainer" class="d-none">
             <h3>Tasks and Results</h3>
             <div id="tasks" class="mt-3"></div>
-            <button id="nextButton" class="btn btn-primary mt-3">Next</button>
         </div>
     </div>
 
@@ -264,5 +271,12 @@
             localStorage.setItem('workflowData', JSON.stringify(savedData));
         }
     </script>
+
+    <footer id="fixedFooter" class="fixed-footer">
+        <button id="restartButton" class="btn btn-danger d-none">Restart</button>
+        <button id="nextButton" class="btn btn-primary mt-3">Next</button>
+    </footer>
+
+    
 </body>
 </html>
