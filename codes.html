@@ -81,33 +81,32 @@
                     );
                     if (replacement) {
                         console.log(`Word "${word}" replaced with "${wordReplacements[replacement]}"`);
-                        return wordReplacements[replacement]; // Return shortened word
+                        return wordReplacements[replacement].toUpperCase(); // Return shortened word in uppercase
                     } else {
                         console.log(`Word "${word}" not found in dictionary`);
-                        return word; // Return original word
+                        return word.toUpperCase(); // Return original word in uppercase
                     }
                 });
             
                 console.log("Modified Words:", modifiedWords);
             
-                // Step 2: Remove non-letter characters and convert to uppercase
+                // Step 2: Remove non-letter characters and ensure all caps
                 let sanitizedName = modifiedWords.join(' ').replace(/[^a-zA-Z]/g, '').toUpperCase();
                 console.log("Sanitized Task Name:", sanitizedName);
             
                 // Separate dictionary-shortened words from non-shortened ones
-                const preservedWords = modifiedWords
-                    .map(word => {
-                        // Preserve dictionary-shortened words
-                        const replacement = Object.values(wordReplacements).find(
-                            value => word === value
-                        );
-                        return replacement ? { word, preserved: true } : { word, preserved: false };
-                    });
+                const preservedWords = modifiedWords.map(word => {
+                    // Preserve dictionary-shortened words
+                    const replacement = Object.values(wordReplacements).find(
+                        value => word.toUpperCase() === value.toUpperCase()
+                    );
+                    return replacement ? { word: word.toUpperCase(), preserved: true } : { word: word.toUpperCase(), preserved: false };
+                });
             
                 console.log("Preserved Words Info:", preservedWords);
             
                 // Combine prefix and sanitized name
-                let taskCode = `${prefix}-`;
+                let taskCode = `${prefix.toUpperCase()}-`;
             
                 // Add preserved words directly and truncate others
                 let remainingLength = 10 - prefix.length - 1; // Subtract prefix and hyphen
@@ -133,9 +132,10 @@
                     }
                 });
             
-                console.log("Final Task Code:", taskCode);
-                return taskCode;
+                console.log("Final Task Code:", taskCode.toUpperCase());
+                return taskCode.toUpperCase(); // Ensure final task code is in uppercase
             }
+
 
 
 
