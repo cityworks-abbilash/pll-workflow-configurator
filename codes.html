@@ -80,27 +80,28 @@
                 // Combine prefix and sanitized name
                 let taskCode = `${prefix}-${sanitizedName}`;
             
-                // Step 3: Shorten the task code while preserving shortened words
+                // Step 3: Shorten the task code while preserving full words
                 if (taskCode.length > 10) {
-                    // Split sanitized name into individual words
-                    const words = sanitizedName.split(' ');
-                    let shortenedName = '';
+                    const vowels = ['A', 'E', 'I', 'O', 'U'];
+                    let nameWithoutVowels = sanitizedName.split('').filter(char => !vowels.includes(char)).join('');
             
-                    // Add words one by one while staying within the 10-character limit
-                    for (const word of words) {
-                        if ((`${prefix}-${shortenedName}${word}`).length <= 10) {
-                            shortenedName += word;
-                        } else {
-                            break; // Stop adding words when exceeding the limit
+                    // Remove vowels first
+                    taskCode = `${prefix}-${nameWithoutVowels}`;
+            
+                    // If still longer than 10 characters, remove consonants from the end
+                    if (taskCode.length > 10) {
+                        let reducedName = nameWithoutVowels.split('');
+                        while (`${prefix}-${reducedName.join('')}`.length > 10) {
+                            reducedName.pop(); // Remove last character
                         }
+                        taskCode = `${prefix}-${reducedName.join('')}`;
                     }
-            
-                    taskCode = `${prefix}-${shortenedName}`;
                 }
             
                 // Ensure the final task code is exactly 10 characters
                 return taskCode.slice(0, 10);
             }
+
 
 
         
