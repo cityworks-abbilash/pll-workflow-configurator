@@ -91,50 +91,59 @@
                 console.log("Modified Words:", modifiedWords);
             
                 // Step 2: Remove non-letter characters and ensure all caps
-                let sanitizedName = modifiedWords.join(' ').replace(/[^a-zA-Z]/g, '').toUpperCase();
+                let sanitizedName = modifiedWords.join('').replace(/[^a-zA-Z]/g, '').toUpperCase();
                 console.log("Sanitized Task Name:", sanitizedName);
             
-                // Separate dictionary-shortened words from non-shortened ones
-                const preservedWords = modifiedWords.map(word => {
-                    // Preserve dictionary-shortened words
-                    const replacement = Object.values(wordReplacements).find(
-                        value => word.toUpperCase() === value.toUpperCase()
-                    );
-                    return replacement ? { word: word.toUpperCase(), preserved: true } : { word: word.toUpperCase(), preserved: false };
-                });
-            
-                console.log("Preserved Words Info:", preservedWords);
-            
                 // Combine prefix and sanitized name
-                let taskCode = `${prefix.toUpperCase()}-`;
+                let taskCode = `${prefix.toUpperCase()}-${sanitizedName}`;
             
-                // Add preserved words directly and truncate others
-                let remainingLength = 10 - prefix.length - 1; // Subtract prefix and hyphen
-                preservedWords.forEach(({ word, preserved }) => {
-                    if (preserved) {
-                        // Always include preserved words
-                        if (remainingLength >= word.length) {
-                            taskCode += word;
-                            remainingLength -= word.length;
+                console.log("Initial Task Code:", taskCode);
+            
+                // Step 3: Only shorten if task code length exceeds 10 characters
+                if (taskCode.length > 10) {
+                    console.log("Task code exceeds 10 characters, applying truncation rules.");
+                    // Preserve dictionary-shortened words, apply truncation only to the remaining part
+                    const preservedWords = modifiedWords.map(word => {
+                        // Preserve dictionary-shortened words
+                        const replacement = Object.values(wordReplacements).find(
+                            value => word.toUpperCase() === value.toUpperCase()
+                        );
+                        return replacement ? { word: word.toUpperCase(), preserved: true } : { word: word.toUpperCase(), preserved: false };
+                    });
+            
+                    console.log("Preserved Words Info:", preservedWords);
+            
+                    // Rebuild the task code with truncation applied only if necessary
+                    taskCode = `${prefix.toUpperCase()}-`;
+                    let remainingLength = 10 - taskCode.length;
+            
+                    preservedWords.forEach(({ word, preserved }) => {
+                        if (preserved) {
+                            // Always include preserved words
+                            if (remainingLength >= word.length) {
+                                taskCode += word;
+                                remainingLength -= word.length;
+                            }
+                        } else {
+                            // Apply truncation rules to other words
+                            const vowels = ['A', 'E', 'I', 'O', 'U'];
+                            let truncatedWord = word
+                                .split('')
+                                .filter(char => !vowels.includes(char)) // Remove vowels
+                                .join('');
+                            if (truncatedWord.length > remainingLength) {
+                                truncatedWord = truncatedWord.slice(0, remainingLength); // Truncate further if needed
+                            }
+                            taskCode += truncatedWord;
+                            remainingLength -= truncatedWord.length;
                         }
-                    } else {
-                        // Apply truncation rules to other words
-                        const vowels = ['A', 'E', 'I', 'O', 'U'];
-                        let truncatedWord = word
-                            .split('')
-                            .filter(char => !vowels.includes(char)) // Remove vowels
-                            .join('');
-                        if (truncatedWord.length > remainingLength) {
-                            truncatedWord = truncatedWord.slice(0, remainingLength); // Truncate further if needed
-                        }
-                        taskCode += truncatedWord;
-                        remainingLength -= truncatedWord.length;
-                    }
-                });
+                    });
+                }
             
                 console.log("Final Task Code:", taskCode.toUpperCase());
                 return taskCode.toUpperCase(); // Ensure final task code is in uppercase
             }
+
 
 
 
