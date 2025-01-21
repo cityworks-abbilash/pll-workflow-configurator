@@ -1,4 +1,4 @@
-++<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,6 +49,11 @@
             align-items: center; /* Align items vertically */
             gap: 10px; /* Add spacing between the text and dropdown */
         }
+        .status-dropdown {
+            width: 100%; /* Let it use all available space */
+            max-width: 150px; /* Limit the maximum width */
+        }
+
 
 
     </style>
@@ -233,7 +238,8 @@
                         const listItem = document.createElement('li');
                         if (connection !== 'No text associated with this line') {
                             const dropdown = document.createElement('select');
-                            dropdown.className = 'form-select mt-1';
+                            dropdown.className = 'form-select mt-1 status-dropdown'; // Add a custom class
+
 
                             // Populate dropdown with dynamic statuses
                             dropdown.innerHTML = `<option value="">Select Status</option>`;
