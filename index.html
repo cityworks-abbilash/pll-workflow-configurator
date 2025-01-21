@@ -50,9 +50,14 @@
             gap: 10px; /* Add spacing between the text and dropdown */
         }
         .status-dropdown {
+            color: red;
             width: 100%; /* Let it use all available space */
             max-width: 150px; /* Limit the maximum width */
         }
+        .connection-text {
+            font-weight: bold; /* Makes the text bold */
+        }
+
 
 
 
@@ -259,7 +264,7 @@
         
                             const connectionText = document.createElement('span');
                             connectionText.innerText = connection;
-                            connectionText.className = 'me-2';
+                            connectionText.className = 'me-2 connection-text';
         
                             listItem.appendChild(connectionText);
                             listItem.appendChild(dropdown);
