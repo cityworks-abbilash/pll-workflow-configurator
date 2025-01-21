@@ -49,20 +49,28 @@
         align-items: center; /* Align items vertically */
         gap: 10px; /* Add spacing between the text and dropdown */
     }
+
+    .connection-text {
+        font-weight: bold; /* Makes the text bold */
+    }
     .status-dropdown {
         color: red; /* Default color for selected options */
         width: 100%; /* Let it use all available space */
         max-width: 150px; /* Limit the maximum width */
     }
-    .connection-text {
-        font-weight: bold; /* Makes the text bold */
-    }
+    
     .status-dropdown option {
-        color: red; /* Makes all options red */
+        color: red; /* Make all options red */
     }
+    
     .status-dropdown option[value=""] {
-        color: black; /* Placeholder (default "Select Status") as black */
+        color: black; /* Placeholder ("Select Status") always black */
     }
+    
+    .status-dropdown:has(option[value=""]:checked) {
+        color: black; /* Change the dropdown text to black when the placeholder is selected */
+    }
+
 </style>
 
 
