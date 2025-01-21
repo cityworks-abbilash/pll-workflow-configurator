@@ -59,28 +59,44 @@
         .remove-btn:hover {
             background-color: darkred;
         }
-        .back-btn {
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000; /* Ensures it stays above other elements */
+            background-color: white; /* Optional: Matches the page background */
+            padding: 10px 0; /* Optional: Add some spacing */
+            border-bottom: 1px solid #ddd; /* Optional: Add a subtle border for clarity */
+        }
+        .button-container {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 10px; /* Adjust as needed */
+            left: 0;
+            right: 0;
+            padding: 0 20px; /* Optional: Add spacing from edges */
+        }
+        .back-btn {
+            float: left;
         }
         .next-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+            float: right;
         }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <!-- Back Button -->
-        <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
-        
-        <!-- Next Button -->
-        <button class="btn btn-success next-btn" onclick="goToNextPage()">Next</button>
-
+   
+    <div id="fixedHeader" class="sticky-header">
         <h1 class="text-center">Workflow Association</h1>
         <p class="text-center">Drag task bubbles into the workflow boxes below.</p>
+        <div class="button-container d-flex justify-content-between">
+            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
+            <button class="btn btn-success next-btn" onclick="goToNextPage()">Next</button>
+        </div>
+
+    </div>  
+
+    
+    <div class="container mt-5">
+
 
         <!-- Workflow Boxes -->
         <div class="row" id="workflowContainer">
