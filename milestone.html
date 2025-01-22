@@ -12,18 +12,43 @@
             padding: 20px;
             margin-bottom: 20px;
         }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000; /* Ensures it stays above other elements */
+            background-color: white; /* Optional: Matches the page background */
+            padding: 10px 0; /* Optional: Add some spacing */
+            border-bottom: 1px solid #ddd; /* Optional: Add a subtle border for clarity */
+        }
+        .button-container {
+            position: absolute;
+            top: 10px; /* Adjust as needed */
+            left: 0;
+            right: 0;
+            padding: 0 20px; /* Optional: Add spacing from edges */
+        }
+        .back-btn {
+            float: left;
+        }
+        .next-btn {
+            float: right;
+        }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <!-- Navigation Buttons -->
-        <div class="d-flex justify-content-between">
-            <button class="btn btn-secondary" onclick="goBack()">Back</button>
-            <button class="btn btn-success" onclick="proceed()">Next</button>
-        </div>
 
+    <div id="fixedHeader" class="sticky-header">
         <h1 class="text-center mt-3">Milestone and Task Numbers</h1>
         <p class="text-center">Assign milestones and task numbers to tasks.</p>
+        <div class="button-container d-flex justify-content-between">
+            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
+            <button class="btn btn-success next-btn" onclick="goToNextPage()">Next</button>
+        </div>
+
+    </div>  
+
+    
+    <div class="container mt-5">
 
         <!-- Workflow Tasks Section -->
         <div id="taskGroups"></div>
