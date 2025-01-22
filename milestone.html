@@ -33,6 +33,20 @@
         .next-btn {
             float: right;
         }
+        .task-bubble {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            margin: 5px;
+            cursor: grab;
+        }
+        
+        .task-bubble:hover {
+            background-color: #0056b3;
+        }
+
     </style>
 </head>
 <body>
@@ -103,8 +117,8 @@
                     taskRow.dataset.id = taskId; // Keep task ID behind the scenes
 
                     const taskLabel = document.createElement('span');
-                    taskLabel.textContent = `Task: ${taskName}`;
-                    taskLabel.className = 'me-3';
+                    taskLabel.textContent = `${taskName}`;
+                    taskLabel.className = 'task-bubble';
 
                     const milestoneInput = document.createElement('input');
                     milestoneInput.type = 'number';
