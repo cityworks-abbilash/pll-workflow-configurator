@@ -24,15 +24,27 @@
 
 
         .dropdown-button {
-            display: block;
+            display: flex;
+            justify-content: space-between; /* Space between text and arrow */
+            align-items: center; /* Center align the text and arrow vertically */
             width: 100%;
             text-align: left;
             background-color: #fff;
             border: 1px solid #ccc;
-            padding: 8px;
+            padding: 8px 12px; /* Add padding for spacing */
             border-radius: 4px;
             cursor: pointer;
+            position: relative;
         }
+        
+        .dropdown-button::after {
+            content: '\25BC'; /* Unicode for downward arrow */
+            font-size: 0.8rem;
+            color: #666;
+            margin-left: 10px; /* Space between text and arrow */
+            pointer-events: none; /* Prevent interactions with the arrow */
+        }
+
         .dropdown-menu {
             display: none;
             position: absolute;
