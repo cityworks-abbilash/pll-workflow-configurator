@@ -141,6 +141,11 @@
             margin-bottom: 20px;
             background-color: #f9f9f9; /* Optional: Add a light background */
         }
+        .workflow-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
 
 
 
@@ -207,8 +212,10 @@
         
                 // Add Workflow title
                 const title = document.createElement('h3');
+                title.className = 'workflow-title'; // Add the class for centering
                 title.textContent = workflow.title;
                 workflowBox.appendChild(title);
+
         
                 // Create a container for the tasks
                 const taskList = document.createElement('ul');
