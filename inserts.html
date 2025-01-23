@@ -199,10 +199,11 @@
                 if (workflow.workflowId.startsWith('subWorkflow')) {
                     acc.groups.push({
                         name: workflow.title,
-                        tasks: workflow.tasks.map(task => task.name)
+                        id: workflow.workflowId, // Include ID for subworkflows
+                        results: [] // Subworkflows may not have results like tasks
                     });
                 }
-
+        
                 // Add individual tasks
                 workflow.tasks.forEach(task => {
                     acc.tasks.push({
@@ -214,6 +215,7 @@
             }
             return acc;
         }, { tasks: [], groups: [] });
+
 
         displayData
             .filter(workflow => workflow.tasks.length > 0)
@@ -267,7 +269,8 @@
                             dropdownButton.textContent = 'Select an option'; // Default dropdown text
         
                             // Check for saved selection and set the dropdown text
-                            const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`;
+                            const taskKey = `${workflow.workflowId}-${task.id || workflow.workflowId}-${result.result || ''}`;
+
                             const savedValue = insertsData[taskKey];
         
                             if (savedValue) {
@@ -311,22 +314,25 @@
                             });
                             dropdownMenu.appendChild(clearOption);
         
-                            tasksAndGroups.tasks.forEach(taskOption => {
+                            tasksAndGroups.tasks.concat(tasksAndGroups.groups).forEach(option => {
                                 const dropdownItem = document.createElement('div');
                                 dropdownItem.className = 'dropdown-item';
                                 dropdownItem.innerHTML = `
-                                    <span class="main-text">${taskOption.name}</span>
-                                    <span class="additional-info">Results: ${formatResults(taskOption.results)}</span>
+                                    <span class="main-text">${option.name}</span>
+                                    <span class="additional-info">
+                                        ${option.results.length > 0 ? `Results: ${formatResults(option.results)}` : 'Subworkflow'}
+                                    </span>
                                 `;
                                 dropdownItem.addEventListener('click', () => {
-                                    const insertValue = `${taskOption.name}-${taskOption.id}`;
+                                    const insertValue = `${option.name}-${option.id}`;
                                     insertsData[taskKey] = insertValue;
                                     localStorage.setItem('insertsData', JSON.stringify(insertsData));
-                                    dropdownButton.textContent = taskOption.name;
+                                    dropdownButton.textContent = option.name;
                                     dropdownMenu.classList.remove('visible');
                                 });
                                 dropdownMenu.appendChild(dropdownItem);
                             });
+
         
                             dropdownContainer.appendChild(dropdownButton);
                             taskRight.appendChild(dropdownLabel); // Append the label to the right container
