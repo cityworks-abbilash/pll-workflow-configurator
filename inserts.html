@@ -106,6 +106,13 @@
         .task-bubble:hover {
             background-color: #0056b3;
         }
+        .task-row {
+            display: flex; /* Enable flex layout */
+            justify-content: space-between; /* Align items to opposite sides */
+            align-items: center; /* Vertically align items */
+            margin-bottom: 10px; /* Add spacing between task rows */
+        }
+
 
     </style>
 </head>
@@ -178,18 +185,32 @@
         
                 workflow.tasks.forEach(task => {
                     // Task item
-                    const taskItem = document.createElement('div');
+                    const taskRow = document.createElement('div');
+                    taskRow.className = 'task-row'; // Apply the new flexbox class
                     
                     const taskBubble = document.createElement('span');
                     taskBubble.className = 'task-bubble';
                     taskBubble.textContent = task.name;
                     
+                    taskRow.appendChild(taskBubble);
                     
-                    taskItem.appendChild(taskBubble);
+                    // If results exist, add the dropdown to the right
+                    if (task.results.length > 0) {
+                        task.results.forEach(result => {
+                            const dropdownContainer = document.createElement('div');
+                            dropdownContainer.className = 'custom-dropdown';
+                    
+                            const dropdownButton = document.createElement('button');
+                            dropdownButton.className = 'dropdown-button';
+                            dropdownButton.textContent = 'Select an option'; // Default dropdown text
+                    
+                            dropdownContainer.appendChild(dropdownButton);
+                            taskRow.appendChild(dropdownContainer); // Add the dropdown next to the task bubble
+                        });
+                    }
+                    
+                    taskList.appendChild(taskRow); // Add the entire row to the task list
 
-        
-                    // Append task to list
-                    taskList.appendChild(taskItem);
         
                     // Task results and dropdown
                     if (task.results.length > 0) {
