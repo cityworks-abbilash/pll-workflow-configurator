@@ -123,6 +123,12 @@
             justify-content: flex-end; /* Align dropdowns to the right */
             flex-wrap: wrap; /* Allows wrapping for many dropdowns */
         }
+        .task-group {
+            border-top: 1px dashed #cccccc; /* Dashed line above */
+            border-bottom: 1px dashed #cccccc; /* Dashed line below */
+            padding: 15px 0; /* Spacing inside the group */
+            margin: 20px 0; /* Spacing between groups */
+        }
 
 
 
@@ -304,8 +310,16 @@
                     taskRow.appendChild(taskLeft);
                     taskRow.appendChild(taskRight);
                 
-                    // Append the task row to the task list
-                    taskList.appendChild(taskRow);
+                    // Create a task group container
+                    const taskGroup = document.createElement('div');
+                    taskGroup.className = 'task-group'; // Add the dashed line class
+                    
+                    // Append the task row to the task group
+                    taskGroup.appendChild(taskRow);
+                    
+                    // Append the task group to the task list
+                    taskList.appendChild(taskGroup);
+
                 });
 
         
