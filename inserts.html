@@ -182,13 +182,12 @@
                     
                     const taskBubble = document.createElement('span');
                     taskBubble.className = 'task-bubble';
-                    taskBubble.textContent = `Task: ${task.name}`;
+                    taskBubble.textContent = task.name;
                     
                     const taskDetails = document.createElement('span');
                     taskDetails.textContent = ` (Milestone: ${task.milestone}, Task Number: ${task.taskNumber})`;
                     
                     taskItem.appendChild(taskBubble);
-                    taskItem.appendChild(taskDetails);
 
         
                     // Append task to list
