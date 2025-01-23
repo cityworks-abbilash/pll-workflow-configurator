@@ -269,7 +269,7 @@
                             dropdownButton.textContent = 'Select an option'; // Default dropdown text
         
                             // Check for saved selection and set the dropdown text
-                            const taskKey = `${workflow.workflowId}-${task.id || workflow.workflowId}-${result.result || ''}`;
+                            const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`;
 
                             const savedValue = insertsData[taskKey];
         
