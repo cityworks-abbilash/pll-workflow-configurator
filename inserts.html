@@ -217,6 +217,11 @@
                     // Task results and dropdown
                     if (task.results.length > 0) {
                         task.results.forEach(result => {
+
+                            const dropdownLabel = document.createElement('span');
+                            dropdownLabel.className = 'dropdown-label';
+                            dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
+                            
                             const dropdownContainer = document.createElement('div');
                             dropdownContainer.className = 'custom-dropdown';
                 
@@ -287,6 +292,8 @@
                             });
                 
                             dropdownContainer.appendChild(dropdownButton);
+                            taskRight.appendChild(dropdownLabel); // Append the label to the right container
+                            taskRight.appendChild(dropdownContainer); // Append the dropdown to the right container
                             dropdownContainer.appendChild(dropdownMenu);
                 
                             taskRight.appendChild(dropdownContainer); // Add dropdown to the right container
