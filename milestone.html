@@ -163,9 +163,14 @@
                         restoreMilestones(); // Reorder tasks dynamically on input
                     });
 
-                    taskRow.appendChild(taskLabel);
-                    taskRow.appendChild(milestoneInput);
-                    taskRow.appendChild(taskNumberInput);
+                    const inputsContainer = document.createElement('div');
+                    inputsContainer.style.display = 'flex'; // Ensure inputs stay together
+                    inputsContainer.appendChild(milestoneInput);
+                    inputsContainer.appendChild(taskNumberInput);
+                    
+                    taskRow.appendChild(taskLabel); // Add task name to the left
+                    taskRow.appendChild(inputsContainer); // Add grouped inputs to the right
+
 
                     workflowSection.appendChild(taskRow);
                 });
