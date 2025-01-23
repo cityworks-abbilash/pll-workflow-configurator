@@ -72,17 +72,42 @@
         .search-input:focus {
             border-color: #007bff;
         }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000; /* Ensures it stays above other elements */
+            background-color: white; /* Optional: Matches the page background */
+            padding: 10px 0; /* Optional: Add some spacing */
+            border-bottom: 1px solid #ddd; /* Optional: Add a subtle border for clarity */
+        }
+        .button-container {
+            position: absolute;
+            top: 10px; /* Adjust as needed */
+            left: 0;
+            right: 0;
+            padding: 0 20px; /* Optional: Add spacing from edges */
+        }
+        .back-btn {
+            float: left;
+        }
+        .next-btn {
+            float: right;
+        }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="d-flex justify-content-between mb-4">
+
+    <div id="fixedHeader" class="sticky-header">
+        <h1 class="text-center">Workflow Inserts</h1>
+        <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
+        <div class="button-container d-flex justify-content-between">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
             <button class="btn btn-primary" onclick="goToCodes()">Next</button>
         </div>
 
-        <h1 class="text-center">Workflow Inserts</h1>
-        <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
+    </div>  
+    
+    <div class="container mt-5">
 
         <div id="workflows"></div>
     </div>
