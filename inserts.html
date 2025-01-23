@@ -75,14 +75,18 @@
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="d-flex justify-content-between mb-4">
+    <div id="fixedHeader" class="sticky-header">
+        <h1 class="text-center">Workflow Inserts</h1>
+        <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
+        <div class="button-container d-flex justify-content-between">
             <button class="btn btn-secondary" onclick="goBack()">Back</button>
             <button class="btn btn-primary" onclick="goToCodes()">Next</button>
         </div>
 
-        <h1 class="text-center">Workflow Inserts</h1>
-        <p class="text-center">View workflows, tasks, and their associated results and statuses.</p>
+    </div>  
+
+    
+    <div class="container mt-5">
 
         <div id="workflows"></div>
     </div>
