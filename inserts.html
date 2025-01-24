@@ -132,6 +132,14 @@
             padding: 15px 0; /* Spacing inside the group */
             margin: 20px 0; /* Spacing between groups */
         }
+        .workflow-box {
+            border: 2px solid #007bff; /* Blue border for clarity */
+            border-radius: 8px; /* Rounded corners */
+            padding: 15px; /* Inner padding */
+            margin-bottom: 20px; /* Spacing between workflows */
+            background-color: #f9f9f9; /* Light gray background */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
 
 
 
@@ -193,6 +201,10 @@
         displayData
             .filter(workflow => workflow.tasks.length > 0)
             .forEach(workflow => {
+                // Create a container for the workflow
+                const workflowBox = document.createElement('div');
+                workflowBox.className = 'workflow-box'; // Add class for the box styling
+        
                 const workflowSection = document.createElement('div');
                 workflowSection.className = 'mb-5';
         
@@ -209,42 +221,40 @@
                     // Create the task row container
                     const taskRow = document.createElement('div');
                     taskRow.className = 'task-row'; // Flex container for alignment
-                
+        
                     // Left section for task bubble
                     const taskLeft = document.createElement('div');
                     taskLeft.className = 'task-left'; // Container for the task bubble
-                
+        
                     const taskBubble = document.createElement('span');
                     taskBubble.className = 'task-bubble';
                     taskBubble.textContent = task.name;
-                
+        
                     taskLeft.appendChild(taskBubble);
-                
+        
                     // Right section for dropdowns
                     const taskRight = document.createElement('div');
                     taskRight.className = 'task-right'; // Container for dropdowns
-                
+        
                     // Task results and dropdown
                     if (task.results.length > 0) {
                         task.results.forEach(result => {
-
                             const dropdownLabel = document.createElement('span');
                             dropdownLabel.className = 'dropdown-label';
                             dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
                             taskRight.appendChild(dropdownLabel);
-
-                            
+        
                             const dropdownContainer = document.createElement('div');
                             dropdownContainer.className = 'custom-dropdown';
-                
+        
                             const dropdownButton = document.createElement('button');
                             dropdownButton.className = 'dropdown-button';
                             dropdownButton.textContent = 'Select an option'; // Default dropdown text
-                
+        
                             // Check for saved selection and set the dropdown text
                             const taskKey = `${workflow.workflowId}-${task.id}-${result.result}`;
                             const savedValue = insertsData[taskKey];
-                
+        
                             if (savedValue) {
                                 if (tasksAndGroups.groups.some(group => group.name === savedValue)) {
                                     dropdownButton.textContent = savedValue; // Display group name for subworkflows
@@ -256,15 +266,14 @@
                                     dropdownButton.textContent = savedValue; // Display the full value for standalone tasks
                                 }
                             }
-
-                
+        
                             dropdownButton.addEventListener('click', () => {
                                 dropdownMenu.classList.toggle('visible');
                             });
-                
+        
                             const dropdownMenu = document.createElement('div');
                             dropdownMenu.className = 'dropdown-menu';
-                
+        
                             // Populate dropdown with tasks and clear option
                             const searchInput = document.createElement('input');
                             searchInput.className = 'search-input';
@@ -277,7 +286,7 @@
                                 });
                             });
                             dropdownMenu.appendChild(searchInput);
-                
+        
                             const clearOption = document.createElement('div');
                             clearOption.className = 'dropdown-item';
                             clearOption.textContent = 'Clear Selection';
@@ -288,7 +297,7 @@
                                 dropdownMenu.classList.remove('visible'); // Close the dropdown menu
                             });
                             dropdownMenu.appendChild(clearOption);
-                
+        
                             tasksAndGroups.tasks.forEach(taskOption => {
                                 const dropdownItem = document.createElement('div');
                                 dropdownItem.className = 'dropdown-item';
@@ -305,9 +314,8 @@
                                 });
                                 dropdownMenu.appendChild(dropdownItem);
                             });
-
+        
                             tasksAndGroups.groups.forEach(groupOption => {
-                                
                                 const dropdownItem = document.createElement('div');
                                 dropdownItem.className = 'dropdown-item';
                                 dropdownItem.innerHTML = `
@@ -318,40 +326,39 @@
                                     insertsData[taskKey] = groupOption.name; // Save selected group name
                                     localStorage.setItem('insertsData', JSON.stringify(insertsData));
                                     dropdownButton.textContent = groupOption.name; // Update button text
-                                    dropdownMenu.classList.remove('visible'); // Close dropdown menu
+                                    dropdownMenu.classList.remove('visible');
                                 });
                                 dropdownMenu.appendChild(dropdownItem);
                             });
-
-                
+        
                             dropdownContainer.appendChild(dropdownButton);
                             dropdownContainer.appendChild(dropdownMenu);
-                
+        
                             taskRight.appendChild(dropdownContainer); // Add dropdown to the right container
                         });
                     }
-                
+        
                     // Append left and right sections to the task row
                     taskRow.appendChild(taskLeft);
                     taskRow.appendChild(taskRight);
-                
+        
                     // Append the task row to the task list
                     // Create a task group container
                     const taskGroup = document.createElement('div');
                     taskGroup.className = 'task-group'; // Add the dashed line class
-                    
+        
                     // Append the task row to the task group
                     taskGroup.appendChild(taskRow);
-                    
+        
                     // Append the task group to the task list
                     taskList.appendChild(taskGroup);
-
                 });
-
         
                 workflowSection.appendChild(taskList);
-                workflowsContainer.appendChild(workflowSection);
+                workflowBox.appendChild(workflowSection); // Append the workflow section to the workflowBox
+                workflowsContainer.appendChild(workflowBox); // Append the workflowBox to the workflows container
             });
+
 
 
         function formatResults(results) {
