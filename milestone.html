@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Milestone Page</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         .workflow-section {
             border: 1px solid #ccc;
@@ -16,9 +17,11 @@
             position: sticky;
             top: 0;
             z-index: 1000; /* Ensures it stays above other elements */
-            background-color: white; /* Optional: Matches the page background */
+            background-color: #2e78ac; /* Changed to the desired color */
+            color: white; /* Changed font color to white */
             padding: 10px 0; /* Optional: Add some spacing */
             border-bottom: 1px solid #ddd; /* Optional: Add a subtle border for clarity */
+            font-family: 'Myriad Pro', 'Arial', sans-serif; /* Use Myriad Pro or fallbacks */
         }
         .button-container {
             position: absolute;
@@ -26,25 +29,47 @@
             left: 0;
             right: 0;
             padding: 0 20px; /* Optional: Add spacing from edges */
+            align-items: center;
         }
-        .back-btn {
+        #backButton {
             float: left;
+            background-color: #2e78ac; /* Tomato color */
+            color: white; /* For any accessible text */
+            padding: 15px;
+            border: 1px solid #fff;;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .next-btn {
+        
+        #backButton:hover {
+            background-color: #225c85; /* Darker shade for hover effect */
+        }
+        #nextButton {
             float: right;
+            background-color: #2e78ac; /* Tomato color */
+            color: white; /* For any accessible text */
+            padding: 15px;
+            border: 1px solid #fff;;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #nextButton:hover {
+            background-color: #225c85; /* Darker shade for hover effect */
         }
         .task-bubble {
             display: inline-block;
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            margin: 5px;
-            cursor: grab;
+            background-color: #2e78ac; /* Blue background */
+            color: white; /* White text */
+            padding: 10px 15px; /* Padding for bubble size */
+            border-radius: 25px; /* Rounded corners for bubble */
+            margin: 5px; /* Space between bubbles */
+            cursor: default; /* Static cursor since dragging is not needed */
         }
-        
         .task-bubble:hover {
-            background-color: #0056b3;
+            background-color: #0056b3; /* Darker blue when hovered */
         }
         .workflow-section h5 {
             text-align: center; /* Centers the text horizontally */
@@ -72,10 +97,13 @@
 
     <div id="fixedHeader" class="sticky-header">
         <h1 class="text-center">Milestone and Task Numbers</h1>
-        <p class="text-center">Assign milestones and task numbers to tasks.</p>
         <div class="button-container d-flex justify-content-between">
-            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
-            <button class="btn btn-success next-btn" onclick="proceed()">Next</button>
+            <button id="backButton" class="btn btn-primary" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <button id="nextButton" class="btn btn-primary" onclick="proceed()">
+                <i class="fas fa-arrow-right"></i>
+            </button>
         </div>
 
     </div>  
