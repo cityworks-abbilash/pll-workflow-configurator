@@ -138,6 +138,12 @@
             padding: 20px; /* Inner padding */
             margin-bottom: 20px; /* Spacing between workflows */
         }
+        .workflow-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
 
 
 
@@ -206,10 +212,13 @@
                 const workflowSection = document.createElement('div');
                 workflowSection.className = 'mb-5';
         
-                // Workflow title
+
+                // Add Workflow title
                 const title = document.createElement('h3');
+                title.className = 'workflow-title'; // Add the class for centering
                 title.textContent = workflow.title;
                 workflowSection.appendChild(title);
+
         
                 // Task list
                 const taskList = document.createElement('ul');
