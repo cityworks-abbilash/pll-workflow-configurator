@@ -78,8 +78,19 @@
                 padding: 0 20px; /* Optional: Add spacing from edges */
                 align-items: center;
             }
-        .back-btn {
+        #backButton {
             float: left;
+            background-color: #2e78ac; /* Tomato color */
+            color: white; /* For any accessible text */
+            padding: 15px;
+            border: 1px solid #fff;;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #backButton:hover {
+            background-color: #225c85; /* Darker shade for hover effect */
         }
         #nextButton {
             float: right;
@@ -102,13 +113,15 @@
     <div id="fixedHeader" class="sticky-header">
         <h1 class="text-center">Workflow Association</h1>
         <div class="button-container d-flex justify-content-between">
-            <button class="btn btn-secondary back-btn" onclick="goBack()">Back</button>
+            <button id="backButton" class="btn btn-primary" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
             <button id="nextButton" class="btn btn-primary" onclick="goToNextPage()">
                 <i class="fas fa-arrow-right"></i>
             </button>
         </div>
 
-    </div>    
+    </div>  
 
     
     <div class="container mt-5">
