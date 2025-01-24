@@ -19,47 +19,42 @@
             font-family: 'Myriad Pro', 'Arial', sans-serif; /* Use Myriad Pro or fallbacks */
         }
         .button-container {
-            position: absolute;
-            top: 10px; /* Adjust as needed */
-            left: 0;
-            right: 0;
+            display: flex; /* Flexbox layout */
+            justify-content: space-between; /* Space between groups of buttons */
+            align-items: center; /* Vertically align buttons */
             padding: 0 20px; /* Optional: Add spacing from edges */
-            align-items: center;
         }
         #backButton {
-            float: left;
-            background-color: #2e78ac; /* Tomato color */
-            color: white; /* For any accessible text */
+            background-color: #2e78ac; /* Back button color */
+            color: white; /* Button text color */
             padding: 15px;
-            border: 1px solid #fff;;
+            border: 1px solid #fff;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        
+                
         #backButton:hover {
             background-color: #225c85; /* Darker shade for hover effect */
         }
         #excelButton {
-            float: right;
-            background-color: #2e78ac; /* Tomato color */
-            color: white; /* For any accessible text */
+            background-color: #2e78ac; /* Export button color */
+            color: white;
             padding: 15px;
-            border: 1px solid #fff;;
+            border: 1px solid #fff;
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-right: 10px; /* Add spacing between export and test buttons */
         }
-        
         #excelButton:hover {
             background-color: #225c85; /* Darker shade for hover effect */
         }
         #testWF {
-            float: right;
-            background-color: #2e78ac; /* Tomato color */
-            color: white; /* For any accessible text */
+            background-color: #2e78ac; /* Test button color */
+            color: white;
             padding: 15px;
-            border: 1px solid #fff;;
+            border: 1px solid #fff;
             display: flex;
             justify-content: center;
             align-items: center;
