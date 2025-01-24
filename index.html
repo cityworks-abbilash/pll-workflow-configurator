@@ -23,12 +23,23 @@
         left: 0;
         right: 0;
         padding: 0 20px; /* Optional: Add spacing from edges */
+        align-items: center;
     }
     #restartButton {
         float: left;
     }
     #nextButton {
         float: right;
+        background-color: #2e78ac; /* Tomato color */
+        color: white; /* For any accessible text */
+        border: 1px solid #fff;;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    #nextButton:hover {
+        background-color: #e5533d; /* Darker shade for hover effect */
     }
     .task-bubble {
         display: inline-block;
