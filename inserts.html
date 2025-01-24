@@ -132,6 +132,14 @@
             padding: 15px 0; /* Spacing inside the group */
             margin: 20px 0; /* Spacing between groups */
         }
+        .workflow-box {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9; /* Optional: Add a light background */
+        }
+
 
 
 
@@ -193,8 +201,8 @@
         displayData
             .filter(workflow => workflow.tasks.length > 0)
             .forEach(workflow => {
-                const workflowSection = document.createElement('div');
-                workflowSection.className = 'mb-5';
+                const workflowBox = document.createElement('div');
+                workflowBox.className = 'workflow-box'; 
         
                 // Workflow title
                 const title = document.createElement('h3');
