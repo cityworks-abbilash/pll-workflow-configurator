@@ -76,10 +76,6 @@
     <div id="fixedHeader" class="sticky-header">
         <h1 class="text-center">Task Codes</h1>
         
-        <div class="text-center mt-4">
-            <label for="workflowPrefix" class="form-label">Enter Workflow Prefix:</label>
-            <input type="text" id="workflowPrefix" class="form-control w-50 mx-auto" placeholder="Enter prefix here">
-        </div>
         <div class="button-container d-flex justify-content-between">
             <button id="backButton" class="btn btn-primary" onclick="goBack()">
                 <i class="fas fa-arrow-left"></i>
@@ -91,8 +87,17 @@
                 <i class="fas fa-project-diagram"></i>
             </button>
         </div>
-        <div id="tablesContainer" class="mt-4"></div>
+
     </div>  
+
+    <div class="container mt-5">
+        <div class="text-center mt-4">
+            <label for="workflowPrefix" class="form-label">Enter Workflow Prefix:</label>
+            <input type="text" id="workflowPrefix" class="form-control w-50 mx-auto" placeholder="Enter prefix here">
+        </div>
+
+        <div id="tablesContainer" class="mt-4"></div>
+    </div>
 
     <script>
         // Retrieve data from localStorage
