@@ -217,6 +217,13 @@
                     // Task results and dropdown
                     if (task.results.length > 0) {
                         task.results.forEach(result => {
+
+                            const dropdownLabel = document.createElement('span');
+                            dropdownLabel.className = 'dropdown-label';
+                            dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
+                            taskRight.appendChild(dropdownLabel);
+
+                            
                             const dropdownContainer = document.createElement('div');
                             dropdownContainer.className = 'custom-dropdown';
                 
@@ -290,6 +297,12 @@
                             });
 
                             tasksAndGroups.groups.forEach(groupOption => {
+
+                                const dropdownLabel = document.createElement('span');
+                                dropdownLabel.className = 'dropdown-label';
+                                dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
+                                taskRight.appendChild(dropdownLabel);
+                                
                                 const dropdownItem = document.createElement('div');
                                 dropdownItem.className = 'dropdown-item';
                                 dropdownItem.innerHTML = `
