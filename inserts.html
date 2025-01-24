@@ -17,9 +17,10 @@
         }
         .custom-dropdown {
             position: relative;
-            display: inline-block;
-            width: 100%;
+            display: block; /* Ensure dropdowns stack vertically */
+            width: 450px; /* Define a consistent horizontal width */
         }
+
         .dropdown-button {
             display: block;
             width: 100%;
@@ -118,11 +119,13 @@
         }
         
         .task-right {
-            display: flex; /* Ensures multiple dropdowns align horizontally */
-            gap: 10px; /* Adds spacing between dropdowns */
-            justify-content: flex-end; /* Align dropdowns to the right */
-            flex-wrap: wrap; /* Allows wrapping for many dropdowns */
+            display: flex;
+            flex-direction: column; /* Align dropdowns vertically */
+            gap: 10px; /* Add spacing between dropdowns */
+            justify-content: flex-start; /* Align content to the top */
+            align-items: flex-start; /* Align dropdowns to the left */
         }
+
         .task-group {
             border-top: 1px dashed #cccccc; /* Dashed line above */
             border-bottom: 1px dashed #cccccc; /* Dashed line below */
