@@ -224,7 +224,7 @@
         
 
                 // Add Workflow title
-                const title = document.createElement('h3');
+                const title = document.createElement('h5');
                 title.className = 'workflow-title'; // Add the class for centering
                 title.textContent = workflow.title;
                 workflowSection.appendChild(title);
@@ -258,7 +258,7 @@
                         task.results.forEach(result => {
                             const dropdownLabel = document.createElement('span');
                             dropdownLabel.className = 'dropdown-label';
-                            dropdownLabel.textContent = `Insert Task/Group for "${result.result}":`;
+                            dropdownLabel.textContent = `Task Result: "${result.result}":`;
                             taskRight.appendChild(dropdownLabel);
         
                             const dropdownContainer = document.createElement('div');
