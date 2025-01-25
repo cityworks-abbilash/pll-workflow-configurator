@@ -141,26 +141,7 @@
             const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
             const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         
-            const workflowPrefix = document.getElementById('workflowPrefix');
-
-            // Restore the saved value on page load
-            const savedWorkflowPrefix = localStorage.getItem('workflowPrefix');
-            if (savedWorkflowPrefix) {
-                workflowPrefix.value = savedWorkflowPrefix;
-            }
-            
-            let typingTimeout;
-            workflowPrefix.addEventListener('input', () => {
-                const prefix = workflowPrefix.value;
-                localStorage.setItem('workflowPrefix', prefix);
-            
-                clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => {
-                    renderTables(); // Re-render tables after user stops typing
-                }, 300); // Delay rendering by 300ms
-            });
-
-
+            const workflowPrefix = document.getElementById('workflowPrefix').value || ''; // Get the workflow prefix value
         
             // Helper function to sanitize and shorten the task name
             function generateTaskCode(prefix, name) {
@@ -287,7 +268,7 @@
                 workflow.tasks.forEach(task => {
                     const { id, name, milestone, taskNumber, results = [] } = task;
 
-                    const taskCode = generateTaskCode(workflowPrefix.value, name); // Task code generation
+                    const taskCode = generateTaskCode(workflowPrefix, name); // Task code generation
 
                     // Update the task in displayData
                     const taskInDisplayData = displayData
