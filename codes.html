@@ -149,10 +149,17 @@
                 workflowPrefix.value = savedWorkflowPrefix;
             }
             
-            // Save the value whenever it changes
+            let typingTimeout;
             workflowPrefix.addEventListener('input', () => {
-                localStorage.setItem('workflowPrefix', workflowPrefix.value);
+                const prefix = workflowPrefix.value;
+                localStorage.setItem('workflowPrefix', prefix);
+            
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    renderTables(); // Re-render tables after user stops typing
+                }, 300); // Delay rendering by 300ms
             });
+
 
         
             // Helper function to sanitize and shorten the task name
@@ -280,7 +287,7 @@
                 workflow.tasks.forEach(task => {
                     const { id, name, milestone, taskNumber, results = [] } = task;
 
-                    const taskCode = generateTaskCode(workflowPrefix, name); // Task code generation
+                    const taskCode = generateTaskCode(workflowPrefix.value, name); // Task code generation
 
                     // Update the task in displayData
                     const taskInDisplayData = displayData
