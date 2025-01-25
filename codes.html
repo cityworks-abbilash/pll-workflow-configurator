@@ -335,6 +335,12 @@
                                 row.appendChild(td);
                             });
                         }
+
+                        // Apply red color if value matches associatedStatus
+                        if (value === associatedStatus) {
+                            td.style.color = 'red'; // Set the text color to red
+                        }
+                        
                         tbody.appendChild(row);
                     });
 
