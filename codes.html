@@ -316,7 +316,7 @@
                                 insertTaskCode || '', // Insert Task Code column
                                 insertTask || '',     // Insert Task column
                                 insertGroup || '',
-                                associatedStatus
+                                associatedStatus || ''
                             ].forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
@@ -328,7 +328,7 @@
                                 row.appendChild(td);
                             });
                         } else {
-                            ['', '', '', '', '', result.result, insertTaskCode || '', insertTask || '', insertGroup || '', associatedStatus]
+                            ['', '', '', '', '', result.result, insertTaskCode || '', insertTask || '', insertGroup || '', associatedStatus || '']
                             .forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
