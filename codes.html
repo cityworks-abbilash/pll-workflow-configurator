@@ -141,7 +141,19 @@
             const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
             const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         
-            const workflowPrefix = document.getElementById('workflowPrefix').value || ''; // Get the workflow prefix value
+            const workflowPrefix = document.getElementById('workflowPrefix');
+
+            // Restore the saved value on page load
+            const savedWorkflowPrefix = localStorage.getItem('workflowPrefix');
+            if (savedWorkflowPrefix) {
+                workflowPrefix.value = savedWorkflowPrefix;
+            }
+            
+            // Save the value whenever it changes
+            workflowPrefix.addEventListener('input', () => {
+                localStorage.setItem('workflowPrefix', workflowPrefix.value);
+            });
+
         
             // Helper function to sanitize and shorten the task name
             function generateTaskCode(prefix, name) {
