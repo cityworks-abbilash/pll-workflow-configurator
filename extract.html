@@ -134,9 +134,22 @@
         const storedWorkflowData = JSON.parse(localStorage.getItem('workflowData') || '[]');
 
         function goBack() {
-            saveSelections();
+            const taskContainer = document.getElementById('tasks');
+            const taskData = Array.from(taskContainer.querySelectorAll('.task-row')).map(taskRow => {
+                const taskName = taskRow.querySelector('.task-bubble').innerText;
+                const connections = Array.from(taskRow.querySelectorAll('ul li')).map(listItem => {
+                    const connectionText = listItem.querySelector('.connection-text')?.innerText || '';
+                    const status = listItem.querySelector('.status-dropdown')?.value || '';
+                    return { result: connectionText, status };
+                });
+        
+                return { id: taskName, name: taskName, results: connections };
+            });
+        
+            saveSelections(taskData);
             window.location.href = 'index.html';
         }
+
 
         if (storedFileData) {
             processDrawioFile(storedFileData, storedWorkflowData.length > 0);
