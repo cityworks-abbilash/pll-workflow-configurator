@@ -282,6 +282,7 @@
                         let insertTask = '';
                         let insertTaskCode = '';
                         let insertGroup = '';
+                        let insertGroupCode = '';
                     
                         if (insertSelection) {
                             if (insertSelection.includes('-')) {
@@ -355,6 +356,8 @@
         
                         const insertTask = tasks.includes(insertSelection) ? insertSelection : '';
                         const insertGroup = groups.includes(insertSelection) ? insertSelection : '';
+                        const insertGroupCode = groups.includes(insertSelection) ? insertSelection : '';
+
         
                         const taskCode = generateTaskCode(workflowPrefix, name);
         
