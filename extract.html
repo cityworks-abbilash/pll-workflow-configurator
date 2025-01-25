@@ -119,8 +119,11 @@
         const storedFileData = localStorage.getItem('fileContent');
         const storedWorkflowData = JSON.parse(localStorage.getItem('workflowData') || '[]');
 
-        if (storedFileData && storedWorkflowData.length > 0) {
-            processDrawioFile(storedFileData, true);
+        if (storedFileData) {
+            processDrawioFile(storedFileData, storedWorkflowData.length > 0);
+        } else {
+            alert('No file data found. Please upload a file.');
+            window.location.href = 'index.html';
         }
 
 
