@@ -320,12 +320,11 @@
                             ].forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
-                        
-                                // Apply red color if value matches associatedStatus
+
                                 if (value === associatedStatus) {
                                     td.style.color = 'red'; // Set the text color to red
                                 }
-                        
+                                
                                 row.appendChild(td);
                             });
                         } else {
@@ -333,19 +332,17 @@
                             .forEach(value => {
                                 const td = document.createElement('td');
                                 td.textContent = value;
-                        
-                                // Apply red color if value matches associatedStatus
+
                                 if (value === associatedStatus) {
                                     td.style.color = 'red'; // Set the text color to red
                                 }
-                        
+
+                                
                                 row.appendChild(td);
                             });
                         }
-                        
-                        // Append the row to the tbody
                         tbody.appendChild(row);
-
+                    });
 
         
                     // Handle tasks with no results
