@@ -26,8 +26,19 @@
         padding: 0 20px; /* Optional: Add spacing from edges */
         align-items: center;
     }
-    #restartButton {
+    #backButton {
         float: left;
+        background-color: #2e78ac; /* Tomato color */
+        color: white; /* For any accessible text */
+        padding: 15px;
+        border: 1px solid #fff;;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    #backButton:hover {
+        background-color: #225c85; /* Darker shade for hover effect */
     }
     #nextButton {
         float: right;
@@ -99,6 +110,9 @@
             <button id="nextButton" class="btn btn-primary">
                 <i class="fas fa-arrow-right"></i>
             </button>
+            <button id="backButton" class="btn btn-primary" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
         </div>
 
     </div>    
@@ -118,6 +132,11 @@
         // Check if file data exists in localStorage
         const storedFileData = localStorage.getItem('fileContent');
         const storedWorkflowData = JSON.parse(localStorage.getItem('workflowData') || '[]');
+
+        function goBack() {
+            saveState();
+            window.location.href = 'index.html';
+        }
 
         if (storedFileData) {
             processDrawioFile(storedFileData, storedWorkflowData.length > 0);
