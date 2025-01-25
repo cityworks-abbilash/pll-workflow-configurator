@@ -312,7 +312,11 @@
                             }
                             if (groups.includes(insertSelection)) {
                                 insertGroup = insertSelection;
-                                insertGroupCode = insertSelection;
+                                const workflowPrefix = document.getElementById('workflowPrefix').value.trim().toUpperCase() || ''; // Get workflow prefix
+                                insertGroupCode = `${workflowPrefix}-` + insertGroup
+                                    .replace(/\s+/g, '') // Remove spaces
+                                    .toUpperCase()       // Convert to uppercase
+                                    .replace('SUBWORKFLOW', 'SUBWF'); // Replace "Sub Workflow" with "SUBWF"
                             }
                         }
                     
