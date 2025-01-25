@@ -134,7 +134,7 @@
         const storedWorkflowData = JSON.parse(localStorage.getItem('workflowData') || '[]');
 
         function goBack() {
-            saveState();
+            saveSelections();
             window.location.href = 'index.html';
         }
 
