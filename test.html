@@ -55,13 +55,17 @@
             const workflow = workflows[workflowId];
             const tasks = workflow.tasks.sort((a, b) => a.milestone - b.milestone || a.taskNumber - b.taskNumber);
             let lowestMilestone = Math.min(...tasks.map(t => t.milestone));
-            let enabledTask = false; // Tracks whether a dropdown has been enabled
+            let enabledTaskId = null; // Tracks the ID of the currently enabled task
+        
+            // Find the first task to enable
+            const firstEnabledTask = tasks.find(t => t.milestone === lowestMilestone && !t.resultSelected);
+            if (firstEnabledTask) {
+                enabledTaskId = firstEnabledTask.id;
+            }
         
             workflowContainer.innerHTML = ''; // Clear previous tasks
         
             tasks.forEach(task => {
-                const isLowestMilestone = task.milestone === lowestMilestone;
-        
                 const taskDiv = document.createElement('div');
                 taskDiv.className = 'task';
         
@@ -70,7 +74,7 @@
                 taskDiv.appendChild(taskTitle);
         
                 const resultDropdown = document.createElement('select');
-                resultDropdown.disabled = enabledTask; // Enable only the first dropdown in the sequence
+                resultDropdown.disabled = task.id !== enabledTaskId; // Enable only the current task's dropdown
         
                 // Add default "Select result" option
                 const defaultOption = document.createElement('option');
@@ -90,13 +94,15 @@
                     const selectedResult = resultDropdown.value;
         
                     if (selectedResult === "") {
-                        // Do nothing if "Select result" is chosen
                         console.log("Please select a valid result.");
                         return;
                     }
         
                     resultDropdown.disabled = true; // Lock the dropdown after selection
                     console.log(`Selected result for task ${task.id}: ${selectedResult}`);
+        
+                    // Mark the task as completed
+                    task.resultSelected = true;
         
                     const insertKey = `${workflowId}-${task.id}-${selectedResult}`;
                     if (insertsData[insertKey]) {
@@ -148,12 +154,6 @@
                 resultDropdown.dataset.taskId = task.id;
                 taskDiv.appendChild(resultDropdown);
                 workflowContainer.appendChild(taskDiv);
-        
-                // Enable the first task's dropdown only
-                if (isLowestMilestone && !enabledTask) {
-                    resultDropdown.disabled = false;
-                    enabledTask = true; // Prevent enabling other dropdowns
-                }
             });
         }
 
