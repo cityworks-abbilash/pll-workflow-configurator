@@ -14,9 +14,10 @@
         <div class="mb-4">
             <label for="drawioUpload" class="form-label">Upload Draw.io File:</label>
             <input type="file" id="drawioUpload" class="form-control" accept=".drawio">
+            <small id="fileStatus" class="text-muted"></small>
         </div>
         
-        <!-- Workflow Prefix Section (Initially Hidden) -->
+        <!-- Workflow Prefix Section -->
         <div id="workflowPrefixContainer" class="mb-4 d-none">
             <label for="workflowPrefix" class="form-label">Enter Workflow Prefix:</label>
             <input type="text" id="workflowPrefix" class="form-control" placeholder="Enter workflow prefix">
@@ -30,16 +31,41 @@
     </div>
     
     <script>
+        // Restore previous state on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            const fileStatus = document.getElementById('fileStatus');
+            const workflowPrefixInput = document.getElementById('workflowPrefix');
+            const workflowPrefixContainer = document.getElementById('workflowPrefixContainer');
+            
+            const storedFileName = localStorage.getItem('fileName');
+            const storedPrefix = localStorage.getItem('workflowPrefix');
+            
+            if (storedFileName) {
+                // Indicate the uploaded file
+                fileStatus.textContent = `Uploaded: ${storedFileName}`;
+                workflowPrefixContainer.classList.remove('d-none');
+            }
+            
+            if (storedPrefix) {
+                workflowPrefixInput.value = storedPrefix;
+            }
+        });
+
         // File upload handling
-        document.getElementById('drawioUpload').addEventListener('change', function(event) {
+        document.getElementById('drawioUpload').addEventListener('change', function (event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const fileContent = e.target.result;
-                // Save file content to localStorage
+                // Save file content and name to localStorage
                 localStorage.setItem('fileContent', fileContent);
+                localStorage.setItem('fileName', file.name);
+
+                // Indicate the uploaded file
+                const fileStatus = document.getElementById('fileStatus');
+                fileStatus.textContent = `Uploaded: ${file.name}`;
 
                 // Show the workflow prefix input box
                 const workflowPrefixContainer = document.getElementById('workflowPrefixContainer');
@@ -48,18 +74,28 @@
             reader.readAsText(file);
         });
 
+        // Save workflow prefix to localStorage
+        document.getElementById('workflowPrefix').addEventListener('input', function (event) {
+            localStorage.setItem('workflowPrefix', event.target.value);
+        });
+
         // Restart functionality
-        document.getElementById('restartButton').addEventListener('click', function() {
+        document.getElementById('restartButton').addEventListener('click', function () {
             // Clear localStorage
             localStorage.removeItem('fileContent');
+            localStorage.removeItem('fileName');
+            localStorage.removeItem('workflowPrefix');
             localStorage.removeItem('workflowData');
             localStorage.removeItem('workflowState');
             localStorage.removeItem('milestoneData'); // Clear milestone data
             localStorage.removeItem('insertsData');
 
-            // Hide the workflow prefix input box
+            // Reset the UI
+            const fileStatus = document.getElementById('fileStatus');
+            fileStatus.textContent = '';
             const workflowPrefixContainer = document.getElementById('workflowPrefixContainer');
             workflowPrefixContainer.classList.add('d-none');
+            document.getElementById('workflowPrefix').value = '';
         });
     </script>
 </body>
