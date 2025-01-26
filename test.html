@@ -103,18 +103,35 @@
                         const insertedTaskInfo = insertsData[insertKey];
                         console.log(`Inserting task: ${insertedTaskInfo}`);
         
-                        const [newTaskName, newTaskId] = insertedTaskInfo.split('-');
-                        const insertedTask = {
-                            id: newTaskId,
-                            name: newTaskName,
-                            milestone: task.milestone,
-                            taskNumber: task.taskNumber + 1,
-                            results: task.results,
-                            taskCode: task.taskCode
-                        };
+                        // Extract workflow ID and task ID from the matching value
+                        const [insertTaskName, insertTaskId] = insertedTaskInfo.split('-');
         
-                        workflows[workflowId].tasks.push(insertedTask);
-                        renderWorkflow(workflowId); // Re-render the workflow
+                        // Find the matching task in displayData
+                        let insertedTask;
+                        displayData.forEach(wf => {
+                            if (wf.tasks) {
+                                wf.tasks.forEach(t => {
+                                    if (t.id === insertTaskId) {
+                                        insertedTask = { ...t }; // Clone the task to avoid reference issues
+                                    }
+                                });
+                            }
+                        });
+        
+                        if (insertedTask) {
+                            console.log(`Found task to insert: ${insertedTask.name} (${insertedTask.id})`);
+        
+                            // Insert the task into the workflow at the correct position
+                            workflows[workflowId].tasks.push({
+                                ...insertedTask,
+                                milestone: task.milestone,
+                                taskNumber: task.taskNumber + 1 // Increment task number
+                            });
+        
+                            renderWorkflow(workflowId); // Re-render the workflow
+                        } else {
+                            console.error(`Task with ID ${insertTaskId} not found in displayData.`);
+                        }
                     } else {
                         // Enable the next dropdown in sequence
                         const nextTask = tasks.find(t => t.taskNumber > task.taskNumber && t.milestone === task.milestone);
@@ -138,6 +155,7 @@
                 }
             });
         }
+
 
 
         renderWorkflow(currentWorkflow);
