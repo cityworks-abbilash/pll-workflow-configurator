@@ -72,6 +72,13 @@
                 const resultDropdown = document.createElement('select');
                 resultDropdown.disabled = enabledTask; // Enable only the first dropdown in the sequence
         
+                // Add default "Select result" option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "Select result";
+                resultDropdown.appendChild(defaultOption);
+        
+                // Add task results to dropdown
                 task.results.forEach(result => {
                     const option = document.createElement('option');
                     option.value = result.result;
@@ -81,8 +88,14 @@
         
                 resultDropdown.addEventListener('change', () => {
                     const selectedResult = resultDropdown.value;
-                    resultDropdown.disabled = true; // Lock the dropdown after selection
         
+                    if (selectedResult === "") {
+                        // Do nothing if "Select result" is chosen
+                        console.log("Please select a valid result.");
+                        return;
+                    }
+        
+                    resultDropdown.disabled = true; // Lock the dropdown after selection
                     console.log(`Selected result for task ${task.id}: ${selectedResult}`);
         
                     const insertKey = `${workflowId}-${task.id}-${selectedResult}`;
