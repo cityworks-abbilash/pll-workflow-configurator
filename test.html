@@ -103,11 +103,12 @@
                         const insertedTaskInfo = insertsData[insertKey];
                         console.log(`Inserting task: ${insertedTaskInfo}`);
         
-                        // Extract workflow ID and task ID from the matching value
-                        const [insertTaskName, insertTaskId] = insertedTaskInfo.split('-');
+                        // Extract task ID (everything after the second-to-last dash)
+                        const parts = insertedTaskInfo.split('-');
+                        const insertTaskId = parts.slice(-2).join('-'); // Last two parts form the task ID
         
                         // Find the matching task in displayData
-                        let insertedTask;
+                        let insertedTask = null;
                         displayData.forEach(wf => {
                             if (wf.tasks) {
                                 wf.tasks.forEach(t => {
