@@ -16,7 +16,13 @@
             <input type="file" id="drawioUpload" class="form-control" accept=".drawio">
         </div>
         
-        <!-- Restart Button -->
+        <!-- Workflow Prefix Section (Initially Hidden) -->
+        <div id="workflowPrefixContainer" class="mb-4 d-none">
+            <label for="workflowPrefix" class="form-label">Enter Workflow Prefix:</label>
+            <input type="text" id="workflowPrefix" class="form-control" placeholder="Enter workflow prefix">
+        </div>
+        
+        <!-- Restart and Next Buttons -->
         <div class="d-flex justify-content-between">
             <button id="restartButton" class="btn btn-danger">Restart</button>
             <a href="extract.html" id="nextButton" class="btn btn-primary">Next</a>
@@ -24,7 +30,7 @@
     </div>
     
     <script>
-        // Move the file upload handling here
+        // File upload handling
         document.getElementById('drawioUpload').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -32,13 +38,17 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const fileContent = e.target.result;
-                // Save file content to localStorage (original functionality)
+                // Save file content to localStorage
                 localStorage.setItem('fileContent', fileContent);
+
+                // Show the workflow prefix input box
+                const workflowPrefixContainer = document.getElementById('workflowPrefixContainer');
+                workflowPrefixContainer.classList.remove('d-none');
             };
             reader.readAsText(file);
         });
 
-        // Move the restart functionality here
+        // Restart functionality
         document.getElementById('restartButton').addEventListener('click', function() {
             // Clear localStorage
             localStorage.removeItem('fileContent');
@@ -46,6 +56,10 @@
             localStorage.removeItem('workflowState');
             localStorage.removeItem('milestoneData'); // Clear milestone data
             localStorage.removeItem('insertsData');
+
+            // Hide the workflow prefix input box
+            const workflowPrefixContainer = document.getElementById('workflowPrefixContainer');
+            workflowPrefixContainer.classList.add('d-none');
         });
     </script>
 </body>
