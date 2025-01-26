@@ -55,41 +55,41 @@
             const workflow = workflows[workflowId];
             const tasks = workflow.tasks.sort((a, b) => a.milestone - b.milestone || a.taskNumber - b.taskNumber);
             let lowestMilestone = Math.min(...tasks.map(t => t.milestone));
-
+            let enabledTask = false; // Tracks whether a dropdown has been enabled
+        
             workflowContainer.innerHTML = ''; // Clear previous tasks
-
+        
             tasks.forEach(task => {
                 const isLowestMilestone = task.milestone === lowestMilestone;
-                const isFirstTask = isLowestMilestone && task.taskNumber === Math.min(...tasks.filter(t => t.milestone === lowestMilestone).map(t => t.taskNumber));
-
+        
                 const taskDiv = document.createElement('div');
-                taskDiv.className = `task ${isFirstTask ? '' : 'disabled'}`;
-
+                taskDiv.className = 'task';
+        
                 const taskTitle = document.createElement('h3');
                 taskTitle.textContent = `${task.name} (Milestone: ${task.milestone}, Task: ${task.taskNumber})`;
                 taskDiv.appendChild(taskTitle);
-
+        
                 const resultDropdown = document.createElement('select');
-                resultDropdown.disabled = !isFirstTask;
-
+                resultDropdown.disabled = enabledTask; // Enable only the first dropdown in the sequence
+        
                 task.results.forEach(result => {
                     const option = document.createElement('option');
                     option.value = result.result;
                     option.textContent = result.result;
                     resultDropdown.appendChild(option);
                 });
-
+        
                 resultDropdown.addEventListener('change', () => {
                     const selectedResult = resultDropdown.value;
-                    resultDropdown.disabled = true; // Lock the dropdown
-
+                    resultDropdown.disabled = true; // Lock the dropdown after selection
+        
                     console.log(`Selected result for task ${task.id}: ${selectedResult}`);
-
+        
                     const insertKey = `${workflowId}-${task.id}-${selectedResult}`;
                     if (insertsData[insertKey]) {
                         const insertedTaskInfo = insertsData[insertKey];
                         console.log(`Inserting task: ${insertedTaskInfo}`);
-
+        
                         const [newTaskName, newTaskId] = insertedTaskInfo.split('-');
                         const insertedTask = {
                             id: newTaskId,
@@ -99,16 +99,33 @@
                             results: task.results,
                             taskCode: task.taskCode
                         };
-
+        
                         workflows[workflowId].tasks.push(insertedTask);
                         renderWorkflow(workflowId); // Re-render the workflow
+                    } else {
+                        // Enable the next dropdown in sequence
+                        const nextTask = tasks.find(t => t.taskNumber > task.taskNumber && t.milestone === task.milestone);
+                        if (nextTask) {
+                            const nextDropdown = document.querySelector(`select[data-task-id="${nextTask.id}"]`);
+                            if (nextDropdown) {
+                                nextDropdown.disabled = false;
+                            }
+                        }
                     }
                 });
-
+        
+                resultDropdown.dataset.taskId = task.id;
                 taskDiv.appendChild(resultDropdown);
                 workflowContainer.appendChild(taskDiv);
+        
+                // Enable the first task's dropdown only
+                if (isLowestMilestone && !enabledTask) {
+                    resultDropdown.disabled = false;
+                    enabledTask = true; // Prevent enabling other dropdowns
+                }
             });
         }
+
 
         renderWorkflow(currentWorkflow);
     </script>
