@@ -106,10 +106,6 @@
     </div>  
 
     <div class="container mt-5">
-        <div class="text-center mt-4">
-            <label for="workflowPrefix" class="form-label">Enter Workflow Prefix:</label>
-            <input type="text" id="workflowPrefix" class="form-control w-50 mx-auto" placeholder="Enter prefix here">
-        </div>
 
         <div id="tablesContainer" class="mt-4"></div>
     </div>
@@ -141,7 +137,8 @@
             const insertsData = JSON.parse(localStorage.getItem('insertsData')) || {};
             const displayData = JSON.parse(localStorage.getItem('displayData')) || [];
         
-            const workflowPrefix = document.getElementById('workflowPrefix').value || ''; // Get the workflow prefix value
+            const workflowPrefix = localStorage.getItem('workflowPrefix')?.trim().toUpperCase() || '';
+
         
             // Helper function to sanitize and shorten the task name
             function generateTaskCode(prefix, name) {
@@ -312,12 +309,12 @@
                             }
                             if (groups.includes(insertSelection)) {
                                 insertGroup = insertSelection;
-                                const workflowPrefix = document.getElementById('workflowPrefix').value.trim().toUpperCase() || ''; // Get workflow prefix
                                 insertGroupCode = `${workflowPrefix}-` + insertGroup
                                     .replace(/\s+/g, '') // Remove spaces
                                     .toUpperCase()       // Convert to uppercase
-                                    .replace('SUBWORKFLOW', 'SUBWF'); // Replace "Sub Workflow" with "SUBWF"
+                                    .replace('SUBWORKFLOW', 'SUBWF');
                             }
+
                         }
                     
                         const taskCode = index === 0 ? generateTaskCode(workflowPrefix, name) : '';
@@ -405,10 +402,6 @@
             localStorage.setItem('displayData', JSON.stringify(displayData));
         }
         
-        // Attach event listener to workflow prefix input box
-        document.getElementById('workflowPrefix').addEventListener('input', () => {
-            renderTables(); // Re-render tables when the prefix changes
-        });
 
         
         // Render tables on page load
