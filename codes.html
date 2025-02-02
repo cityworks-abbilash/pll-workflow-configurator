@@ -448,12 +448,13 @@
                         if (!worksheet[cellRef]) continue;
         
                         // Apply black border to all cells
-                        if (!worksheet[cellRef].s) worksheet[cellRef].s = {};
-                        worksheet[cellRef].s.border = {
-                            top: { style: "thin", color: { rgb: "000000" } },
-                            bottom: { style: "thin", color: { rgb: "000000" } },
-                            left: { style: "thin", color: { rgb: "000000" } },
-                            right: { style: "thin", color: { rgb: "000000" } }
+                        worksheet[cellRef].s = {
+                            border: {
+                                top: { style: "thin", color: { rgb: "000000" } },
+                                bottom: { style: "thin", color: { rgb: "000000" } },
+                                left: { style: "thin", color: { rgb: "000000" } },
+                                right: { style: "thin", color: { rgb: "000000" } }
+                            }
                         };
         
                         // Apply header background color
@@ -469,7 +470,6 @@
         
             XLSX.writeFile(workbook, 'Task_Codes.xlsx'); // Export the workbook as an Excel file
         }
-
 
 
 
