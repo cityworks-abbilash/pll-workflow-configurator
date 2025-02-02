@@ -415,9 +415,9 @@
             tables.forEach((table, index) => {
                 let wsData = []; // Array to store worksheet data
         
-                // Add empty rows before the table to ensure it starts at A5
+                // Insert 4 blank rows so table starts at A5
                 for (let i = 0; i < 4; i++) {
-                    wsData.push([]); // Pushing empty arrays to create blank rows
+                    wsData.push([]); // Empty rows to shift the table down
                 }
         
                 // Extract table rows and cells
@@ -433,20 +433,21 @@
                     wsData.push(rowData);
                 });
         
-                // Create worksheet from the modified data
+                // Create worksheet from modified data
                 const worksheet = XLSX.utils.aoa_to_sheet(wsData);
         
-                // Define header row range (Row 5 in Excel, which is index 4 in array)
+                // Define header row index (Row 5 in Excel, which is index 4 in array)
                 const headerRowIndex = 4;
                 const range = XLSX.utils.decode_range(worksheet['!ref']);
         
-                // Apply styles
+                // Apply styles for borders and header background color
                 for (let R = range.s.r; R <= range.e.r; ++R) {
                     for (let C = range.s.c; C <= range.e.c; ++C) {
                         const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
         
                         if (!worksheet[cellRef]) continue;
         
+                        // Apply black border to all cells
                         worksheet[cellRef].s = {
                             border: {
                                 top: { style: "thin", color: { rgb: "000000" } },
@@ -456,8 +457,9 @@
                             }
                         };
         
+                        // Apply header background color
                         if (R === headerRowIndex) {
-                            worksheet[cellRef].s.fill = { fgColor: { rgb: "D9D9D9" } }; // Header background color
+                            worksheet[cellRef].s.fill = { fgColor: { rgb: "D9D9D9" } }; // Gray background
                             worksheet[cellRef].s.font = { bold: true };
                         }
                     }
@@ -468,6 +470,7 @@
         
             XLSX.writeFile(workbook, 'Task_Codes.xlsx'); // Export the workbook as an Excel file
         }
+
 
 
 
