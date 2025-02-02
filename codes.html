@@ -440,6 +440,14 @@
                 const headerRowIndex = 4;
                 const range = XLSX.utils.decode_range(worksheet['!ref']);
         
+                // Define style for black borders
+                const borderStyle = {
+                    top: { style: "thin", color: { rgb: "000000" } },
+                    bottom: { style: "thin", color: { rgb: "000000" } },
+                    left: { style: "thin", color: { rgb: "000000" } },
+                    right: { style: "thin", color: { rgb: "000000" } }
+                };
+        
                 // Loop through and apply formatting
                 for (let R = range.s.r; R <= range.e.r; ++R) {
                     for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -449,27 +457,31 @@
                         if (!worksheet[cellRef].s) worksheet[cellRef].s = {};
         
                         // Apply black border to all cells
-                        worksheet[cellRef].s.border = {
-                            top: { style: "thin", color: { rgb: "000000" } },
-                            bottom: { style: "thin", color: { rgb: "000000" } },
-                            left: { style: "thin", color: { rgb: "000000" } },
-                            right: { style: "thin", color: { rgb: "000000" } }
-                        };
+                        worksheet[cellRef].s.border = borderStyle;
         
-                        // Apply header background color
+                        // Apply header background color and bold font
                         if (R === headerRowIndex) {
-                            worksheet[cellRef].s.fill = { type: "pattern", patternType: "solid", fgColor: { rgb: "D9D9D9" } };
+                            worksheet[cellRef].s.fill = {
+                                type: "pattern",
+                                patternType: "solid",
+                                fgColor: { rgb: "D9D9D9" } // Light gray background for header
+                            };
                             worksheet[cellRef].s.font = { bold: true };
                         }
                     }
                 }
         
+                // Attach styles to workbook (this step forces styles to be included)
+                worksheet['!cols'] = Array(range.e.c + 1).fill({ wch: 20 }); // Set column width
+                worksheet['!rows'] = [{ hpx: 25 }]; // Increase row height for headers
+        
                 XLSX.utils.book_append_sheet(workbook, worksheet, `Table ${index + 1}`);
             });
         
-            // Save file
+            // Ensure styles are written to the file
             XLSX.writeFile(workbook, 'Task_Codes.xlsx');
         }
+
 
 
 
