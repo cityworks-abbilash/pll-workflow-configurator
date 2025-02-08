@@ -176,7 +176,7 @@
                 let sanitizedName = modifiedWords.join('').replace(/[^a-zA-Z]/g, '').toUpperCase();
             
                 // Combine prefix and sanitized name
-                let taskCode = `${prefix.toUpperCase()}-${sanitizedName}`;
+                let taskCode = `${prefix.toUpperCase()}${sanitizedName}`;
             
             
                 // Step 3: Only shorten if task code length exceeds 10 characters
