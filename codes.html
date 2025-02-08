@@ -309,7 +309,7 @@
                             }
                             if (groups.includes(insertSelection)) {
                                 insertGroup = insertSelection;
-                                insertGroupCode = `${workflowPrefix}-` + insertGroup
+                                insertGroupCode = `${workflowPrefix}` + insertGroup
                                     .replace(/\s+/g, '') // Remove spaces
                                     .toUpperCase()       // Convert to uppercase
                                     .replace('SUBWORKFLOW', 'SUBWF');
