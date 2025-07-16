@@ -18,24 +18,21 @@
   />
 
   <script>
-    // Function to refresh traffic camera images
+    // refresh the image
     function refreshTrafficCamImages() {
-      console.log('Refreshing traffic camera images...');
       const images = document.getElementsByClassName('traffic-cam-image');
       for (let i = 0; i < images.length; i++) {
-        const baseUrl = images[i].src.split('?')[0]; // Remove old ?time=
+        const baseUrl = images[i].src.split('?')[0];
         const newUrl = baseUrl + '?time=' + new Date().getTime();
         images[i].src = newUrl;
-        console.log('Updated image ' + i + ': ' + newUrl);
       }
     }
 
-    // Run on initial page load
     document.addEventListener('DOMContentLoaded', function () {
       refreshTrafficCamImages();
     });
 
-    // Refresh every 10 seconds
+    //rrefresh interval
     setInterval(refreshTrafficCamImages, 10000);
   </script>
 </body>
