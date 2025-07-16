@@ -2,7 +2,6 @@
 <html>
 <head>
   <title>Live Traffic Cam</title>
-  <meta http-equiv="refresh" content="0"> <!-- We’ll refresh manually using JS -->
   <style>
     img {
       max-width: 100%;
@@ -12,18 +11,32 @@
 </head>
 <body>
   <h3>Macdonald Bridge – Dartmouth Bound</h3>
-  <img id="trafficCam" alt="Traffic Cam" />
+  <img
+    class="traffic-cam-image"
+    src="https://halifaxharbourbridges.ca/wp-content/traffic_cam_images/macdonald-dartmouth-bound.png"
+    alt="Traffic Cam"
+  />
+
   <script>
-    function updateCam() {
-      const timestamp = Date.now();
-      const img = document.getElementById("trafficCam");
-      const url = `https://halifaxharbourbridges.ca/wp-content/traffic_cam_images/macdonald-dartmouth-bound.png?time=${timestamp}`;
-      img.src = url;
-      console.log("Image timestamp used:", timestamp);
+    // Function to refresh traffic camera images
+    function refreshTrafficCamImages() {
+      console.log('Refreshing traffic camera images...');
+      const images = document.getElementsByClassName('traffic-cam-image');
+      for (let i = 0; i < images.length; i++) {
+        const baseUrl = images[i].src.split('?')[0]; // Remove old ?time=
+        const newUrl = baseUrl + '?time=' + new Date().getTime();
+        images[i].src = newUrl;
+        console.log('Updated image ' + i + ': ' + newUrl);
+      }
     }
 
-    updateCam(); // Initial load
-    setInterval(updateCam, 30000); // Update every 30 seconds
+    // Run on initial page load
+    document.addEventListener('DOMContentLoaded', function () {
+      refreshTrafficCamImages();
+    });
+
+    // Refresh every 10 seconds
+    setInterval(refreshTrafficCamImages, 10000);
   </script>
 </body>
 </html>
